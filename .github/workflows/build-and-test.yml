@@ -1,0 +1,43 @@
+#
+# This source file is part of the Stanford Biodesign Digital Health Next.js Template open-source project
+#
+# SPDX-FileCopyrightText: 2023 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Build and Test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  reuseaction:
+    name: REUSE Compliance Check
+    uses: StanfordBDHG/.github/.github/workflows/reuse.yml@v2
+  markdownlinkcheck:
+    name: Markdown Link Check
+    uses: StanfordBDHG/.github/.github/workflows/markdown-link-check.yml@v2
+  eslint:
+    name: ESLint
+    uses: StanfordBDHG/.github/.github/workflows/eslint.yml@v2
+    permissions:
+      contents: read
+      checks: write
+  testandcoverage:
+    name: Test and Coverage
+    uses: StanfordBDHG/.github/.github/workflows/npm-test-and-coverage.yml@v2
+    secrets:
+      token: ${{ secrets.CODECOV_TOKEN }}
+  dockercomposetest:
+    name: Docker Compose & Test
+    uses: StanfordBDHG/.github/.github/workflows/docker-compose-test.yml@v2
+    with:
+      dockerComposeFile: docker-compose-development.yml
+      testscript: test.sh
