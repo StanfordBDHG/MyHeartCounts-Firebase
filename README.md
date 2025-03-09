@@ -1,84 +1,46 @@
-<!--
 
-This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
+# ENGAGE-HF Firebase
 
-SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+[![Build and Test](https://github.com/StanfordBDHG/ENGAGE-HF-Firebase/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordBDHG/ENGAGE-HF-Firebase/actions/workflows/build-and-test.yml)
+[![Deployment](https://github.com/StanfordBDHG/ENGAGE-HF-Firebase/actions/workflows/deployment.yml/badge.svg)](https://github.com/StanfordBDHG/ENGAGE-HF-Firebase/actions/workflows/deployment.yml)
 
-SPDX-License-Identifier: MIT
 
--->
+Firebase cloud hosting infrastructure for the ENGAGE-HF project.
 
-# Biodesign Digital Health Next.js Template
+## Behavior
 
-[![Build and Test](https://github.com/StanfordBDHG/NextJSTemplate/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordBDHG/NextJSTemplate/actions/workflows/build-and-test.yml)
-[![Deployment](https://github.com/StanfordBDHG/NextJSTemplate/actions/workflows/main.yml/badge.svg)](https://github.com/StanfordBDHG/NextJSTemplate/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/StanfordBDHG/NextJSTemplate/graph/badge.svg?token=dfQW5eZ2up)](https://codecov.io/gh/StanfordBDHG/NextJSTemplate)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10052055.svg)](https://doi.org/10.5281/zenodo.10052055)
+The base functionality of the ENGAGE-HF Firebase Functions revolve around three parts:
+- recommending medication changes to patients based on existing medication, vitals and symptom scores
+- calculating symptom scores from questionnaire responses of patients
+- generating Health Summary PDFs containing recommendations, vitals and symptom scores
 
-## How To Use This Template
+## Usage
 
-The template repository contains a template for a Next.js project providing automated GitHub Actions and setups for code linting, testing & test coverage reports, docker deployments, a docker compose setup, local packages for modular deployment, and documentation generation & deployment.
+To use Firebase functions for your own project or to emulate them for client applications, this section will help to give an overview of the different packages in use and how to install, build, test and launch them.
 
-Follow these steps to customize it to your needs:
+This repository contains two separate packages.
 
-1. Rename the Next.js project.
-2. Modify, add, or remove the local packages found at `/packages/*` to separate code into smaller modules.
-3. Add dependencies and edit the project in `/app` and the local Node packages.
+- The package located in [functions/models](functions/models) contains model types including decoding/encoding functions and useful extensions that are shared between the Firebase functions and the web dashboard. This package is released via the npm registry and can be accessed as `@stanfordbdhg/engagehf-models`.
+- The package located in [functions](functions) contains the Firebase functions and services that are called from these functions. This package has a local dependency on the package in [functions/models](functions/models). Therefore, the functions package does not work (e.g. for linting, building, etc) without building the models package first.
 
-The main application is automatically deployed to https://stanfordbdhg.github.io/NextJSTemplate/.
+To make this structure simpler to use, we provide different scripts as part of the [package.json](package.json) file in the root directory of this repository. The file ensures execution order between the two packages. We only document the scripts located in this file, since they cover the most common use cases, feel free to have a look at the individual package.json files of the respective packages to get a deeper understanding and more package-focused operations.
 
-The documentation of the local packages is automatically deployed to https://stanfordbdhg.github.io/NextJSTemplate/docs.
+|Command|Purpose|
+|-|-|
+|npm run install|Installs dependencies (incl. dev dependencies) for both packages.|
+|npm run clean|Cleans existing build artifacts for both packages.|
+|npm run build|Builds both packages. If you have added or removed files in one of the packages, make sure to clean before using this command.|
+|npm run lint|Lints both packages. Make sure to build before using this command. You may want to append `:fix` to fix existing issues automatically or `:strict` to make sure the command does not succeed with existing warnings or errors.|
+|npm run prepare|Combines cleaning, installing and building both packages.|
+|npm run test:ci|Tests the Firebase functions with emulators running and with test coverage collection active.|
+|npm run serve:seeded|Starts up the relevant emulators for ENGAGE-HF and seeds them. Make sure to build the project first before executing this command.|
 
-## Getting Started
+For using the emulators for client applications, it is probably easiest to call `npm run prepare` whenever files could have changed (e.g. when changing branch or pulling new changes) and then calling `npm run serve:seeded` to start up the emulators in a seeded state. Both of these commands are performed in the root directory of this repository.
 
-You can run the project using the following command. You will need to install Node.js and npm, e.g., using [homebrew (recommended for macOS)](https://formulae.brew.sh/formula/node) or the official [Node.js installer](https://nodejs.org/en/download).
-
-1. Install All Dependencies
-
-```bash
-npm install
-```
-
-1. Start the Next.js Application
+Otherwise, you may want to use Docker to run the emulators.  For this, you can use the following command:
 
 ```bash
-npm run dev
+docker-compose up
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.<!-- markdown-link-check-disable-line -->
-
-You can edit the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Docker
-
-1. [Install Docker](https://docs.docker.com/get-docker/) on your machine.
-2. Build the image and run the docker compose setup: `docker compose -f docker-compose-development.yml up`.
-
-You can view your images created with `docker images`.
-
-Open [http://localhost](http://localhost) with your browser to see the result. You can visit [http://localhost:8080](http://localhost:8080) to see the reverse proxy setup before the main application.<!-- markdown-link-check-disable-line -->
-
-The `docker-compose.yml` setup contains a production-ready setup using a reverse proxy.
-
-Every version of the application on the `main` branch is automatically packaged into docker images using the `main` tag. Every release is also published using the `latest` and respective version tags.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## License
-
-This project is licensed under the MIT License. See [Licenses](https://github.com/StanfordBDHG/NextJSTemplate/tree/main/LICENSES) for more information.
-
-## Contributors
-
-This project is developed as part of the Stanford Byers Center for Biodesign at Stanford University.
-See [CONTRIBUTORS.md](https://github.com/StanfordBDHG/NextJSTemplate/tree/main/CONTRIBUTORS.md) for a full list of all Next.js Template contributors.
-
-![Stanford Byers Center for Biodesign Logo](https://raw.githubusercontent.com/StanfordBDHG/.github/main/assets/biodesign-footer-light.png#gh-light-mode-only)
-![Stanford Byers Center for Biodesign Logo](https://raw.githubusercontent.com/StanfordBDHG/.github/main/assets/biodesign-footer-dark.png#gh-dark-mode-only)
+This can be especially useful if you're using an operating system like Windows, as scripts contain OS-specific commands that may not work the same way across different platforms.

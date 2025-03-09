@@ -6,11 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-const config = {
-  plugins: [require.resolve('prettier-plugin-tailwindcss')],
+module.exports = {
+  plugins: [],
   semi: false,
   singleQuote: true,
   experimentalTernaries: true,
 }
-
-module.exports = config
