@@ -1,5 +1,5 @@
 #
-# This source file is part of the Stanford Biodesign Digital Health Next.js Template open-source project
+# This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
 #
 # SPDX-FileCopyrightText: 2023 Stanford University and the project authors (see CONTRIBUTORS.md)
 #
@@ -24,20 +24,55 @@ jobs:
   markdownlinkcheck:
     name: Markdown Link Check
     uses: StanfordBDHG/.github/.github/workflows/markdown-link-check.yml@v2
-  eslint:
-    name: ESLint
-    uses: StanfordBDHG/.github/.github/workflows/eslint.yml@v2
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: 'true'
+      - name: Git LFS Pull
+        run: git lfs pull
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.6.x
+      - name: Install Dependencies
+        run: npm run install
+      - name: Build
+        run: npm run build
+      - name: Lint
+        run: npm run lint:strict
     permissions:
       contents: read
-      checks: write
-  testandcoverage:
-    name: Test and Coverage
-    uses: StanfordBDHG/.github/.github/workflows/npm-test-and-coverage.yml@v2
-    secrets:
-      token: ${{ secrets.CODECOV_TOKEN }}
-  dockercomposetest:
-    name: Docker Compose & Test
-    uses: StanfordBDHG/.github/.github/workflows/docker-compose-test.yml@v2
-    with:
-      dockerComposeFile: docker-compose-development.yml
-      testscript: test.sh
+  buildandtest:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: 'true'
+      - name: Git LFS Pull
+        run: git lfs pull
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.6.x
+      - name: Install Dependencies
+        run: npm run install
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      - name: Build
+        run: npm run build
+      - name: Test
+        id: test
+        run: npm run test:ci
+      - name: Archive Regenerated Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test results
+          path: functions/src/tests/resources
+    permissions:
+      contents: read
