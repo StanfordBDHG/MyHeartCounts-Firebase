@@ -1,8 +1,8 @@
 #
-# This source file is part of the Stanford Biodesign Digital Health Next.js Template open-source project
-# Based on the Apodini workflow found at: https://github.com/Apodini/ApodiniExample/docker-compose.yml
+# This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
+# Based on the Apodini workflow found at: https://github.com/Apodini/ApodiniExample/docker-compose-development.yml
 #
-# SPDX-FileCopyrightText: 2023 Stanford University and the project authors (see CONTRIBUTORS.md)
+# SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
 #
 # SPDX-License-Identifier: MIT
 #

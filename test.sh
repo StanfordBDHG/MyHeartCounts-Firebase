@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #
-# This source file is part of the Stanford Biodesign Digital Health Next.js Template open-source project
+# This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
 #
-# SPDX-FileCopyrightText: 2023 Stanford University
+# SPDX-FileCopyrightText: 2025 Stanford University
 #
 # SPDX-License-Identifier: MIT
 #
