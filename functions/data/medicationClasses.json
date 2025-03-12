@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Beta blockers",
+    "videoPath": "videoSections/1/videos/1"
+  },
+  {
+    "name": {
+      "en": "SGLT2 Inhibitors",
+      "de": "SGLT2-Inhibitoren"
+    },
+    "videoPath": "videoSections/1/videos/5"
+  },
+  {
+    "name": "Mineralocorticoid Receptor Antagonists (MRAs)",
+    "videoPath": "videoSections/1/videos/4"
+  },
+  {
+    "name": "ACE inhibitors",
+    "videoPath": "videoSections/1/videos/2"
+  },
+  {
+    "name": "ARBs",
+    "videoPath": "videoSections/1/videos/2"
+  },
+  {
+    "name": "Angiotensin Receptor/Neprilysin Inhibitors (ARNI)",
+    "videoPath": "videoSections/1/videos/3"
+  },
+  {
+    "name": "Diuretics",
+    "videoPath": "videoSections/1/videos/6"
+  }
+]
