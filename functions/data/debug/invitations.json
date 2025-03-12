@@ -1,0 +1,233 @@
+{
+  "ADMIN000": {
+    "auth": {
+      "displayName": "Invitation Admin0",
+      "email": "engagehf-invitation-admin0@stanford.edu"
+    },
+    "code": "ADMIN000",
+    "user": {
+      "type": "admin"
+    }
+  },
+  "ADMIN001": {
+    "auth": {
+      "displayName": "Invitation Admin1",
+      "email": "engagehf-invitation-admin1@stanford.edu"
+    },
+    "code": "ADMIN001",
+    "user": {
+      "type": "admin"
+    }
+  },
+  "OWNER000": {
+    "auth": {
+      "displayName": "Stanford InvitationOwner0",
+      "email": "engagehf-invitation-owner0@stanford.edu"
+    },
+    "code": "OWNER000",
+    "user": {
+      "type": "owner",
+      "organization": "stanford"
+    }
+  },
+  "OWNER001": {
+    "auth": {
+      "displayName": "Stanford InvitationOwner1",
+      "email": "engagehf-invitation-owner1@stanford.edu"
+    },
+    "code": "OWNER001",
+    "user": {
+      "type": "owner",
+      "organization": "stanford"
+    }
+  },
+  "OWNER002": {
+    "auth": {
+      "displayName": "JHU InvitationOwner",
+      "email": "engagehf-invitation-owner@jhu.edu"
+    },
+    "code": "OWNER002",
+    "user": {
+      "type": "owner",
+      "organization": "jhu"
+    }
+  },
+  "OWNER003": {
+    "auth": {
+      "displayName": "UMich InvitationOwner",
+      "email": "engagehf-invitation-owner@stanford.edu"
+    },
+    "code": "OWNER003",
+    "user": {
+      "type": "owner",
+      "organization": "umich"
+    }
+  },
+  "OWNER004": {
+    "auth": {
+      "displayName": "UW InvitationOwner",
+      "email": "engagehf-invitation-owner@uw.edu"
+    },
+    "code": "OWNER004",
+    "user": {
+      "type": "owner",
+      "organization": "uw"
+    }
+  },
+  "CLINICI0": {
+    "auth": {
+      "displayName": "Stanford InvitationClinician0",
+      "email": "engagehf-invitation-clinician0@stanford.edu"
+    },
+    "code": "CLINICI0",
+    "user": {
+      "type": "clinician",
+      "organization": "stanford"
+    }
+  },
+  "CLINICI1": {
+    "auth": {
+      "displayName": "Stanford InvitationClinician1",
+      "email": "engagehf-invitation-clinician1@stanford.edu"
+    },
+    "code": "CLINICI1",
+    "user": {
+      "type": "clinician",
+      "organization": "stanford"
+    }
+  },
+  "CLINICI2": {
+    "auth": {
+      "displayName": "JHU InvitationClinician",
+      "email": "engagehf-invitation-clinician@jhu.edu"
+    },
+    "code": "CLINICI2",
+    "user": {
+      "type": "clinician",
+      "organization": "jhu"
+    }
+  },
+  "CLINICI3": {
+    "auth": {
+      "displayName": "UMich InvitationClinician",
+      "email": "engagehf-invitation-clinician@umich.edu"
+    },
+    "code": "CLINICI3",
+    "user": {
+      "type": "clinician",
+      "organization": "umich"
+    }
+  },
+  "CLINICI4": {
+    "auth": {
+      "displayName": "UW InvitationClinician",
+      "email": "engagehf-invitation-clinician@uw.edu"
+    },
+    "code": "CLINICI4",
+    "user": {
+      "type": "clinician",
+      "organization": "uw"
+    }
+  },
+  "PATIENT0": {
+    "auth": {
+      "displayName": "Stanford InvitationPatient0"
+    },
+    "code": "PATIENT0",
+    "user": {
+      "type": "patient",
+      "organization": "stanford"
+    }
+  },
+  "PATIENT1": {
+    "auth": {
+      "displayName": "Stanford InvitationPatient1"
+    },
+    "code": "PATIENT1",
+    "user": {
+      "type": "patient",
+      "organization": "stanford"
+    }
+  },
+  "PATIENT2": {
+    "auth": {
+      "displayName": "JHU InvitationPatient0"
+    },
+    "code": "PATIENT2",
+    "user": {
+      "type": "patient",
+      "organization": "jhu"
+    }
+  },
+  "PATIENT3": {
+    "auth": {
+      "displayName": "JHU InvitationPatient1"
+    },
+    "code": "PATIENT3",
+    "user": {
+      "type": "patient",
+      "organization": "jhu"
+    }
+  },
+  "PATIENT4": {
+    "auth": {
+      "displayName": "UMich InvitationPatient0"
+    },
+    "code": "PATIENT4",
+    "user": {
+      "type": "patient",
+      "organization": "umich"
+    }
+  },
+  "PATIENT5": {
+    "auth": {
+      "displayName": "UMich InvitationPatient1"
+    },
+    "code": "PATIENT5",
+    "user": {
+      "type": "patient",
+      "organization": "umich"
+    }
+  },
+  "PATIENT6": {
+    "auth": {
+      "displayName": "UW InvitationPatient0"
+    },
+    "code": "PATIENT6",
+    "user": {
+      "type": "patient",
+      "organization": "uw"
+    }
+  },
+  "PATIENT7": {
+    "auth": {
+      "displayName": "UW InvitationPatient1"
+    },
+    "code": "PATIENT7",
+    "user": {
+      "type": "patient",
+      "organization": "uw"
+    }
+  },
+  "PATIENT8": {
+    "auth": {
+      "displayName": "UW InvitationPatient2"
+    },
+    "code": "PATIENT8",
+    "user": {
+      "type": "patient",
+      "organization": "uw"
+    }
+  },
+  "PATIENT9": {
+    "auth": {
+      "displayName": "Stanford InvitationPatient2",
+      "email": "engagehf-invitation-patient2@stanford.edu"
+    },
+    "code": "PATIENT9",
+    "user": {
+      "type": "patient",
+      "organization": "stanford"
+    }
+  }
+}
