@@ -100,34 +100,6 @@ async function _seedPatientCollections(input: {
   await Promise.all(promises)
 }
 
-// Function to clean up invitations collection since we no longer use it
-async function cleanupInvitationsCollection(factory: ServiceFactory) {
-  logger.info('Cleaning up invitations collection')
-  try {
-    const databaseService = factory.database()
-    await databaseService.bulkWrite(async (collections, writer) => {
-      // Get all invitations
-      const invitationsRef = collections.firestore.collection('invitations')
-      const snapshot = await invitationsRef.get()
-      
-      if (snapshot.empty) {
-        logger.info('No invitation documents found to clean up')
-        return
-      }
-      
-      // Delete all invitation documents
-      logger.info(`Found ${snapshot.size} invitation documents to delete`)
-      for (const doc of snapshot.docs) {
-        await collections.firestore.recursiveDelete(doc.ref, writer)
-      }
-      
-      logger.info('Successfully cleaned up invitation documents')
-    })
-  } catch (error) {
-    logger.error(`Error cleaning up invitations: ${String(error)}`)
-  }
-}
-
 export async function _defaultSeed(
   factory: ServiceFactory,
   data: z.output<typeof defaultSeedInputSchema>,
@@ -136,9 +108,6 @@ export async function _defaultSeed(
 
   const debugDataService = factory.debugData()
   const triggerService = factory.trigger()
-  
-  // Clean up any existing invitation documents
-  await cleanupInvitationsCollection(factory)
 
   // Always seed public files regardless of component selection
   await debugDataService.seedPublicFiles()

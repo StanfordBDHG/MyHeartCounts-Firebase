@@ -25,35 +25,6 @@ export const getStudyDefinition = https.onRequest(async (req, res) => {
   res.redirect(302, file)
 })
 
-// One-time function to delete the invitations collection (admin only)
-export const cleanupInvitations = https.onCall(async (request) => {
-  const factory = getServiceFactory()
-  try {
-    // Check if user is admin
-    factory.credential(request.auth).check('admin')
-    
-    // Delete invitations collection
-    const databaseService = factory.database()
-    await databaseService.bulkWrite(async (collections, writer) => {
-      const invitationsRef = collections.firestore.collection('invitations')
-      const snapshot = await invitationsRef.get()
-      
-      if (snapshot.empty) {
-        return { message: 'No invitation documents found' }
-      }
-      
-      // Delete all invitation documents
-      for (const doc of snapshot.docs) {
-        await collections.firestore.recursiveDelete(doc.ref, writer)
-      }
-      
-      return { message: `Successfully deleted ${snapshot.size} invitation documents` }
-    })
-  } catch (error) {
-    throw new https.HttpsError('permission-denied', 'Only admins can run this function')
-  }
-})
-
 export {
   beforeUserCreatedFunction as beforeUserCreated,
   beforeUserSignedInFunction as beforeUserSignedIn,
