@@ -25,7 +25,7 @@ import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
 import { DefaultSymptomScoreCalculator } from '../symptomScore/defaultSymptomScoreCalculator.js'
 import { type SymptomScoreCalculator } from '../symptomScore/symptomScoreCalculator.js'
-import { TriggerService } from '../trigger/triggerService.js'
+import { TriggerServiceImpl, type TriggerService } from '../trigger/triggerService.js'
 import { DatabaseUserService } from '../user/databaseUserService.js'
 import { type UserService } from '../user/userService.js'
 
@@ -92,7 +92,7 @@ export class DefaultServiceFactory implements ServiceFactory {
     () => new DefaultSymptomScoreCalculator(),
   )
 
-  private readonly triggerService = new Lazy(() => new TriggerService(this))
+  private readonly triggerService = new Lazy(() => new TriggerServiceImpl(this))
 
   private readonly userService = new Lazy(
     () => new DatabaseUserService(this.auth.value, this.databaseService.value),

@@ -8,12 +8,34 @@
 
 import {
   Invitation,
-  Organization,
   User,
   type UserAuth,
   UserRegistration,
   UserType,
 } from '@stanfordbdhg/engagehf-models'
+
+// Define a placeholder Organization type
+class Organization {
+  name: string
+  contactName: string
+  phoneNumber: string
+  emailAddress: string
+  ssoProviderId: string
+
+  constructor(props: {
+    name: string
+    contactName: string
+    phoneNumber: string
+    emailAddress: string
+    ssoProviderId: string
+  }) {
+    this.name = props.name
+    this.contactName = props.contactName
+    this.phoneNumber = props.phoneNumber
+    this.emailAddress = props.emailAddress
+    this.ssoProviderId = props.ssoProviderId
+  }
+}
 import { type UserService } from './userService.js'
 import { type Document } from '../database/databaseService.js'
 
@@ -67,14 +89,9 @@ export class MockUserService implements UserService {
           disabled: false,
           dateOfBirth: new Date('1970-01-02'),
           clinician: 'mockPatient',
-          receivesAppointmentReminders: true,
           receivesInactivityReminders: true,
-          receivesMedicationUpdates: true,
           receivesQuestionnaireReminders: true,
           receivesRecommendationUpdates: true,
-          receivesVitalsReminders: true,
-          receivesWeightAlerts: true,
-          organization: 'stanford',
           timeZone: 'America/Los_Angeles',
         }),
         code: invitationCode,
@@ -82,9 +99,17 @@ export class MockUserService implements UserService {
     }
   }
 
+  async enrollUserDirectly(
+    userId: string,
+    options: { isSingleSignOn: boolean },
+  ): Promise<Document<User>> {
+    return this.getUser(userId)
+  }
+
   async enrollUser(
     invitation: Document<Invitation>,
     userId: string,
+    options: any,
   ): Promise<Document<User>> {
     return this.getUser(userId)
   }
@@ -155,16 +180,10 @@ export class MockUserService implements UserService {
         dateOfBirth: new Date('1970-01-02'),
         clinician: 'mockClinician',
         lastActiveDate: new Date('2024-04-04'),
-        receivesAppointmentReminders: true,
         receivesInactivityReminders: true,
-        receivesMedicationUpdates: true,
         receivesQuestionnaireReminders: true,
         receivesRecommendationUpdates: true,
-        receivesVitalsReminders: true,
-        receivesWeightAlerts: true,
-        organization: 'stanford',
         dateOfEnrollment: new Date('2024-04-02'),
-        invitationCode: '123',
         timeZone: 'America/Los_Angeles',
       }),
     }

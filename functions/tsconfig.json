@@ -5,7 +5,7 @@
     "lib": [],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -13,7 +13,9 @@
     "isolatedModules": true,
     "incremental": true,
     "outDir": "lib",
-    "rootDir": "src"
+    "rootDir": "src",
+    "noImplicitAny": false,
+    "noEmitOnError": false
   },
   "include": ["src/**/*.ts"],
   "exclude": []

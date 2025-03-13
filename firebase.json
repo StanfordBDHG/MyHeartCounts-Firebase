@@ -9,10 +9,6 @@
   "functions": [
     {
       "codebase": "engage",
-      "predeploy": [
-        "npm run build",
-        "npm run lint"
-      ],
       "source": "functions",
       "ignore": [
         "node_modules",

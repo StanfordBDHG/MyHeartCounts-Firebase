@@ -10,7 +10,9 @@
       "type": "admin",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "engagehf-admin0@stanford.edu"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -24,7 +26,9 @@
       "type": "admin",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "engagehf-admin1@stanford.edu"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -38,7 +42,9 @@
       "type": "clinician",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "engagehf-clinician0@stanford.edu"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -52,7 +58,9 @@
       "type": "clinician",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "engagehf-clinician1@stanford.edu"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -67,7 +75,9 @@
       "clinician": "engagehf-clinician0-stanford.edu",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "SEEDING0"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -82,7 +92,9 @@
       "clinician": "engagehf-clinician1-stanford.edu",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "SEEDING1"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -96,7 +108,9 @@
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "invitationCode": "SEEDING2"
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
     }
   }
 ]

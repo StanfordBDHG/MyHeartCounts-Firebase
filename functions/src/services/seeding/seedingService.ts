@@ -66,17 +66,28 @@ export class SeedingService {
     data: T[] | Record<string, T>,
     transaction: FirebaseFirestore.Transaction,
   ) {
+    // Helper function to clean data objects
+    const cleanObject = (obj: any) => {
+      // Parse and stringify to remove undefined values
+      return JSON.parse(JSON.stringify(obj));
+    };
+    
     if (Array.isArray(data)) {
       for (let index = 0; index < data.length; index++) {
         const document =
           this.useIndicesAsKeys ?
             collection.doc(String(index))
           : collection.doc()
-        transaction.set(document, data[index])
+        
+        // Clean the data object to remove undefined values
+        const cleanData = cleanObject(data[index]);
+        transaction.set(document, cleanData, { merge: true })
       }
     } else {
       for (const key of Object.keys(data)) {
-        transaction.set(collection.doc(key), data[key])
+        // Clean the data object to remove undefined values
+        const cleanData = cleanObject(data[key]);
+        transaction.set(collection.doc(key), cleanData, { merge: true })
       }
     }
   }

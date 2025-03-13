@@ -480,8 +480,18 @@ export class DebugDataService extends SeedingService {
 
   private async createUser(user: UserSeedingOptions): Promise<string> {
     const authUser = await this.auth.createUser(user.auth)
+    
+    // Filter out undefined values from user.user to avoid Firestore errors
+    const cleanUserData = user.user ? JSON.parse(JSON.stringify(user.user)) : {}
+    
+    // Create a clean user object with no undefined values
     await this.databaseService.runTransaction((collections, transaction) => {
-      transaction.set(collections.users.doc(authUser.uid), user.user)
+      transaction.set(
+        collections.users.doc(authUser.uid), 
+        cleanUserData,
+        { merge: true } // Use merge to prevent replacing existing fields
+      )
+      
       for (const collectionName in user.collections ?? {}) {
         this.setCollection(
           collections.firestore.collection(collectionName),

@@ -9,7 +9,14 @@
 import admin from 'firebase-admin'
 import { https } from 'firebase-functions'
 
+// Initialize Firebase with default settings
 admin.initializeApp()
+
+// Set Firestore settings to ignore undefined properties
+const firestore = admin.firestore()
+firestore.settings({
+  ignoreUndefinedProperties: true
+})
 
 // Get study definition - this will be available at /getStudyDefinition
 export const getStudyDefinition = https.onRequest(async (req, res) => {

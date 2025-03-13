@@ -31,7 +31,20 @@ import { type MessageService } from '../message/messageService.js'
 import { type PatientService } from '../patient/patientService.js'
 import { type UserService } from '../user/userService.js'
 
-export class TriggerService {
+export interface TriggerService {
+  // Event triggers
+  userEnrolled(user: Document<User>): Promise<void>
+  userCreated(userId: string): Promise<void>
+  userUpdated(userId: string): Promise<void>
+  updateAllSymptomScores(userId: string): Promise<void>
+  updateSymptomScore(userId: string, questionnaireResponse: Document<FHIRQuestionnaireResponse>): Promise<void>
+  userObservationWritten(userId: string, observationType: string, documentId: string, document: Document<any>): Promise<void>
+  
+  // Legacy methods (for backward compatibility)
+  everyMorning(): Promise<void>
+}
+
+export class TriggerServiceImpl implements TriggerService {
   // Properties
 
   private readonly factory: ServiceFactory
@@ -72,6 +85,21 @@ export class TriggerService {
     }
   }
 
+  // Implementation of interface methods
+  
+  async userEnrolled(user: Document<User>): Promise<void> {
+    logger.debug(`TriggerService.userEnrolled(${user.id})`)
+    await this.userCreated(user.id)
+  }
+  
+  async everyMorning(): Promise<void> {
+    logger.debug('TriggerService.everyMorning - deprecated')
+  }
+  
+  async userObservationWritten(userId: string, observationType: string, documentId: string, document: Document<any>): Promise<void> {
+    logger.debug(`TriggerService.userObservationWritten(${userId}, ${observationType}, ${documentId})`)
+  }
+  
   // Methods - Events
 
   async userCreated(userId: string) {
@@ -162,9 +190,9 @@ export class TriggerService {
     })
   }
 
-  // Helpers
+  // Helpers - Implements TriggerService interface
 
-  private async updateSymptomScore(
+  async updateSymptomScore(
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
   ) {
@@ -172,9 +200,7 @@ export class TriggerService {
     const patientService = this.factory.patient()
     
     const symptomScore = symptomScoreCalculator.calculateSymptomScore(
-      document.id,
-      document.content,
-      document.lastUpdate,
+      document.content
     )
     
     await patientService.updateSymptomScore(userId, document.id, symptomScore)

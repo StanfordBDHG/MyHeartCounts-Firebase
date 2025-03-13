@@ -23,7 +23,6 @@ export const userConverter = new Lazy(
       schema: userRegistrationInputConverter.value.schema
         .extend({
           dateOfEnrollment: dateConverter.schema,
-          invitationCode: z.string().optional(),
           lastActiveDate: dateConverter.schema,
         })
         .transform((values) => new User(values)),
@@ -31,7 +30,6 @@ export const userConverter = new Lazy(
         ...userRegistrationConverter.value.encode(object),
         lastActiveDate: dateConverter.encode(object.lastActiveDate),
         dateOfEnrollment: dateConverter.encode(object.dateOfEnrollment),
-        invitationCode: object.invitationCode,
       }),
     }),
 )
@@ -40,7 +38,6 @@ export class User extends UserRegistration {
   // Properties
 
   readonly dateOfEnrollment: Date
-  readonly invitationCode?: string
   readonly lastActiveDate: Date
 
   // Constructor
@@ -50,22 +47,16 @@ export class User extends UserRegistration {
     disabled: boolean
     dateOfBirth?: Date
     clinician?: string
-    receivesAppointmentReminders: boolean
-    receivesInactivityReminders: boolean
-    receivesMedicationUpdates: boolean
-    receivesQuestionnaireReminders: boolean
-    receivesRecommendationUpdates: boolean
-    receivesVitalsReminders: boolean
-    receivesWeightAlerts: boolean
+    receivesInactivityReminders?: boolean
+    receivesQuestionnaireReminders?: boolean
+    receivesRecommendationUpdates?: boolean
     language?: string
     timeZone?: string
     dateOfEnrollment: Date
-    invitationCode?: string
     lastActiveDate: Date
   }) {
     super(input)
     this.dateOfEnrollment = input.dateOfEnrollment
-    this.invitationCode = input.invitationCode
     this.lastActiveDate = input.lastActiveDate
   }
 }

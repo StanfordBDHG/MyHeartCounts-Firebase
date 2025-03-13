@@ -33,4 +33,12 @@ export interface UserService {
   updateLastActiveDate(userId: string): Promise<void>
   deleteUser(userId: string): Promise<void>
   deleteExpiredAccounts(): Promise<void>
+  
+  // Legacy methods (stubs for backward compatibility)
+  
+  getInvitationByCode(code: string): Promise<Document<any> | undefined>
+  enrollUser(invitation: Document<any>, userId: string, options: any): Promise<Document<User>>
+  deleteInvitation(invitation: Document<any>): Promise<void>
+  createInvitation(content: any): Promise<{ id: string }>
+  getOrganizationBySsoProviderId(providerId: string): Promise<any>
 }

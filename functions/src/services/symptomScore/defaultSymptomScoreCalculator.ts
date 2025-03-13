@@ -15,6 +15,10 @@ import { type SymptomScoreCalculator } from './symptomScoreCalculator.js'
 
 export class DefaultSymptomScoreCalculator implements SymptomScoreCalculator {
   // Methods
+  
+  calculateSymptomScore(questionnaireResponse: FHIRQuestionnaireResponse): SymptomScore {
+    return this.calculate(questionnaireResponse)
+  }
 
   calculate(questionnaireResponse: FHIRQuestionnaireResponse): SymptomScore {
     const response = questionnaireResponse.symptomQuestionnaireResponse

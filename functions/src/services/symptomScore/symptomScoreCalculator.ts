@@ -13,4 +13,5 @@ import {
 
 export interface SymptomScoreCalculator {
   calculate(response: FHIRQuestionnaireResponse): SymptomScore
+  calculateSymptomScore(response: FHIRQuestionnaireResponse): SymptomScore
 }

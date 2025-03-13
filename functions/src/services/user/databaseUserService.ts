@@ -100,13 +100,9 @@ export class DatabaseUserService implements UserService {
         const userData = new User({
           type: UserType.patient,
           disabled: false,
-          receivesAppointmentReminders: true,
           receivesInactivityReminders: true,
-          receivesMedicationUpdates: true,
           receivesQuestionnaireReminders: true,
           receivesRecommendationUpdates: true,
-          receivesVitalsReminders: true,
-          receivesWeightAlerts: true,
           lastActiveDate: new Date(),
           dateOfEnrollment: new Date(),
         })
@@ -160,8 +156,31 @@ export class DatabaseUserService implements UserService {
     // Skip copying invitation data since we're not using invitations
   }
 
-  // deleteInvitation method has been removed
-
+  // Legacy methods (stubs for backward compatibility)
+  
+  async getInvitationByCode(code: string): Promise<Document<any> | undefined> {
+    logger.warn(`getInvitationByCode is deprecated and always returns undefined: ${code}`)
+    return undefined
+  }
+  
+  async enrollUser(invitation: Document<any>, userId: string, options: any): Promise<Document<User>> {
+    logger.warn(`enrollUser called with invitation, using enrollUserDirectly instead: ${userId}`)
+    return this.enrollUserDirectly(userId, options)
+  }
+  
+  async deleteInvitation(invitation: Document<any>): Promise<void> {
+    logger.warn(`deleteInvitation is deprecated and does nothing: ${invitation.id}`)
+  }
+  
+  async createInvitation(content: any): Promise<{ id: string }> {
+    logger.warn(`createInvitation is deprecated and does nothing`)
+    return { id: 'deprecated-method' }
+  }
+  
+  async getOrganizationBySsoProviderId(providerId: string): Promise<any> {
+    logger.warn(`getOrganizationBySsoProviderId is deprecated and always returns undefined: ${providerId}`)
+    return undefined
+  }
 
   // Users
 
