@@ -29,38 +29,6 @@ describe('StaticDataService', () => {
     cleanupMocks()
   })
 
-  it('actually creates medication classes', async () => {
-    const medicationClasses = await firestore
-      .collection('medicationClasses')
-      .get()
-    expect(medicationClasses.size).to.equal(0)
-
-    await staticDataService.updateMedicationClasses(CachingStrategy.expectCache)
-
-    const updatedMedicationClasses = await firestore
-      .collection('medicationClasses')
-      .get()
-    expect(updatedMedicationClasses.size).to.be.greaterThan(0)
-  })
-
-  it('actually creates medications and drugs', async () => {
-    const medications = await firestore.collection('medications').get()
-    expect(medications.size).to.equal(0)
-
-    await staticDataService.updateMedications(
-      TestFlags.regenerateValues ?
-        CachingStrategy.updateCache
-      : CachingStrategy.expectCache,
-    )
-
-    const updatedMedications = await firestore.collection('medications').get()
-    expect(updatedMedications.size).to.be.greaterThan(0)
-
-    for (const medication of updatedMedications.docs) {
-      const drugs = await medication.ref.collection('drugs').get()
-      expect(drugs.size).to.be.greaterThan(0)
-    }
-  })
 
   it('actually creates organizations', async () => {
     const organizations = await firestore.collection('organizations').get()

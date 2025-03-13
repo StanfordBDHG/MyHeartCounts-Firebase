@@ -107,11 +107,6 @@ describe('DebugDataService', () => {
     )
   })
 
-  it('recreates the same medication requests', async () => {
-    await generatesSameCollectionAsBefore('users/0/medicationRequests', () =>
-      service.seedUserMedicationRequests('0'),
-    )
-  })
 
   it('recreates the same messages', async () => {
     await generatesSameCollectionAsBefore('users/0/messages', () =>

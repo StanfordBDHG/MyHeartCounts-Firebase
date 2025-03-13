@@ -12,14 +12,11 @@ import {
   compactMap,
   type FHIRAllergyIntolerance,
   type FHIRAppointment,
-  type FHIRMedicationRequest,
   type FHIRObservation,
   type FHIRQuestionnaireResponse,
   type Observation,
   QuantityUnit,
   type SymptomScore,
-  type UserMedicationRecommendation,
-  UserMedicationRecommendationType,
   UserObservationCollection,
 } from '@stanfordbdhg/engagehf-models'
 import { type PatientService } from './patientService.js'
@@ -90,76 +87,6 @@ export class DatabasePatientService implements PatientService {
     )
   }
 
-  // Methods - Medication Requests
-
-  async getMedicationRecommendations(
-    userId: string,
-  ): Promise<Array<Document<UserMedicationRecommendation>>> {
-    const result =
-      await this.databaseService.getQuery<UserMedicationRecommendation>(
-        (collections) => collections.userMedicationRecommendations(userId),
-      )
-
-    return result.sort((a, b) => {
-      const priorityDiff =
-        this.priorityForRecommendationType(a.content.displayInformation.type) -
-        this.priorityForRecommendationType(b.content.displayInformation.type)
-      if (priorityDiff !== 0) return priorityDiff
-
-      const medicationClassA = a.content.displayInformation.subtitle.localize()
-      const medicationClassB = b.content.displayInformation.subtitle.localize()
-      return medicationClassA.localeCompare(medicationClassB, 'en')
-    })
-  }
-
-  async getMedicationRequests(
-    userId: string,
-  ): Promise<Array<Document<FHIRMedicationRequest>>> {
-    return this.databaseService.getQuery<FHIRMedicationRequest>((collections) =>
-      collections.userMedicationRequests(userId),
-    )
-  }
-
-  async updateMedicationRecommendations(
-    userId: string,
-    newRecommendations: UserMedicationRecommendation[],
-  ): Promise<boolean> {
-    return this.databaseService.runTransaction(
-      async (collections, transaction) => {
-        const collection = collections.userMedicationRecommendations(userId)
-        const existingSnapshot = await transaction.get(collection)
-        const indicesToBeInserted = new Set<number>(
-          newRecommendations.map((_, index) => index),
-        )
-        for (const existing of existingSnapshot.docs) {
-          const existingRecommendation = existing.data()
-
-          const newRecommendationIndex = newRecommendations.findIndex(
-            (recommendation) =>
-              recommendation.displayInformation.title ===
-              existingRecommendation.displayInformation.title,
-          )
-
-          if (newRecommendationIndex < 0) {
-            transaction.delete(existing.ref)
-            continue
-          }
-          const newRecommendation = newRecommendations[newRecommendationIndex]
-          indicesToBeInserted.delete(newRecommendationIndex)
-
-          if (!isDeepStrictEqual(newRecommendation, existingRecommendation))
-            transaction.set(existing.ref, newRecommendation)
-        }
-        indicesToBeInserted.forEach((newRecommendationIndex) => {
-          transaction.set(
-            collection.doc(),
-            newRecommendations[newRecommendationIndex],
-          )
-        })
-        return true
-      },
-    )
-  }
 
   // Methods - Observations
 
@@ -319,26 +246,4 @@ export class DatabasePatientService implements PatientService {
     })
   }
 
-  // Helpers
-
-  private priorityForRecommendationType(
-    type: UserMedicationRecommendationType,
-  ): number {
-    switch (type) {
-      case UserMedicationRecommendationType.improvementAvailable:
-        return 1
-      case UserMedicationRecommendationType.morePatientObservationsRequired:
-        return 2
-      case UserMedicationRecommendationType.moreLabObservationsRequired:
-        return 3
-      case UserMedicationRecommendationType.personalTargetDoseReached:
-        return 4
-      case UserMedicationRecommendationType.targetDoseReached:
-        return 5
-      case UserMedicationRecommendationType.notStarted:
-        return 6
-      case UserMedicationRecommendationType.noActionRequired:
-        return 7
-    }
-  }
 }

@@ -27,27 +27,6 @@ describeWithEmulators('function: updateStaticData', (env) => {
       cachingStrategy: CachingStrategy.expectCache,
     })
 
-    const medicationClasses = await env.collections.medicationClasses.get()
-    expect(medicationClasses.docs).to.have.length(7)
-    const medicationClassesJson = JSON.parse(
-      fs.readFileSync('data/medicationClasses.json', 'utf8'),
-    )
-    for (const medicationClass of medicationClasses.docs) {
-      expect(simplify(medicationClass.data())).to.deep.equal(
-        medicationClassesJson[medicationClass.id],
-      )
-    }
-
-    const medications = await env.collections.medications.get()
-    expect(medications.docs).to.have.length(35)
-    const medicationsJson = JSON.parse(
-      fs.readFileSync('data/medications.json', 'utf8'),
-    )
-    for (const medication of medications.docs) {
-      expect(simplify(medication.data())).to.deep.equal(
-        medicationsJson[medication.id],
-      )
-    }
 
     const videoSections = await env.collections.videoSections.get()
     expect(videoSections.docs).to.have.length(4)

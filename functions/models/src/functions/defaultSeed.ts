@@ -19,8 +19,6 @@ export enum DebugDataComponent {
 export enum UserDebugDataComponent {
   consent = 'consent',
   appointments = 'appointments',
-  medicationRecommendations = 'medicationRecommendations',
-  medicationRequests = 'medicationRequests',
   messages = 'messages',
   bodyWeightObservations = 'bodyWeightObservations',
   bloodPressureObservations = 'bloodPressureObservations',

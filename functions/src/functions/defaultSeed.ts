@@ -87,18 +87,10 @@ async function _seedPatientCollections(input: {
     promises.push(
       input.debugData.seedUserPotassiumObservations(input.userId, input.date),
     )
-  if (input.components.includes(UserDebugDataComponent.medicationRequests))
-    promises.push(input.debugData.seedUserMedicationRequests(input.userId))
   if (input.components.includes(UserDebugDataComponent.messages))
     promises.push(input.debugData.seedUserMessages(input.userId, input.date))
   if (input.components.includes(UserDebugDataComponent.consent))
     promises.push(input.debugData.seedUserConsent(input.userId))
-  if (
-    input.components.includes(UserDebugDataComponent.medicationRecommendations)
-  )
-    promises.push(
-      input.trigger.updateRecommendationsForUser(input.userId).then(),
-    )
   if (input.components.includes(UserDebugDataComponent.questionnaireResponses))
     promises.push(
       input.debugData.seedUserQuestionnaireResponses(input.userId, input.date),

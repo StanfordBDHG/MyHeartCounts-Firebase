@@ -17,8 +17,6 @@ export enum CachingStrategy {
 }
 
 export enum StaticDataComponent {
-  medicationClasses = 'medicationClasses',
-  medications = 'medications',
   organizations = 'organizations',
   questionnaires = 'questionnaires',
   videoSections = 'videoSections',

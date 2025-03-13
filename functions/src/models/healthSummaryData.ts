@@ -9,11 +9,9 @@
 import {
   advanceDateByDays,
   average,
-  UserMedicationRecommendationType,
   type FHIRAppointment,
   type Observation,
   type SymptomScore,
-  type UserMedicationRecommendation,
 } from '@stanfordbdhg/engagehf-models'
 import {
   HealthSummaryDizzinessCategory,
@@ -38,7 +36,6 @@ export class HealthSummaryData {
   dateOfBirth?: Date
   providerName?: string
   nextAppointment?: FHIRAppointment
-  recommendations: UserMedicationRecommendation[]
   vitals: HealthSummaryVitals
   symptomScores: SymptomScore[]
   now: Date
@@ -101,34 +98,7 @@ export class HealthSummaryData {
   }
 
   get recommendationsCategory(): HealthSummaryMedicationRecommendationsCategory | null {
-    const hasOptimizations = this.recommendations.some((recommendation) =>
-      [
-        UserMedicationRecommendationType.improvementAvailable,
-        UserMedicationRecommendationType.notStarted,
-      ].includes(recommendation.displayInformation.type),
-    )
-    if (hasOptimizations)
-      return HealthSummaryMedicationRecommendationsCategory.OPTIMIZATIONS_AVAILABLE
-
-    const hasObservationsRequired = this.recommendations.some(
-      (recommendation) =>
-        [
-          UserMedicationRecommendationType.moreLabObservationsRequired,
-          UserMedicationRecommendationType.morePatientObservationsRequired,
-        ].includes(recommendation.displayInformation.type),
-    )
-    if (hasObservationsRequired)
-      return HealthSummaryMedicationRecommendationsCategory.OBSERVATIONS_REQUIRED
-
-    const hasAtTarget = this.recommendations.some((recommendation) =>
-      [
-        UserMedicationRecommendationType.personalTargetDoseReached,
-        UserMedicationRecommendationType.targetDoseReached,
-      ].includes(recommendation.displayInformation.type),
-    )
-    return hasAtTarget ?
-        HealthSummaryMedicationRecommendationsCategory.AT_TARGET
-      : null
+    return null
   }
 
   get symptomScoreCategory(): HealthSummarySymptomScoreCategory | null {
@@ -164,7 +134,7 @@ export class HealthSummaryData {
     dateOfBirth?: Date
     providerName?: string
     nextAppointment?: FHIRAppointment
-    recommendations: UserMedicationRecommendation[]
+    recommendations?: any[]
     vitals: HealthSummaryVitals
     symptomScores: SymptomScore[]
     now: Date
@@ -173,7 +143,6 @@ export class HealthSummaryData {
     this.dateOfBirth = input.dateOfBirth
     this.providerName = input.providerName
     this.nextAppointment = input.nextAppointment
-    this.recommendations = input.recommendations
     this.vitals = input.vitals
     this.symptomScores = input.symptomScores
     this.now = input.now

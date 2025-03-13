@@ -8,16 +8,13 @@
 
 import {
   advanceDateByDays,
-  DrugReference,
   type FHIRAllergyIntolerance,
   FHIRAppointment,
   FHIRAppointmentStatus,
-  FHIRMedicationRequest,
   type FHIRQuestionnaireResponse,
   type Observation,
   QuantityUnit,
   SymptomScore,
-  type UserMedicationRecommendation,
 } from '@stanfordbdhg/engagehf-models'
 import { type PatientService } from './patientService.js'
 import { mockQuestionnaireResponse } from '../../tests/mocks/questionnaireResponse.js'
@@ -75,44 +72,6 @@ export class MockPatientService implements PatientService {
     return []
   }
 
-  // Methods - Medication Requests
-
-  async getMedicationRecommendations(
-    userId: string,
-  ): Promise<Array<Document<UserMedicationRecommendation>>> {
-    const values: UserMedicationRecommendation[] = []
-    return values.map((value, index) => ({
-      id: index.toString(),
-      lastUpdate: new Date(),
-      path: `users/${userId}/medicationRecommendations/${index}`,
-      content: value,
-    }))
-  }
-
-  async getMedicationRequests(
-    userId: string,
-  ): Promise<Array<Document<FHIRMedicationRequest>>> {
-    const values: FHIRMedicationRequest[] = [
-      FHIRMedicationRequest.create({
-        drugReference: DrugReference.carvedilol3_125,
-        frequencyPerDay: 1,
-        quantity: 2,
-      }),
-    ]
-    return values.map((value, index) => ({
-      id: index.toString(),
-      lastUpdate: new Date(),
-      path: `users/${userId}/medicationRequests/${index}`,
-      content: value,
-    }))
-  }
-
-  async updateMedicationRecommendations(
-    userId: string,
-    recommendations: UserMedicationRecommendation[],
-  ): Promise<boolean> {
-    return false
-  }
 
   // Methods - Observations
 

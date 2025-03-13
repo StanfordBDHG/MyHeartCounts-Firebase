@@ -11,10 +11,8 @@ import {
   type QuantityUnit,
   type FHIRAllergyIntolerance,
   type FHIRAppointment,
-  type FHIRMedicationRequest,
   type FHIRQuestionnaireResponse,
   type SymptomScore,
-  type UserMedicationRecommendation,
 } from '@stanfordbdhg/engagehf-models'
 import { type Document } from '../database/databaseService.js'
 
@@ -37,18 +35,6 @@ export interface PatientService {
     userId: string,
   ): Promise<Array<Document<FHIRAllergyIntolerance>>>
 
-  // Medication Requests
-
-  getMedicationRecommendations(
-    userId: string,
-  ): Promise<Array<Document<UserMedicationRecommendation>>>
-  getMedicationRequests(
-    userId: string,
-  ): Promise<Array<Document<FHIRMedicationRequest>>>
-  updateMedicationRecommendations(
-    userId: string,
-    recommendations: UserMedicationRecommendation[],
-  ): Promise<boolean>
 
   // Observations
 

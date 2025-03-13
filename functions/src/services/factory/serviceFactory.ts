@@ -10,10 +10,8 @@ import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type Credential } from '../credential/credential.js'
 import { type HealthSummaryService } from '../healthSummary/healthSummaryService.js'
 import { type HistoryService } from '../history/historyService.js'
-import { type MedicationService } from '../medication/medicationService.js'
 import { type MessageService } from '../message/messageService.js'
 import { type PatientService } from '../patient/patientService.js'
-import { type RecommendationService } from '../recommendation/recommendationService.js'
 import { type DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { type StaticDataService } from '../seeding/staticData/staticDataService.js'
 import { type SymptomScoreCalculator } from '../symptomScore/symptomScoreCalculator.js'
@@ -28,7 +26,6 @@ export interface ServiceFactory {
 
   // Data
 
-  medication(): MedicationService
   debugData(): DebugDataService
   staticData(): StaticDataService
   history(): HistoryService
@@ -37,7 +34,6 @@ export interface ServiceFactory {
 
   healthSummary(): HealthSummaryService
   patient(): PatientService
-  recommendation(): RecommendationService
   symptomScore(): SymptomScoreCalculator
 
   // Trigger

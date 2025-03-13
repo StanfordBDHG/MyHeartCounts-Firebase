@@ -120,32 +120,10 @@ export class DebugDataService extends SeedingService {
     )
   }
 
-  async seedUserMedicationRequests(userId: string) {
-    const values = [
-      FHIRMedicationRequest.create({
-        frequencyPerDay: 2,
-        drugReference: DrugReference.eplerenone25,
-        quantity: 2,
-      }),
-    ]
-    await this.replaceCollection(
-      (collections) => collections.userMedicationRequests(userId),
-      values,
-    )
-  }
 
   async seedUserMessages(userId: string, date: Date) {
     const values = [
       UserMessage.createInactive({
-        creationDate: date,
-      }),
-      UserMessage.createMedicationChange({
-        creationDate: date,
-        medicationName: 'Losartan Potassium',
-        reference: MedicationReference.losartan,
-        videoReference: VideoReference.acei_arbs,
-      }),
-      UserMessage.createMedicationUptitration({
         creationDate: date,
       }),
       UserMessage.createPreAppointment({
@@ -182,11 +160,6 @@ export class DebugDataService extends SeedingService {
   ) {
     const values = patients.flatMap((patient) => [
       UserMessage.createInactiveForClinician({
-        userId: patient.id,
-        userName: patient.name,
-        reference: '',
-      }),
-      UserMessage.createMedicationUptitrationForClinician({
         userId: patient.id,
         userName: patient.name,
         reference: '',

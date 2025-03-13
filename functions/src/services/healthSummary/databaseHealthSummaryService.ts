@@ -42,14 +42,12 @@ export class DefaultHealthSummaryService implements HealthSummaryService {
       auth,
       patient,
       nextAppointment,
-      recommendations,
       symptomScores,
       vitals,
     ] = await Promise.all([
       this.userService.getAuth(userId),
       this.userService.getUser(userId),
       this.patientService.getNextAppointment(userId),
-      this.patientService.getMedicationRecommendations(userId),
       this.patientService.getSymptomScores(userId, { limit: 5 }),
       this.getVitals(userId, advanceDateByDays(date, -14), weightUnit),
     ])
@@ -65,7 +63,6 @@ export class DefaultHealthSummaryService implements HealthSummaryService {
       dateOfBirth: patient?.content.dateOfBirth,
       providerName: providerName,
       nextAppointment: nextAppointment?.content,
-      recommendations: recommendations.map((doc) => doc.content),
       vitals: vitals,
       symptomScores: symptomScores.map((doc) => doc.content),
       now: date,

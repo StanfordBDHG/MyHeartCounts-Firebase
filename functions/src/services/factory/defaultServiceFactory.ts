@@ -11,22 +11,17 @@ import admin from 'firebase-admin'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type ServiceFactoryOptions } from './getServiceFactory.js'
 import { type ServiceFactory } from './serviceFactory.js'
-import { DefaultContraindicationService } from '../contraindication/defaultContraindicationService.js'
 import { Credential } from '../credential/credential.js'
 import { FirestoreService } from '../database/firestoreService.js'
 import { DefaultHealthSummaryService } from '../healthSummary/databaseHealthSummaryService.js'
 import { type HealthSummaryService } from '../healthSummary/healthSummaryService.js'
 import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
-import { DatabaseMedicationService } from '../medication/databaseMedicationService.js'
-import { type MedicationService } from '../medication/medicationService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
 import { DatabasePatientService } from '../patient/databasePatientService.js'
 import { type PatientService } from '../patient/patientService.js'
-import { RecommendationService } from '../recommendation/recommendationService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
-import { RxNormService } from '../seeding/staticData/rxNorm/rxNormService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
 import { DefaultSymptomScoreCalculator } from '../symptomScore/defaultSymptomScoreCalculator.js'
 import { type SymptomScoreCalculator } from '../symptomScore/symptomScoreCalculator.js'
@@ -75,10 +70,6 @@ export class DefaultServiceFactory implements ServiceFactory {
     () => new DatabaseHistoryService(this.databaseService.value),
   )
 
-  private readonly medicationService = new Lazy(
-    () => new DatabaseMedicationService(this.databaseService.value),
-  )
-
   private readonly messageService = new Lazy(
     () =>
       new DefaultMessageService(
@@ -92,17 +83,9 @@ export class DefaultServiceFactory implements ServiceFactory {
     () => new DatabasePatientService(this.databaseService.value),
   )
 
-  private readonly recommendationService = new Lazy(
-    () =>
-      new RecommendationService(
-        new DefaultContraindicationService(),
-        this.medicationService.value,
-      ),
-  )
-
   private readonly staticDataService = new Lazy(
     () =>
-      new StaticDataService(this.databaseService.value, new RxNormService()),
+      new StaticDataService(this.databaseService.value),
   )
 
   private readonly symptomScoreCalculator = new Lazy(
@@ -133,10 +116,6 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   // Methods - Data
 
-  medication(): MedicationService {
-    return this.medicationService.value
-  }
-
   debugData(): DebugDataService {
     return this.debugDataService.value
   }
@@ -159,9 +138,6 @@ export class DefaultServiceFactory implements ServiceFactory {
     return this.patientService.value
   }
 
-  recommendation(): RecommendationService {
-    return this.recommendationService.value
-  }
 
   symptomScore(): SymptomScoreCalculator {
     return this.symptomScoreCalculator.value

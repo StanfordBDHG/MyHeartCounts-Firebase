@@ -9,18 +9,14 @@
 import {
   fhirAllergyIntoleranceConverter,
   fhirAppointmentConverter,
-  fhirMedicationConverter,
-  fhirMedicationRequestConverter,
   fhirObservationConverter,
   fhirQuestionnaireConverter,
   fhirQuestionnaireResponseConverter,
   invitationConverter,
-  medicationClassConverter,
   organizationConverter,
   symptomScoreConverter,
   userConverter,
   userDeviceConverter,
-  userMedicationRecommendationConverter,
   userMessageConverter,
   videoConverter,
   videoSectionConverter,
@@ -93,25 +89,6 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(userDeviceConverter.value))
   }
 
-  invitationMedicationRecommendations(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('medicationRecommendations')
-      .withConverter(
-        new DatabaseConverter(userMedicationRecommendationConverter.value),
-      )
-  }
-
-  invitationMedicationRequests(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('medicationRequests')
-      .withConverter(
-        new DatabaseConverter(fhirMedicationRequestConverter.value),
-      )
-  }
 
   invitationMessages(invitationId: string) {
     return this.firestore
@@ -150,37 +127,6 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(symptomScoreConverter.value))
   }
 
-  get medicationClasses() {
-    return this.firestore
-      .collection('medicationClasses')
-      .withConverter(new DatabaseConverter(medicationClassConverter.value))
-  }
-
-  medicationClassReference(reference: string) {
-    return this.firestore
-      .doc(reference)
-      .withConverter(new DatabaseConverter(medicationClassConverter.value))
-  }
-
-  get medications() {
-    return this.firestore
-      .collection('medications')
-      .withConverter(new DatabaseConverter(fhirMedicationConverter.value))
-  }
-
-  medicationReference(reference: string) {
-    return this.firestore
-      .doc(reference)
-      .withConverter(new DatabaseConverter(fhirMedicationConverter.value))
-  }
-
-  drugs(medicationId: string) {
-    return this.firestore
-      .collection('medications')
-      .doc(medicationId)
-      .collection('drugs')
-      .withConverter(new DatabaseConverter(fhirMedicationConverter.value))
-  }
 
   get organizations() {
     return this.firestore
@@ -226,25 +172,6 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(userDeviceConverter.value))
   }
 
-  userMedicationRecommendations(userId: string) {
-    return this.firestore
-      .collection('users')
-      .doc(userId)
-      .collection('medicationRecommendations')
-      .withConverter(
-        new DatabaseConverter(userMedicationRecommendationConverter.value),
-      )
-  }
-
-  userMedicationRequests(userId: string) {
-    return this.firestore
-      .collection('users')
-      .doc(userId)
-      .collection('medicationRequests')
-      .withConverter(
-        new DatabaseConverter(fhirMedicationRequestConverter.value),
-      )
-  }
 
   userMessages(userId: string) {
     return this.firestore
