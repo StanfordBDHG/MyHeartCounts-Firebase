@@ -24,8 +24,6 @@ export async function _updateStaticData(
 ) {
   const service = factory.staticData()
   const promises: Array<Promise<void>> = []
-  if (input.only.includes(StaticDataComponent.organizations))
-    promises.push(service.updateOrganizations(input.cachingStrategy))
   if (input.only.includes(StaticDataComponent.questionnaires))
     promises.push(service.updateQuestionnaires(input.cachingStrategy))
   if (input.only.includes(StaticDataComponent.videoSections))

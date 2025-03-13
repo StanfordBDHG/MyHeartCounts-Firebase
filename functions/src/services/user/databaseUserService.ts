@@ -11,7 +11,6 @@ import {
   advanceDateByDays,
   dateConverter,
   type Invitation,
-  type Organization,
   User,
   type UserAuth,
   UserType,
@@ -255,33 +254,6 @@ export class DatabaseUserService implements UserService {
     logger.info(`Deleted invitation with id '${invitation.id}' recursively.`)
   }
 
-  // Organizations
-
-  async getOrganizationBySsoProviderId(
-    providerId: string,
-  ): Promise<Document<Organization> | undefined> {
-    const result = await this.databaseService.getQuery<Organization>(
-      (collections) =>
-        collections.organizations
-          .where('ssoProviderId', '==', providerId)
-          .limit(1),
-    )
-    return result.at(0)
-  }
-
-  async getOrganizations(): Promise<Array<Document<Organization>>> {
-    return this.databaseService.getQuery<Organization>(
-      (collections) => collections.organizations,
-    )
-  }
-
-  async getOrganization(
-    organizationId: string,
-  ): Promise<Document<Organization> | undefined> {
-    return this.databaseService.getDocument<Organization>((collections) =>
-      collections.organizations.doc(organizationId),
-    )
-  }
 
   // Users
 
@@ -305,13 +277,6 @@ export class DatabaseUserService implements UserService {
     await this.updateClaims(userId)
   }
 
-  async getAllOwners(organizationId: string): Promise<Array<Document<User>>> {
-    return this.databaseService.getQuery<User>((collections) =>
-      collections.users
-        .where('type', '==', UserType.owner)
-        .where('organization', '==', organizationId),
-    )
-  }
 
   async getAllPatients(): Promise<Array<Document<User>>> {
     return this.databaseService.getQuery<User>((collections) =>

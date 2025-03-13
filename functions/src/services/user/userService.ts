@@ -8,7 +8,6 @@
 
 import {
   type Invitation,
-  type Organization,
   type User,
   type UserAuth,
 } from '@stanfordbdhg/engagehf-models'
@@ -40,21 +39,11 @@ export interface UserService {
   finishUserEnrollment(user: Document<User>): Promise<void>
   deleteInvitation(invitation: Document<Invitation>): Promise<void>
 
-  // Organizations
-
-  getOrganizationBySsoProviderId(
-    providerId: string,
-  ): Promise<Document<Organization> | undefined>
-  getOrganizations(): Promise<Array<Document<Organization>>>
-  getOrganization(
-    organizationId: string,
-  ): Promise<Document<Organization> | undefined>
 
   // Users
 
   disableUser(userId: string): Promise<void>
   enableUser(userId: string): Promise<void>
-  getAllOwners(organizationId: string): Promise<Array<Document<User>>>
   getAllPatients(): Promise<Array<Document<User>>>
   getUser(userId: string): Promise<Document<User> | undefined>
   updateLastActiveDate(userId: string): Promise<void>

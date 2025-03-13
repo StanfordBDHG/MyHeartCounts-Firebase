@@ -17,7 +17,6 @@ export enum CachingStrategy {
 }
 
 export enum StaticDataComponent {
-  organizations = 'organizations',
   questionnaires = 'questionnaires',
   videoSections = 'videoSections',
 }

@@ -13,7 +13,6 @@ import {
   fhirQuestionnaireConverter,
   fhirQuestionnaireResponseConverter,
   invitationConverter,
-  organizationConverter,
   symptomScoreConverter,
   userConverter,
   userDeviceConverter,
@@ -128,11 +127,6 @@ export class CollectionsService {
   }
 
 
-  get organizations() {
-    return this.firestore
-      .collection('organizations')
-      .withConverter(new DatabaseConverter(organizationConverter.value))
-  }
 
   get questionnaires() {
     return this.firestore

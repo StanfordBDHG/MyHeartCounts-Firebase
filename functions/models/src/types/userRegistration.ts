@@ -19,7 +19,6 @@ export const userRegistrationInputConverter = new Lazy(
       schema: z.object({
         type: z.nativeEnum(UserType),
         disabled: optionalishDefault(z.boolean(), false),
-        organization: optionalish(z.string()),
         dateOfBirth: optionalish(dateConverter.schema),
         clinician: optionalish(z.string()),
         providerName: optionalish(z.string()),
@@ -36,7 +35,6 @@ export const userRegistrationInputConverter = new Lazy(
       encode: (object) => ({
         type: object.type,
         disabled: object.disabled,
-        organization: object.organization ?? null,
         dateOfBirth:
           object.dateOfBirth ? dateConverter.encode(object.dateOfBirth) : null,
         clinician: object.clinician ?? null,
@@ -66,7 +64,6 @@ export const userRegistrationConverter = new Lazy(
 
 export const userClaimsSchema = z.object({
   type: z.nativeEnum(UserType),
-  organization: optionalish(z.string()),
   disabled: optionalishDefault(z.boolean(), false),
 })
 
@@ -77,7 +74,6 @@ export class UserRegistration {
 
   readonly type: UserType
   readonly disabled: boolean
-  readonly organization?: string
 
   readonly dateOfBirth?: Date
   readonly clinician?: string
@@ -97,14 +93,10 @@ export class UserRegistration {
   // Computed Properties
 
   get claims(): UserClaims {
-    const result: UserClaims = {
+    return {
       type: this.type,
       disabled: this.disabled,
     }
-    if (this.organization !== undefined) {
-      result.organization = this.organization
-    }
-    return result
   }
 
   // Constructor
@@ -112,7 +104,6 @@ export class UserRegistration {
   constructor(input: {
     type: UserType
     disabled: boolean
-    organization?: string
     dateOfBirth?: Date
     clinician?: string
     providerName?: string
@@ -128,7 +119,6 @@ export class UserRegistration {
   }) {
     this.type = input.type
     this.disabled = input.disabled
-    this.organization = input.organization
     this.dateOfBirth = input.dateOfBirth
     this.clinician = input.clinician
     this.providerName = input.providerName

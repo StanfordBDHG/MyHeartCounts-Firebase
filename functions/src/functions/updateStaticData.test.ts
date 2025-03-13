@@ -45,16 +45,6 @@ describeWithEmulators('function: updateStaticData', (env) => {
       }
     }
 
-    const organizations = await env.collections.organizations.get()
-    expect(organizations.docs).to.have.length(4)
-    const organizationsJson = JSON.parse(
-      fs.readFileSync('data/organizations.json', 'utf8'),
-    )
-    for (const organization of organizations.docs) {
-      expect(simplify(organization.data())).to.deep.equal(
-        organizationsJson[organization.id],
-      )
-    }
 
     const questionnaires = await env.collections.questionnaires.get()
     expect(questionnaires.docs).to.have.length(1)

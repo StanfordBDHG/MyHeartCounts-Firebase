@@ -10,7 +10,6 @@ import {
   type CachingStrategy,
   fhirQuestionnaireConverter,
   localizedTextConverter,
-  organizationConverter,
   Video,
   VideoSection,
 } from '@stanfordbdhg/engagehf-models'
@@ -32,22 +31,6 @@ export class StaticDataService extends SeedingService {
 
   // Methods
 
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  async updateOrganizations(strategy: CachingStrategy) {
-    await this.databaseService.runTransaction(
-      async (collections, transaction) => {
-        await this.deleteCollection(collections.organizations, transaction)
-        this.setCollection(
-          collections.organizations,
-          this.readJSONRecord(
-            'organizations.json',
-            organizationConverter.value.schema,
-          ),
-          transaction,
-        )
-      },
-    )
-  }
 
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   async updateQuestionnaires(strategy: CachingStrategy) {

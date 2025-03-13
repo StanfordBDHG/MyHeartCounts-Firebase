@@ -109,14 +109,7 @@ export class TriggerService {
   }
 
   async userRegistrationWritten(userId: string, document: Document<UserRegistration>) {
-    if (document.content.organizationId === undefined) return
-    try {
-      await this.joinOrganization(userId, document.content.organizationId)
-    } catch (error) {
-      logger.error(
-        `TriggerService.userRegistrationWritten(${userId}): ${String(error)}`,
-      )
-    }
+    logger.debug(`TriggerService.userRegistrationWritten(${userId})`)
   }
 
   async userInvitationWritten(invitationId: string, document: Document<Invitation>) {
@@ -213,7 +206,4 @@ export class TriggerService {
     )
   }
 
-  private async joinOrganization(userId: string, organizationId: string) {
-    await this.factory.user().updateOrganization(userId, organizationId)
-  }
 }
