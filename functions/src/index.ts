@@ -8,7 +8,6 @@
 
 import admin from 'firebase-admin'
 import { https } from 'firebase-functions'
-import { getServiceFactory } from './services/factory/getServiceFactory.js'
 
 admin.initializeApp()
 

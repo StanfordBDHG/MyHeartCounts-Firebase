@@ -39,9 +39,7 @@ service cloud.firestore {
       return get(/databases/$(databaseId)/documents/users/$(userId));
     }
 
-    // Block all access to invitations collection 
     match /invitations/{documentId} {
-      // No access allowed to invitations collection
       allow read, write: if false;
     }
 

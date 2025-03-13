@@ -24,7 +24,6 @@
     "clean": "npm --prefix functions/models run clean && npm --prefix functions run clean",
     "prepare": "npm run clean && npm run install && npm run build",
     "test:ci": "firebase emulators:exec --only auth,firestore,storage 'npm --prefix functions run test:emulators'",
-    "fix-seed-data": "node scripts/fix-seed-data.js",
-    "serve:seeded": "npm run fix-seed-data && npm --prefix functions run serve:seeded"
+    "serve:seeded": "npm --prefix functions run serve:seeded"
   }
 }
