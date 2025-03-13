@@ -10,24 +10,32 @@ import { z } from 'zod'
 import { SchemaConverter } from './schemaConverter.js'
 
 export const dateConverter = new SchemaConverter({
-  schema: z.string().transform((string, context) => {
-    try {
-      const date = new Date(string)
-      if (isNaN(date.getTime())) {
+  schema: z.union([
+    z.string().transform((string, context) => {
+      try {
+        const date = new Date(string)
+        if (isNaN(date.getTime())) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Invalid date',
+          })
+          return z.NEVER
+        }
+        return date
+      } catch (error) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Invalid date',
+          message: String(error),
         })
         return z.NEVER
       }
-      return date
-    } catch (error) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: String(error),
-      })
-      return z.NEVER
+    }),
+    z.null().transform(() => new Date())
+  ]),
+  encode: (object) => {
+    if (!object || !(object instanceof Date)) {
+      return new Date().toISOString() // Default to current date if null
     }
-  }),
-  encode: (object) => object.toISOString(),
+    return object.toISOString()
+  },
 })

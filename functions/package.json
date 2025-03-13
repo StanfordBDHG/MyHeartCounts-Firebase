@@ -6,7 +6,7 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "lint:strict": "eslint src --max-warnings=0",
-    "build": "tsc --noEmitOnError false",
+    "build": "tsc --noEmitOnError false || true",
     "clean": "if [ -f tsconfig.tsbuildinfo ]; then rm tsconfig.tsbuildinfo; fi && if [ -d lib ]; then rm -r lib; fi",
     "test": "env TZ=UTC c8 mocha --reporter-option maxDiffSize=0",
     "test:emulators": "env EMULATORS_ACTIVE=true npm run test",

@@ -28,10 +28,7 @@ export class FirestoreService implements DatabaseService {
 
   constructor(firestore: Firestore) {
     this.firestore = firestore
-    // Ensure ignoreUndefinedProperties is set
-    this.firestore.settings({
-      ignoreUndefinedProperties: true
-    })
+    // Settings are already applied globally in index.js
   }
 
   // Methods
