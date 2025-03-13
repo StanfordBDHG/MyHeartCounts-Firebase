@@ -111,6 +111,9 @@ export async function _defaultSeed(
 
   if (data.only.includes(DebugDataComponent.invitations))
     await debugDataService.seedInvitations()
+    
+  // Always seed public files regardless of component selection
+  await debugDataService.seedPublicFiles()
 
   if (data.only.includes(DebugDataComponent.users)) {
     const userIds = await debugDataService.seedUsers()

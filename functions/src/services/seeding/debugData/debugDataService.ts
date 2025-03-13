@@ -102,6 +102,32 @@ export class DebugDataService extends SeedingService {
       contentType: 'application/pdf',
     })
   }
+  
+  async seedPublicFiles() {
+    // Upload study definition
+    await this.storage.bucket().upload('data/public/studyDefinition.json', {
+      destination: 'public/studyDefinition.json',
+      contentType: 'application/json',
+      // Make it publicly accessible
+      metadata: {
+        cacheControl: 'public, max-age=300'
+      }
+    })
+    
+    // Upload consent PDF
+    await this.storage.bucket().upload('data/public/consent.pdf', {
+      destination: 'public/consent.pdf',
+      contentType: 'application/pdf',
+      // Make it publicly accessible
+      metadata: {
+        cacheControl: 'public, max-age=300'
+      }
+    })
+    
+    logger.info('Public files uploaded to Firebase Storage')
+    
+    return 'public/studyDefinition.json'
+  }
 
   async seedUserAppointments(userId: string, date: Date) {
     const values = [

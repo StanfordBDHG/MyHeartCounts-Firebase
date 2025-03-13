@@ -1,9 +1,140 @@
 rules_version = '2';
 service cloud.firestore {
-  match /databases/{database}/documents {
-    // Allow only authenticated content owners access
-    match /users/{userId}/{documents=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+  match /databases/{databaseId}/documents {
+    function valueExists(object, property) {
+      return (property in object) && object[property] != null;
+    }
+
+    function isEqualOptional(object0, property0, object1, property1) {
+      return valueExists(object0, property0)
+        ? (valueExists(object1, property1) && object0[property0] == object1[property1])
+        : !valueExists(object1, property1);
+    }
+
+    function isAuthenticated() {
+      return request.auth != null 
+        && ('type' in request.auth.token)
+        && (
+          !valueExists(request.auth.token, 'disabled')
+          || request.auth.token.disabled == false
+        );
+    }
+
+    function isAdmin() {
+      return isAuthenticated()
+        && request.auth.token.type == 'admin';
+    }
+
+    function isClinician() {
+      return isAuthenticated()
+        && request.auth.token.type == 'clinician';
+    }
+
+    function isUser(userId) {
+      return isAuthenticated()
+        && request.auth.uid == userId;
+    }
+
+    function getUser(userId) {
+      return get(/databases/$(databaseId)/documents/users/$(userId));
+    }
+
+    function getInvitation(invitationId) {
+      return get(/databases/$(databaseId)/documents/invitations/$(invitationId));
+    }
+
+    match /invitations/{invitationId} {
+      function securityRelatedFieldsDidNotChange() {
+        return isEqualOptional(request.resource.data.user, 'type', resource.data.user, 'type');
+      }
+
+      allow read, delete: if isAdmin() || isClinician();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (securityRelatedFieldsDidNotChange() && isClinician());
+    }
+
+    match /invitations/{invitationId}/{collectionName}/{documentId} {
+      function isPatientWritableCollectionName() {
+        return collectionName.matches('^[A-Za-z]+Observations$')
+          || collectionName in ['questionnaireResponses'];
+      }
+
+      function isClinicianWritableCollectionName() {
+        return isPatientWritableCollectionName()
+          || collectionName in ['allergyIntolerances', 'appointments'];
+      }
+
+      allow read: if isAdmin() || isClinician();
+      allow write: if isAdmin() || (isClinician() && isClinicianWritableCollectionName());
+    }
+
+    match /questionnaires/{questionnaireId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      function securityRelatedFieldsDidNotChange() {
+        return isEqualOptional(request.resource.data, 'type', resource.data, 'type')
+          && isEqualOptional(request.resource.data, 'disabled', resource.data, 'disabled');
+      }
+
+      function isAllowedUpdateWithinClinicianScope() {
+        return valueExists(resource.data, 'type') ? 
+          (
+            resource.data.type in ['patient'] && isClinician() && 
+            resource.data.clinician == request.auth.uid
+          ) : false;
+      }
+
+      allow read: if isAdmin()
+        || (request.auth != null && request.auth.uid == userId)
+        || (resource == null && isAuthenticated())
+        || (resource != null && isClinician() && resource.data.type == 'patient' && 
+            valueExists(resource.data, 'clinician') && resource.data.clinician == request.auth.uid);
+
+      // Allow creation of user documents when the auth UID matches
+      allow create: if isAdmin()
+        || (request.auth != null && request.auth.uid == userId);
+
+      allow update: if isAdmin()
+        || (securityRelatedFieldsDidNotChange() && (isUser(userId) || isAllowedUpdateWithinClinicianScope()));
+
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId}/{collectionName}/{documentId} {
+      function isClinicianForThisPatient() {
+        let userDoc = getUser(userId);
+        return (userDoc.data != null)
+          && userDoc.data.type == 'patient'
+          && valueExists(userDoc.data, 'clinician')
+          && userDoc.data.clinician == request.auth.uid
+          && isClinician();
+      }
+
+      function isPatientWritableCollectionName() {
+        return collectionName.matches('^[A-Za-z]+Observations$')
+          || collectionName in ['questionnaireResponses'];
+      }
+
+      function isClinicianWritableCollectionName() {
+        return isPatientWritableCollectionName()
+          || collectionName in ['allergyIntolerances', 'appointments'];
+      }
+
+      allow read: if isAdmin()
+        || (request.auth != null && request.auth.uid == userId)
+        || isClinicianForThisPatient();
+
+      allow write: if isAdmin() 
+        || (isUser(userId) && isPatientWritableCollectionName())
+        || (isClinicianForThisPatient() && isClinicianWritableCollectionName());
+    }
+
+    match /videoSections/{documents=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
   }
 }
