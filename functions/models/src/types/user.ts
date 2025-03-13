@@ -23,7 +23,7 @@ export const userConverter = new Lazy(
       schema: userRegistrationInputConverter.value.schema
         .extend({
           dateOfEnrollment: dateConverter.schema,
-          invitationCode: z.string(),
+          invitationCode: z.string().optional(),
           lastActiveDate: dateConverter.schema,
         })
         .transform((values) => new User(values)),
@@ -40,7 +40,7 @@ export class User extends UserRegistration {
   // Properties
 
   readonly dateOfEnrollment: Date
-  readonly invitationCode: string
+  readonly invitationCode?: string
   readonly lastActiveDate: Date
 
   // Constructor
@@ -60,7 +60,7 @@ export class User extends UserRegistration {
     language?: string
     timeZone?: string
     dateOfEnrollment: Date
-    invitationCode: string
+    invitationCode?: string
     lastActiveDate: Date
   }) {
     super(input)

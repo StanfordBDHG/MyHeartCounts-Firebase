@@ -10,7 +10,6 @@ import { setTimeout } from 'timers/promises'
 import {
   advanceDateByDays,
   dateConverter,
-  type Invitation,
   User,
   type UserAuth,
   UserType,
@@ -75,51 +74,14 @@ export class DatabaseUserService implements UserService {
     )
   }
 
-  // Invitations
+  // Invitation-related methods have been removed
 
-  async createInvitation(content: Invitation): Promise<{ id: string }> {
-    const id = await this.databaseService.runTransaction(
-      async (collections, transaction) => {
-        const invitations = await transaction.get(
-          collections.invitations.where('code', '==', content.code).limit(1),
-        )
-        if (!invitations.empty) {
-          logger.error(
-            `Invitation code '${content.code}' already exists in invitations with ids [${invitations.docs.map((doc) => `'${doc.id}'`).join(', ')}].`,
-          )
-          throw new https.HttpsError(
-            'invalid-argument',
-            'Invitation code is not unique.',
-          )
-        }
-        const invitationDoc = collections.invitations.doc()
-        transaction.create(invitationDoc, content)
-        logger.info(
-          `Created invitation with code '${content.code}' using id '${invitationDoc.id}'.`,
-        )
-        return invitationDoc.id
-      },
-    )
-    return { id }
-  }
-
-  async getInvitationByCode(
-    invitationCode: string,
-  ): Promise<Document<Invitation> | undefined> {
-    const result = await this.databaseService.getQuery<Invitation>(
-      (collections) =>
-        collections.invitations.where('code', '==', invitationCode).limit(1),
-    )
-    return result.at(0)
-  }
-
-  async enrollUser(
-    invitation: Document<Invitation>,
+  async enrollUserDirectly(
     userId: string,
     options: { isSingleSignOn: boolean },
   ): Promise<Document<User>> {
     logger.info(
-      `About to enroll user ${userId} using invitation at '${invitation.id}' with code '${invitation.content.code}'.`,
+      `About to enroll user ${userId} directly.`,
     )
 
     const user = await this.databaseService.runTransaction(
@@ -134,23 +96,18 @@ export class DatabaseUserService implements UserService {
           )
         }
 
-        if (!options.isSingleSignOn) {
-          await this.auth.updateUser(userId, {
-            displayName: invitation.content.auth?.displayName ?? undefined,
-            phoneNumber: invitation.content.auth?.phoneNumber ?? undefined,
-            photoURL: invitation.content.auth?.photoURL ?? undefined,
-          })
-
-          logger.info(
-            `Updated auth information for user with id '${userId}' using invitation auth content.`,
-          )
-        }
-
         const userRef = collections.users.doc(userId)
         const userData = new User({
-          ...invitation.content.user,
+          type: UserType.patient,
+          disabled: false,
+          receivesAppointmentReminders: true,
+          receivesInactivityReminders: true,
+          receivesMedicationUpdates: true,
+          receivesQuestionnaireReminders: true,
+          receivesRecommendationUpdates: true,
+          receivesVitalsReminders: true,
+          receivesWeightAlerts: true,
           lastActiveDate: new Date(),
-          invitationCode: invitation.content.code,
           dateOfEnrollment: new Date(),
         })
         transaction.set(userRef, userData)
@@ -169,7 +126,7 @@ export class DatabaseUserService implements UserService {
     )
 
     logger.info(
-      `DatabaseUserService.enrollUser(${userId}): Created user object using invitation content.`,
+      `DatabaseUserService.enrollUserDirectly(${userId}): Created user object for public enrollment.`,
     )
 
     return user
@@ -200,59 +157,10 @@ export class DatabaseUserService implements UserService {
       `DatabaseUserService.finishUserEnrollment(${user.id}): Auth user found.`,
     )
 
-    const invitation = await this.getInvitationByCode(
-      user.content.invitationCode,
-    )
-
-    if (invitation?.content === undefined) {
-      logger.error(
-        `DatabaseUserService.finishUserEnrollment(${user.id}): Invitation not found for user.`,
-      )
-      throw new https.HttpsError('not-found', 'Invitation not found for user.')
-    }
-
-    const invitationCollections = await this.databaseService.listCollections(
-      (collections) => collections.invitations.doc(invitation.id),
-    )
-
-    logger.info(
-      `DatabaseUserService.finishUserEnrollment(${user.id}): Will copy invitation collections: [${invitationCollections.map((collection) => `'${collection.id}'`).join(', ')}].`,
-    )
-
-    await Promise.all(
-      invitationCollections.map(async (invitationCollection) =>
-        this.databaseService.runTransaction(
-          async (collections, transaction) => {
-            const userRef = collections.users.doc(user.id)
-            const collectionId = invitationCollection.id
-            const items = await transaction.get(invitationCollection)
-            for (const item of items.docs) {
-              transaction.create(
-                userRef.collection(collectionId).doc(item.id),
-                item.data(),
-              )
-              transaction.delete(item.ref)
-            }
-
-            logger.info(
-              `DatabaseUserService.finishUserEnrollment(${user.id}): Copied invitation collection '${collectionId}' with ${items.size} items.`,
-            )
-          },
-        ),
-      ),
-    )
-
-    await this.deleteInvitation(invitation)
+    // Skip copying invitation data since we're not using invitations
   }
 
-  async deleteInvitation(invitation: Document<Invitation>): Promise<void> {
-    await this.databaseService.bulkWrite(async (collections, writer) => {
-      const ref = collections.invitations.doc(invitation.id)
-      await collections.firestore.recursiveDelete(ref, writer)
-    })
-
-    logger.info(`Deleted invitation with id '${invitation.id}' recursively.`)
-  }
+  // deleteInvitation method has been removed
 
 
   // Users

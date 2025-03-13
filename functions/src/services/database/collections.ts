@@ -12,7 +12,6 @@ import {
   fhirObservationConverter,
   fhirQuestionnaireConverter,
   fhirQuestionnaireResponseConverter,
-  invitationConverter,
   symptomScoreConverter,
   userConverter,
   userDeviceConverter,
@@ -56,75 +55,7 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(historyChangeItemConverter))
   }
 
-  get invitations() {
-    return this.firestore
-      .collection('invitations')
-      .withConverter(new DatabaseConverter(invitationConverter.value))
-  }
-
-  invitationAllergyIntolerances(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('allergyIntolerances')
-      .withConverter(
-        new DatabaseConverter(fhirAllergyIntoleranceConverter.value),
-      )
-  }
-
-  invitationAppointments(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('appointments')
-      .withConverter(new DatabaseConverter(fhirAppointmentConverter.value))
-  }
-
-  invitationDevices(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('devices')
-      .withConverter(new DatabaseConverter(userDeviceConverter.value))
-  }
-
-
-  invitationMessages(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('messages')
-      .withConverter(new DatabaseConverter(userMessageConverter.value))
-  }
-
-  invitationObservations(
-    invitationId: string,
-    collection: UserObservationCollection,
-  ) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection(collection)
-      .withConverter(new DatabaseConverter(fhirObservationConverter.value))
-  }
-
-  invitationQuestionnaireResponses(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('questionnaireResponses')
-      .withConverter(
-        new DatabaseConverter(fhirQuestionnaireResponseConverter.value),
-      )
-  }
-
-  invitationSymptomScores(invitationId: string) {
-    return this.firestore
-      .collection('invitations')
-      .doc(invitationId)
-      .collection('symptomScores')
-      .withConverter(new DatabaseConverter(symptomScoreConverter.value))
-  }
+  // Invitation-related collections have been removed
 
 
 

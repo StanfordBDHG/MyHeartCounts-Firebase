@@ -7,16 +7,10 @@
 //
 
 import {
-  type Invitation,
   type User,
   type UserAuth,
 } from '@stanfordbdhg/engagehf-models'
 import { type Document } from '../database/databaseService.js'
-
-export interface CreateInvitationData {
-  auth?: UserAuth
-  user?: User
-}
 
 export interface UserService {
   // Auth
@@ -25,23 +19,13 @@ export interface UserService {
   updateAuth(userId: string, auth: UserAuth): Promise<void>
   updateClaims(userId: string): Promise<void>
 
-  // Invitations
+  // Users
 
-  createInvitation(content: Invitation): Promise<{ id: string }>
-  getInvitationByCode(
-    invitationCode: string,
-  ): Promise<Document<Invitation> | undefined>
-  enrollUser(
-    invitation: Document<Invitation>,
+  enrollUserDirectly(
     userId: string,
     options: { isSingleSignOn: boolean },
   ): Promise<Document<User>>
   finishUserEnrollment(user: Document<User>): Promise<void>
-  deleteInvitation(invitation: Document<Invitation>): Promise<void>
-
-
-  // Users
-
   disableUser(userId: string): Promise<void>
   enableUser(userId: string): Promise<void>
   getAllPatients(): Promise<Array<Document<User>>>

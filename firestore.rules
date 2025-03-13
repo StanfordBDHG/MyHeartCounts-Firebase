@@ -39,33 +39,10 @@ service cloud.firestore {
       return get(/databases/$(databaseId)/documents/users/$(userId));
     }
 
-    function getInvitation(invitationId) {
-      return get(/databases/$(databaseId)/documents/invitations/$(invitationId));
-    }
-
-    match /invitations/{invitationId} {
-      function securityRelatedFieldsDidNotChange() {
-        return isEqualOptional(request.resource.data.user, 'type', resource.data.user, 'type');
-      }
-
-      allow read, delete: if isAdmin() || isClinician();
-      allow create: if isAdmin();
-      allow update: if isAdmin() || (securityRelatedFieldsDidNotChange() && isClinician());
-    }
-
-    match /invitations/{invitationId}/{collectionName}/{documentId} {
-      function isPatientWritableCollectionName() {
-        return collectionName.matches('^[A-Za-z]+Observations$')
-          || collectionName in ['questionnaireResponses'];
-      }
-
-      function isClinicianWritableCollectionName() {
-        return isPatientWritableCollectionName()
-          || collectionName in ['allergyIntolerances', 'appointments'];
-      }
-
-      allow read: if isAdmin() || isClinician();
-      allow write: if isAdmin() || (isClinician() && isClinicianWritableCollectionName());
+    // Block all access to invitations collection 
+    match /invitations/{documentId} {
+      // No access allowed to invitations collection
+      allow read, write: if false;
     }
 
     match /questionnaires/{questionnaireId} {

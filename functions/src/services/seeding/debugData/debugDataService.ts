@@ -17,7 +17,6 @@ import {
   FHIRObservation,
   fhirQuestionnaireConverter,
   FHIRQuestionnaireResponse,
-  invitationConverter,
   LoincCode,
   MedicationReference,
   QuantityUnit,
@@ -77,16 +76,7 @@ export class DebugDataService extends SeedingService {
     return userIds
   }
 
-  async seedInvitations() {
-    const invitations = this.readJSONRecord(
-      'invitations.json',
-      invitationConverter.value.schema,
-    )
-    await this.replaceCollection(
-      (collections) => collections.invitations,
-      invitations,
-    )
-  }
+  // Invitation-related methods have been removed
 
   async seedUsers() {
     const users = this.readJSONArray('users.json', userSeedingOptionsSchema)

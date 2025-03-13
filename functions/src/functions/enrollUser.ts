@@ -6,14 +6,17 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { enrollUserInputSchema } from '@stanfordbdhg/engagehf-models'
-import { https, logger } from 'firebase-functions'
+import { z } from 'zod'
+import { logger } from 'firebase-functions'
 import { validatedOnCall } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
+// New simplified schema without invitation code
+const enrollUserPublicSchema = z.object({})
+
 export const enrollUser = validatedOnCall(
   'enrollUser',
-  enrollUserInputSchema,
+  enrollUserPublicSchema,
   async (request) => {
     const factory = getServiceFactory()
     const credential = factory.credential(request.auth)
@@ -21,18 +24,14 @@ export const enrollUser = validatedOnCall(
     const userService = factory.user()
 
     const userId = credential.userId
-    const invitationCode = request.data.invitationCode
 
-    const invitation = await userService.getInvitationByCode(invitationCode)
-    if (invitation === undefined)
-      throw new https.HttpsError('not-found', 'Invitation not found')
-
-    const userDoc = await userService.enrollUser(invitation, userId, {
+    // Direct enrollment without invitation
+    const userDoc = await userService.enrollUserDirectly(userId, {
       isSingleSignOn: false,
     })
 
     logger.debug(
-      `setupUser: User '${userId}' successfully enrolled in the study with invitation code: ${invitationCode}`,
+      `setupUser: User '${userId}' successfully enrolled in the study directly`,
     )
 
     await triggerService.userEnrolled(userDoc)

@@ -12,7 +12,6 @@ import { dateConverter } from '../helpers/dateConverter.js'
 import { optionalish, optionalishDefault } from '../helpers/optionalish.js'
 
 export enum DebugDataComponent {
-  invitations = 'invitations',
   users = 'users',
 }
 
