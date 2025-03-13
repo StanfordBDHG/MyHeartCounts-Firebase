@@ -34,8 +34,10 @@ export const userRegistrationInputConverter = new Lazy(
           object.dateOfBirth ? dateConverter.encode(object.dateOfBirth) : null,
         clinician: object.clinician ?? null,
         receivesInactivityReminders: object.receivesInactivityReminders ?? null,
-        receivesQuestionnaireReminders: object.receivesQuestionnaireReminders ?? null,
-        receivesRecommendationUpdates: object.receivesRecommendationUpdates ?? null,
+        receivesQuestionnaireReminders:
+          object.receivesQuestionnaireReminders ?? null,
+        receivesRecommendationUpdates:
+          object.receivesRecommendationUpdates ?? null,
         language: object.language ?? null,
         timeZone: object.timeZone ?? null,
       }),
@@ -67,7 +69,7 @@ export class UserRegistration {
 
   readonly dateOfBirth?: Date
   readonly clinician?: string
-  
+
   readonly receivesInactivityReminders?: boolean
   readonly receivesQuestionnaireReminders?: boolean
   readonly receivesRecommendationUpdates?: boolean

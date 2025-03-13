@@ -14,7 +14,7 @@
     "serve": "firebase emulators:start --only auth,firestore,functions,storage",
     "serve:watch": "npm run build -- --watch | npm run serve",
     "serve:seed": "curl -s -X PUT localhost:4400/functions/disableBackgroundTriggers 1>/dev/null && npm run serve:seed:withoutDisablingTriggers && curl -s -X PUT localhost:4400/functions/enableBackgroundTriggers 1>/dev/null",
-    "serve:seed:withoutDisablingTriggers": "curl --location \"http://localhost:5001/stanford-bdhg-myheartcounts/us-central1/defaultSeed\" --header \"Content-Type: application/json\" --data \"{\\\"staticData\\\": {}}\"",
+    "serve:seed:withoutDisablingTriggers": "curl --location \"http://localhost:5001/myheart-counts-development/us-central1/defaultSeed\" --header \"Content-Type: application/json\" --data \"{\\\"staticData\\\": {}}\"",
     "serve:seeded": "firebase emulators:exec --only auth,firestore,functions,storage --ui \"npm run serve:seed && if [ -z $IN_DOCKER_CONTAINER ]; then read -rd \\\"\\\"; else sleep infinity; fi\"", 
     "shell": "firebase functions:shell",
     "deploy": "firebase deploy --only functions",

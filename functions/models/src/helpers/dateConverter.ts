@@ -30,7 +30,7 @@ export const dateConverter = new SchemaConverter({
         return z.NEVER
       }
     }),
-    z.null().transform(() => new Date())
+    z.null().transform(() => new Date()),
   ]),
   encode: (object) => {
     if (!object || !(object instanceof Date)) {

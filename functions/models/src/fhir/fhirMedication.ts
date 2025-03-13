@@ -82,7 +82,7 @@ export const fhirMedicationConverter = new Lazy(
             fhirCodeableConceptConverter.value.encode(object.form)
           : null,
         ingredient:
-          object.ingredient?.map(
+          object.ingredient.map(
             fhirMedicationIngredientConverter.value.encode,
           ) ?? null,
       }),
@@ -101,8 +101,8 @@ export class FHIRMedication extends FHIRResource {
 
   get displayName(): string | undefined {
     return (
-      this.code?.text ??
-      this.code?.coding?.find((coding) => coding.system === CodingSystem.rxNorm)
+      this.code.text ??
+      this.code.coding?.find((coding) => coding.system === CodingSystem.rxNorm)
         ?.display
     )
   }
@@ -115,12 +115,12 @@ export class FHIRMedication extends FHIRResource {
 
   get medicationClassReference(): FHIRReference | undefined {
     return this.extensionsWithUrl(FHIRExtensionUrl.medicationClass).at(0)
-      ?.valueReference
+      .valueReference
   }
 
   get minimumDailyDoseRequest(): FHIRMedicationRequest | undefined {
     return this.extensionsWithUrl(FHIRExtensionUrl.minimumDailyDose).at(0)
-      ?.valueMedicationRequest
+      .valueMedicationRequest
   }
 
   get minimumDailyDose(): number[] | undefined {
@@ -128,7 +128,7 @@ export class FHIRMedication extends FHIRResource {
     if (!request) return undefined
     return this.extensionsWithUrl(FHIRExtensionUrl.totalDailyDose)
       .at(0)
-      ?.valueQuantities?.flatMap((quantity) => {
+      .valueQuantities?.flatMap((quantity) => {
         const value = QuantityUnit.mg.valueOf(quantity)
         return value ? [value] : []
       })
@@ -136,7 +136,7 @@ export class FHIRMedication extends FHIRResource {
 
   get targetDailyDoseRequest(): FHIRMedicationRequest | undefined {
     return this.extensionsWithUrl(FHIRExtensionUrl.targetDailyDose).at(0)
-      ?.valueMedicationRequest
+      .valueMedicationRequest
   }
 
   get targetDailyDose(): number[] | undefined {
@@ -145,7 +145,7 @@ export class FHIRMedication extends FHIRResource {
     const result = request
       .extensionsWithUrl(FHIRExtensionUrl.totalDailyDose)
       .at(0)
-      ?.valueQuantities?.flatMap((quantity) => {
+      .valueQuantities?.flatMap((quantity) => {
         const value = QuantityUnit.mg.valueOf(quantity)
         return value ? [value] : []
       })

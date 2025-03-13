@@ -132,7 +132,7 @@ export abstract class FHIRElement {
 
   extensionsWithUrl(url: FHIRExtensionUrl): FHIRExtension[] {
     return (
-      this.extension?.filter((extension) => extension.url === url.toString()) ??
+      this.extension.filter((extension) => extension.url === url.toString()) ??
       []
     )
   }
@@ -174,7 +174,7 @@ export abstract class FHIRResource extends FHIRElement {
     filter: FHIRCoding,
   ): string[] {
     return (
-      concept?.coding?.flatMap((coding) => {
+      concept.coding?.flatMap((coding) => {
         if (filter.system && coding.system !== filter.system) return []
         if (filter.version && coding.version !== filter.version) return []
         return coding.code ? [coding.code] : []
@@ -188,7 +188,7 @@ export abstract class FHIRResource extends FHIRElement {
   ): boolean {
     return filter.some(
       (filterCoding) =>
-        concept?.coding?.some((coding) => {
+        concept.coding?.some((coding) => {
           if (filterCoding.code && coding.code !== filterCoding.code)
             return false
           if (filterCoding.system && coding.system !== filterCoding.system)

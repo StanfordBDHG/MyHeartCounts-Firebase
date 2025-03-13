@@ -80,7 +80,7 @@ export class QuantityUnit {
           converter.sourceUnit.equals(observation.unit) &&
           converter.targetUnit.equals(this),
       )
-      ?.convert(observation.value)
+      .convert(observation.value)
     return value !== undefined ?
         { ...observation, value, unit: this }
       : undefined
@@ -96,7 +96,7 @@ export class QuantityUnit {
   }
 
   valueOf(quantity: FHIRQuantity | undefined): number | undefined {
-    if (!quantity?.value) return undefined
+    if (!quantity.value) return undefined
     if (this.isUsedIn(quantity)) return quantity.value
 
     return QuantityUnitConverter.allValues
@@ -105,7 +105,7 @@ export class QuantityUnit {
           converter.sourceUnit.isUsedIn(quantity) &&
           converter.targetUnit.equals(this),
       )
-      ?.convert(quantity.value)
+      .convert(quantity.value)
   }
 }
 

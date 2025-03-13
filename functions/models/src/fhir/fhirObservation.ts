@@ -101,7 +101,7 @@ export const fhirObservationConverter = new Lazy(
         status: object.status,
         code: fhirCodeableConceptConverter.value.encode(object.code),
         component:
-          object.component?.map(
+          object.component.map(
             fhirObservationComponentConverter.value.encode,
           ) ?? null,
         valueQuantity:
@@ -350,8 +350,8 @@ export class FHIRObservation extends FHIRResource {
     const date =
       this.effectiveDateTime ??
       this.effectiveInstant ??
-      this.effectivePeriod?.start ??
-      this.effectivePeriod?.end
+      this.effectivePeriod.start ??
+      this.effectivePeriod.end
     if (!date) return result
 
     if (options.component) {

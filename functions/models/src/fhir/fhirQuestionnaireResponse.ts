@@ -109,7 +109,7 @@ export const fhirQuestionnaireResponseConverter = new Lazy(
         ...fhirResourceConverter.value.encode(object),
         authored: dateConverter.encode(object.authored),
         item:
-          object.item?.map(
+          object.item.map(
             fhirQuestionnaireResponseItemConverter.value.encode,
           ) ?? null,
         questionnaire: object.questionnaire,
