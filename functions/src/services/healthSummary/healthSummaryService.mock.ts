@@ -13,7 +13,6 @@ import {
   LocalizedText,
   type Observation,
   QuantityUnit,
-  UserMedicationRecommendationType,
 } from '@stanfordbdhg/engagehf-models'
 import { type HealthSummaryService } from './healthSummaryService.js'
 import {
@@ -42,55 +41,6 @@ export class MockHealthSummaryService implements HealthSummaryService {
         start: advanceDateByDays(date, 1),
         durationInMinutes: 60,
       }),
-      recommendations: [
-        {
-          currentMedication: [],
-          displayInformation: {
-            title: new LocalizedText('Losartan (Cozaar)'),
-            subtitle: new LocalizedText(''),
-            description: new LocalizedText(
-              'Switch to Sacubitril-Valsartan (More Effective Medication)',
-            ),
-            type: UserMedicationRecommendationType.improvementAvailable,
-            dosageInformation: {
-              minimumSchedule: [{ frequency: 1, quantity: [25] }],
-              currentSchedule: [{ frequency: 1, quantity: [25] }],
-              targetSchedule: [{ frequency: 1, quantity: [100] }],
-              unit: 'mg',
-            },
-          },
-        },
-        {
-          currentMedication: [],
-          displayInformation: {
-            title: new LocalizedText('Dapagliflozin (Farxiga)'),
-            subtitle: new LocalizedText(''),
-            description: new LocalizedText('Continue Dose'),
-            type: UserMedicationRecommendationType.targetDoseReached,
-            dosageInformation: {
-              minimumSchedule: [{ frequency: 1, quantity: [5] }],
-              currentSchedule: [{ frequency: 1, quantity: [10] }],
-              targetSchedule: [{ frequency: 1, quantity: [10] }],
-              unit: 'mg',
-            },
-          },
-        },
-        {
-          currentMedication: [],
-          displayInformation: {
-            title: new LocalizedText('Carvedilol (Coreg)'),
-            subtitle: new LocalizedText(''),
-            description: new LocalizedText('Start Medication'),
-            type: UserMedicationRecommendationType.notStarted,
-            dosageInformation: {
-              minimumSchedule: [{ frequency: 1, quantity: [5] }],
-              currentSchedule: [],
-              targetSchedule: [{ frequency: 2, quantity: [50] }],
-              unit: 'mg',
-            },
-          },
-        },
-      ],
       vitals: await this.getVitals(date),
       symptomScores: [
         {

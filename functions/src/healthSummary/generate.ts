@@ -11,7 +11,6 @@ import {
   presortedMedian,
   presortedPercentile,
   type Observation,
-  UserMedicationRecommendationType,
 } from '@stanfordbdhg/engagehf-models'
 import { logger } from 'firebase-functions'
 import 'jspdf-autotable' /* eslint-disable-line */
@@ -44,9 +43,6 @@ export function generateHealthSummary(
   )
   logger.debug(
     `generateHealthSummary: ${data.vitals.dryWeight !== undefined ? 1 : 0} dry weight observations.`,
-  )
-  logger.debug(
-    `generateHealthSummary: ${data.recommendations.length} recommendations.`,
   )
   logger.debug(
     `generateHealthSummary: ${data.symptomScores.length} symptom scores.`,
@@ -139,91 +135,13 @@ class HealthSummaryPdfGenerator extends PdfGenerator {
   }
 
   addCurrentMedicationSection() {
-    const currentMedication = this.data.recommendations.filter(
-      (recommendation) =>
-        recommendation.displayInformation.dosageInformation.currentSchedule
-          .length > 0,
-    )
-    if (currentMedication.length === 0) return
-    this.addSectionTitle(this.texts.currentMedicationsSection.title)
-    this.addText(
-      this.texts.currentMedicationsSection.description,
-      this.textStyles.bodyItalic,
-    )
-
-    const tableContent: CellDef[][] = [
-      [
-        this.texts.currentMedicationsSection.table.nameHeader,
-        this.texts.currentMedicationsSection.table.currentDoseHeader,
-        this.texts.currentMedicationsSection.table.targetDoseHeader,
-      ].map((title) => this.cell(title, { fontStyle: 'bold' })),
-      ...currentMedication.map((recommendation) => [
-        this.cell(
-          '[ ] ' +
-            recommendation.displayInformation.title.localize(
-              ...this.options.languages,
-            ),
-        ),
-        this.cell(
-          recommendation.displayInformation.dosageInformation.currentSchedule
-            .map((schedule) =>
-              this.texts.currentMedicationsSection.table.doseSchedule(
-                schedule,
-                recommendation.displayInformation.dosageInformation.unit,
-              ),
-            )
-            .join('\n'),
-        ),
-        this.cell(
-          recommendation.displayInformation.dosageInformation.targetSchedule
-            .map((schedule) =>
-              this.texts.currentMedicationsSection.table.doseSchedule(
-                schedule,
-                recommendation.displayInformation.dosageInformation.unit,
-              ),
-            )
-            .join('\n'),
-        ),
-      ]),
-    ]
-
-    this.addTable(tableContent)
-    this.moveDown(this.textStyles.body.fontSize)
+    // Medications have been removed
+    return;
   }
 
   addMedicationRecommendationsSection() {
-    const optimizations = this.data.recommendations.filter((recommendation) =>
-      [
-        UserMedicationRecommendationType.improvementAvailable,
-        UserMedicationRecommendationType.notStarted,
-      ].includes(recommendation.displayInformation.type),
-    )
-    if (optimizations.length === 0) return
-    this.addSectionTitle(this.texts.medicationRecommendationsSection.title)
-
-    this.addList(
-      optimizations.map((recommendation) => {
-        const title = recommendation.displayInformation.title.localize(
-          ...this.options.languages,
-        )
-        const description =
-          recommendation.displayInformation.description.localize(
-            ...this.options.languages,
-          )
-        return `${title}: ${description}`
-      }),
-      this.textStyles.bodyColored,
-    )
-
-    this.moveDown(this.textStyles.body.fontSize / 2)
-    this.addText(
-      this.texts.medicationRecommendationsSection.description,
-      this.textStyles.bodyItalic,
-    )
-    this.addText(
-      this.texts.medicationRecommendationsSection.hint,
-      this.textStyles.bodyColoredBoldItalic,
-    )
+    // Medications have been removed
+    return;
   }
 
   addSymptomScoresSummarySection() {

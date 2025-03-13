@@ -8,7 +8,6 @@
 
 import {
   LocalizedText,
-  type UserMedicationRecommendationDoseSchedule,
   type FHIRAppointment,
   type SymptomScore,
 } from '@stanfordbdhg/engagehf-models'
@@ -106,28 +105,10 @@ export function healthSummaryLocalizations(languages: string[]) {
           en: 'Target Dose',
         }),
         doseSchedule(
-          schedule: UserMedicationRecommendationDoseSchedule,
+          schedule: any,
           unit: string,
         ): string {
-          const prefix =
-            schedule.quantity.map((quantity) => quantity.toString()).join('/') +
-            ' ' +
-            unit +
-            ' '
-          switch (schedule.frequency) {
-            case 1:
-              return localize({
-                en: prefix + 'daily',
-              })
-            case 2:
-              return localize({
-                en: prefix + 'twice daily',
-              })
-            default:
-              return localize({
-                en: prefix + `${schedule.frequency}x daily`,
-              })
-          }
+          return "N/A";
         },
       },
     },
