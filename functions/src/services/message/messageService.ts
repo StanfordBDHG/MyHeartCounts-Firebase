@@ -12,8 +12,8 @@ import {
   type UserDevice,
   type UserMessage,
   type UserMessageType,
-} from '@stanfordbdhg/engagehf-models'
-import { type Document } from '../database/databaseService'
+} from "@stanfordbdhg/engagehf-models";
+import {type Document} from "../database/databaseService";
 
 export interface MessageService {
   // Notifications

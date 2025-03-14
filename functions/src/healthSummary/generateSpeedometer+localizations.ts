@@ -6,23 +6,23 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { LocalizedText } from '@stanfordbdhg/engagehf-models'
+import {LocalizedText} from "@stanfordbdhg/engagehf-models";
 
 export function symptomScoreSpeedometerLocalizations(languages: string[]) {
   return {
     trendSuffix: new LocalizedText({
-      en: 'from previous',
+      en: "from previous",
     }).localize(...languages),
     legend: {
       baseline: new LocalizedText({
-        en: 'Baseline',
+        en: "Baseline",
       }).localize(...languages),
       previous: new LocalizedText({
-        en: 'Previous',
+        en: "Previous",
       }).localize(...languages),
       current: new LocalizedText({
-        en: 'Current',
+        en: "Current",
       }).localize(...languages),
     },
-  }
+  };
 }

@@ -9,8 +9,8 @@
 import {
   type User,
   type UserAuth,
-} from '@stanfordbdhg/engagehf-models'
-import { type Document } from '../database/databaseService.js'
+} from "@stanfordbdhg/engagehf-models";
+import {type Document} from "../database/databaseService.js";
 
 export interface UserService {
   // Auth
@@ -33,9 +33,9 @@ export interface UserService {
   updateLastActiveDate(userId: string): Promise<void>
   deleteUser(userId: string): Promise<void>
   deleteExpiredAccounts(): Promise<void>
-  
+
   // Legacy methods (stubs for backward compatibility)
-  
+
   getInvitationByCode(code: string): Promise<Document<any> | undefined>
   enrollUser(invitation: Document<any>, userId: string, options: any): Promise<Document<User>>
   deleteInvitation(invitation: Document<any>): Promise<void>

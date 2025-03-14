@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { LocalizedText } from '@stanfordbdhg/engagehf-models'
-import { expect } from 'chai'
+import {LocalizedText} from "@stanfordbdhg/engagehf-models";
+import {expect} from "chai";
 import {
   HealthSummaryDizzinessCategory,
   type HealthSummaryKeyPointMessage,
@@ -16,40 +16,40 @@ import {
   HealthSummaryMedicationRecommendationsCategory,
   HealthSummarySymptomScoreCategory,
   HealthSummaryWeightCategory,
-} from './keyPointsMessage.js'
-import { readCsv } from '../tests/helpers/csv.js'
+} from "./keyPointsMessage.js";
+import {readCsv} from "../tests/helpers/csv.js";
 
-describe('keyPointsMessage', () => {
-  it('should generate the key point message json', () => {
-    const keyPointMessages: HealthSummaryKeyPointMessage[] = []
-    readCsv('src/tests/resources/keyPointMessages.csv', 55, (line, index) => {
-      if (index === 0) return
+describe("keyPointsMessage", () => {
+  it("should generate the key point message json", () => {
+    const keyPointMessages: HealthSummaryKeyPointMessage[] = [];
+    readCsv("src/tests/resources/keyPointMessages.csv", 55, (line, index) => {
+      if (index === 0) return;
 
       const recommendations =
         Object.values(HealthSummaryMedicationRecommendationsCategory).find(
           (category) => line[0] === category.toString(),
-        ) ?? null
+        ) ?? null;
       const symptoms =
         Object.values(HealthSummarySymptomScoreCategory).find(
           (category) => line[1] === category.toString(),
-        ) ?? null
+        ) ?? null;
       const dizziness =
         Object.values(HealthSummaryDizzinessCategory).find(
           (category) => line[2] === category.toString(),
-        ) ?? null
+        ) ?? null;
       const weight =
         Object.values(HealthSummaryWeightCategory).find(
           (category) => line[3] === category.toString(),
-        ) ?? null
+        ) ?? null;
       const texts = separateKeyPointTexts(line[4]).map(
-        (text) => new LocalizedText({ en: text }),
-      )
+        (text) => new LocalizedText({en: text}),
+      );
 
-      expect(recommendations, `recommendation: ${line[0]}`).to.not.be.null
-      expect(symptoms, `symptoms: ${line[1]}`).to.not.be.null
-      expect(dizziness, `dizziness: ${line[2]}`).to.not.be.null
-      expect(weight, `weight: ${line[3]}`).to.not.be.null
-      expect(texts).to.not.be.empty
+      expect(recommendations, `recommendation: ${line[0]}`).to.not.be.null;
+      expect(symptoms, `symptoms: ${line[1]}`).to.not.be.null;
+      expect(dizziness, `dizziness: ${line[2]}`).to.not.be.null;
+      expect(weight, `weight: ${line[3]}`).to.not.be.null;
+      expect(texts).to.not.be.empty;
 
       if (
         recommendations === null ||
@@ -57,8 +57,9 @@ describe('keyPointsMessage', () => {
         dizziness === null ||
         weight === null ||
         texts.length === 0
-      )
-        expect.fail('Invalid key point message')
+      ) {
+        expect.fail("Invalid key point message");
+      }
 
       const message: HealthSummaryKeyPointMessage = {
         recommendationsCategory: recommendations,
@@ -66,10 +67,10 @@ describe('keyPointsMessage', () => {
         dizzinessCategory: dizziness,
         weightCategory: weight,
         texts,
-      }
+      };
 
-      keyPointMessages.push(message)
-    })
+      keyPointMessages.push(message);
+    });
 
     expect(
       keyPointMessages,
@@ -81,10 +82,10 @@ describe('keyPointsMessage', () => {
         null,
         2,
       ),
-    ).to.deep.equal(healthSummaryKeyPointMessages.value)
-  })
+    ).to.deep.equal(healthSummaryKeyPointMessages.value);
+  });
 
-  it('should cover all combinations', () => {
+  it("should cover all combinations", () => {
     for (const recommendations of Object.values(
       HealthSummaryMedicationRecommendationsCategory,
     )) {
@@ -98,24 +99,24 @@ describe('keyPointsMessage', () => {
               symptomScore,
               dizziness,
               weight,
-            })
+            });
             expect(
               texts ?? [],
               `${recommendations}, ${symptomScore}, ${dizziness}, ${weight}`,
-            ).to.not.be.empty
+            ).to.not.be.empty;
           }
         }
       }
     }
-  })
-})
+  });
+});
 
 function separateKeyPointTexts(string: string): string[] {
   return string
-    .split('\n')
+    .split("\n")
     .map((line) =>
       (line.match(/[0-9]\.\) .*/g) ? line.substring(4) : line)
-        .replace(/\s+/g, ' ')
+        .replace(/\s+/g, " ")
         .trim(),
-    )
+    );
 }

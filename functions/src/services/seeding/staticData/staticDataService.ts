@@ -12,21 +12,21 @@ import {
   localizedTextConverter,
   Video,
   VideoSection,
-} from '@stanfordbdhg/engagehf-models'
-import { z } from 'zod'
-import { type DatabaseService } from '../../database/databaseService.js'
-import { SeedingService } from '../seedingService.js'
+} from "@stanfordbdhg/engagehf-models";
+import {z} from "zod";
+import {type DatabaseService} from "../../database/databaseService.js";
+import {SeedingService} from "../seedingService.js";
 
 export class StaticDataService extends SeedingService {
   // Properties
 
-  private databaseService: DatabaseService
+  private databaseService: DatabaseService;
 
   // Constructor
 
   constructor(databaseService: DatabaseService) {
-    super({ useIndicesAsKeys: true, path: './data/' })
-    this.databaseService = databaseService
+    super({useIndicesAsKeys: true, path: "./data/"});
+    this.databaseService = databaseService;
   }
 
   // Methods
@@ -36,26 +36,26 @@ export class StaticDataService extends SeedingService {
   async updateQuestionnaires(strategy: CachingStrategy) {
     await this.databaseService.runTransaction(
       async (collections, transaction) => {
-        await this.deleteCollection(collections.questionnaires, transaction)
+        await this.deleteCollection(collections.questionnaires, transaction);
         this.setCollection(
           collections.questionnaires,
           this.readJSONArray(
-            'questionnaires.json',
+            "questionnaires.json",
             fhirQuestionnaireConverter.value.schema,
           ),
           transaction,
-        )
+        );
       },
-    )
+    );
   }
 
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   async updateVideoSections(strategy: CachingStrategy) {
     await this.databaseService.runTransaction(
       async (collections, transaction) => {
-        await this.deleteCollection(collections.videoSections, transaction)
+        await this.deleteCollection(collections.videoSections, transaction);
         const videoSections = this.readJSONArray(
-          'videoSections.json',
+          "videoSections.json",
           z.object({
             title: localizedTextConverter.schema,
             description: localizedTextConverter.schema,
@@ -69,29 +69,28 @@ export class StaticDataService extends SeedingService {
               })
               .array(),
           }),
-        )
+        );
 
-        let videoSectionIndex = 0
+        let videoSectionIndex = 0;
         for (const videoSection of videoSections) {
-          const videoSectionId = videoSectionIndex.toString()
+          const videoSectionId = videoSectionIndex.toString();
           transaction.set(
             collections.videoSections.doc(videoSectionId),
             new VideoSection(videoSection),
-          )
+          );
 
-          let videoIndex = 0
+          let videoIndex = 0;
           for (const video of videoSection.videos) {
-            const videoId = videoIndex.toString()
+            const videoId = videoIndex.toString();
             transaction.set(
               collections.videos(videoSectionId).doc(videoId),
               new Video(video),
-            )
-            videoIndex++
+            );
+            videoIndex++;
           }
-          videoSectionIndex++
+          videoSectionIndex++;
         }
       },
-    )
+    );
   }
-
 }

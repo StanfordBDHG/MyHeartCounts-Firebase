@@ -10,21 +10,21 @@ import {
   fhirMedicationRequestConverter,
   fhirQuestionnaireResponseConverter,
   UserObservationCollection,
-} from '@stanfordbdhg/engagehf-models'
-import { onDocumentWritten } from 'firebase-functions/v2/firestore'
-import { DatabaseConverter } from '../services/database/databaseConverter.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/engagehf-models";
+import {onDocumentWritten} from "firebase-functions/v2/firestore";
+import {DatabaseConverter} from "../services/database/databaseConverter.js";
+import {getServiceFactory} from "../services/factory/getServiceFactory.js";
 
 export const onUserAllergyIntoleranceWritten = onDocumentWritten(
-  'users/{userId}/allergyIntolerances/{allergyIntoleranceId}',
+  "users/{userId}/allergyIntolerances/{allergyIntoleranceId}",
   async (event) =>
     getServiceFactory()
       .trigger()
       .userAllergyIntoleranceWritten(event.params.userId),
-)
+);
 
 export const onUserCreatinineObservationWritten = onDocumentWritten(
-  'users/{userId}/creatinineObservations/{observationId}',
+  "users/{userId}/creatinineObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -32,10 +32,10 @@ export const onUserCreatinineObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.creatinine,
       ),
-)
+);
 
 export const onUserBloodPressureObservationWritten = onDocumentWritten(
-  'users/{userId}/bloodPressureObservations/{observationId}',
+  "users/{userId}/bloodPressureObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -43,10 +43,10 @@ export const onUserBloodPressureObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.bloodPressure,
       ),
-)
+);
 
 export const onUserBodyWeightObservationWritten = onDocumentWritten(
-  'users/{userId}/bodyWeightObservations/{observationId}',
+  "users/{userId}/bodyWeightObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -54,10 +54,10 @@ export const onUserBodyWeightObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.bodyWeight,
       ),
-)
+);
 
 export const onUserDryWeightObservationWritten = onDocumentWritten(
-  'users/{userId}/dryWeightObservations/{observationId}',
+  "users/{userId}/dryWeightObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -65,10 +65,10 @@ export const onUserDryWeightObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.dryWeight,
       ),
-)
+);
 
 export const onUserEgfrObservationWritten = onDocumentWritten(
-  'users/{userId}/eGfrObservations/{observationId}',
+  "users/{userId}/eGfrObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -76,10 +76,10 @@ export const onUserEgfrObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.eGfr,
       ),
-)
+);
 
 export const onUserHeartRateObservationWritten = onDocumentWritten(
-  'users/{userId}/heartRateObservations/{observationId}',
+  "users/{userId}/heartRateObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -87,16 +87,16 @@ export const onUserHeartRateObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.heartRate,
       ),
-)
+);
 
 export const onUserMedicationRequestWritten = onDocumentWritten(
-  'users/{userId}/medicationRequests/{medicationRequestId}',
+  "users/{userId}/medicationRequests/{medicationRequestId}",
   async (event) => {
-    const beforeData = event.data?.before
-    const afterData = event.data?.after
+    const beforeData = event.data?.before;
+    const afterData = event.data?.after;
     const converter = new DatabaseConverter(
       fhirMedicationRequestConverter.value,
-    )
+    );
     await getServiceFactory()
       .trigger()
       .userMedicationRequestWritten(
@@ -104,12 +104,12 @@ export const onUserMedicationRequestWritten = onDocumentWritten(
         event.params.medicationRequestId,
         beforeData?.exists ? converter.fromFirestore(beforeData) : undefined,
         afterData?.exists ? converter.fromFirestore(afterData) : undefined,
-      )
+      );
   },
-)
+);
 
 export const onUserPotassiumObservationWritten = onDocumentWritten(
-  'users/{userId}/potassiumObservations/{observationId}',
+  "users/{userId}/potassiumObservations/{observationId}",
   async (event) =>
     getServiceFactory()
       .trigger()
@@ -117,16 +117,16 @@ export const onUserPotassiumObservationWritten = onDocumentWritten(
         event.params.userId,
         UserObservationCollection.potassium,
       ),
-)
+);
 
 export const onUserQuestionnaireResponseWritten = onDocumentWritten(
-  'users/{userId}/questionnaireResponses/{questionnaireResponseId}',
+  "users/{userId}/questionnaireResponses/{questionnaireResponseId}",
   async (event) => {
-    const beforeData = event.data?.before
-    const afterData = event.data?.after
+    const beforeData = event.data?.before;
+    const afterData = event.data?.after;
     const converter = new DatabaseConverter(
       fhirQuestionnaireResponseConverter.value,
-    )
+    );
     await getServiceFactory()
       .trigger()
       .questionnaireResponseWritten(
@@ -134,6 +134,6 @@ export const onUserQuestionnaireResponseWritten = onDocumentWritten(
         event.params.questionnaireResponseId,
         beforeData?.exists ? converter.fromFirestore(beforeData) : undefined,
         afterData?.exists ? converter.fromFirestore(afterData) : undefined,
-      )
+      );
   },
-)
+);

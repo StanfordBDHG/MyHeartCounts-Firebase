@@ -9,16 +9,16 @@
 import {
   registerDeviceInputSchema,
   type RegisterDeviceOutput,
-} from '@stanfordbdhg/engagehf-models'
-import { validatedOnCall } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/engagehf-models";
+import {validatedOnCall} from "./helpers.js";
+import {getServiceFactory} from "../services/factory/getServiceFactory.js";
 
 export const registerDevice = validatedOnCall(
-  'registerDevice',
+  "registerDevice",
   registerDeviceInputSchema,
   async (request): Promise<RegisterDeviceOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    await factory.message().registerDevice(credential.userId, request.data)
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    await factory.message().registerDevice(credential.userId, request.data);
   },
-)
+);

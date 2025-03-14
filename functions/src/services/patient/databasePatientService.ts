@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { isDeepStrictEqual } from 'util'
+import {isDeepStrictEqual} from "util";
 import {
   advanceDateByDays,
   compactMap,
@@ -18,22 +18,22 @@ import {
   QuantityUnit,
   type SymptomScore,
   UserObservationCollection,
-} from '@stanfordbdhg/engagehf-models'
-import { type PatientService } from './patientService.js'
+} from "@stanfordbdhg/engagehf-models";
+import {type PatientService} from "./patientService.js";
 import {
   type Document,
   type DatabaseService,
-} from '../database/databaseService.js'
+} from "../database/databaseService.js";
 
 export class DatabasePatientService implements PatientService {
   // Properties
 
-  private databaseService: DatabaseService
+  private databaseService: DatabaseService;
 
   // Constructor
 
   constructor(databaseService: DatabaseService) {
-    this.databaseService = databaseService
+    this.databaseService = databaseService;
   }
 
   // Methods - Appointments
@@ -45,14 +45,14 @@ export class DatabasePatientService implements PatientService {
     const result = await this.databaseService.getQuery<FHIRAppointment>(
       (collections) =>
         collections.appointments
-          .where('start', '>', advanceDateByDays(fromDate, -1).toISOString())
-          .where('start', '<', advanceDateByDays(toDate, 1).toISOString()),
-    )
+          .where("start", ">", advanceDateByDays(fromDate, -1).toISOString())
+          .where("start", "<", advanceDateByDays(toDate, 1).toISOString()),
+    );
 
     return result.filter((appointment) => {
-      const start = new Date(appointment.content.start)
-      return start >= fromDate && start < toDate
-    })
+      const start = new Date(appointment.content.start);
+      return start >= fromDate && start < toDate;
+    });
   }
 
   async getAppointments(
@@ -60,7 +60,7 @@ export class DatabasePatientService implements PatientService {
   ): Promise<Array<Document<FHIRAppointment>>> {
     return this.databaseService.getQuery<FHIRAppointment>((collections) =>
       collections.userAppointments(userId),
-    )
+    );
   }
 
   async getNextAppointment(
@@ -70,11 +70,11 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userAppointments(userId)
-          .where('start', '>', new Date())
-          .orderBy('start', 'asc')
+          .where("start", ">", new Date())
+          .orderBy("start", "asc")
           .limit(1),
-    )
-    return result.at(0)
+    );
+    return result.at(0);
   }
 
   // Methods - Contraindications
@@ -84,7 +84,7 @@ export class DatabasePatientService implements PatientService {
   ): Promise<Array<Document<FHIRAllergyIntolerance>>> {
     return this.databaseService.getQuery<FHIRAllergyIntolerance>(
       (collections) => collections.userAllergyIntolerances(userId),
-    )
+    );
   }
 
 
@@ -98,9 +98,9 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.bloodPressure)
-          .where('effectiveDateTime', '>', cutoffDate.toISOString())
-          .orderBy('effectiveDateTime', 'desc'),
-    )
+          .where("effectiveDateTime", ">", cutoffDate.toISOString())
+          .orderBy("effectiveDateTime", "desc"),
+    );
     return [
       compactMap(
         observations,
@@ -110,7 +110,7 @@ export class DatabasePatientService implements PatientService {
         observations,
         (observation) => observation.content.diastolicBloodPressure,
       ),
-    ]
+    ];
   }
 
   async getBodyWeightObservations(
@@ -122,12 +122,12 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.bodyWeight)
-          .where('effectiveDateTime', '>', cutoffDate.toISOString())
-          .orderBy('effectiveDateTime', 'desc'),
-    )
+          .where("effectiveDateTime", ">", cutoffDate.toISOString())
+          .orderBy("effectiveDateTime", "desc"),
+    );
     return compactMap(observations, (observation) =>
       observation.content.bodyWeight(unit),
-    )
+    );
   }
 
   async getHeartRateObservations(
@@ -138,13 +138,13 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.heartRate)
-          .where('effectiveDateTime', '>', cutoffDate.toISOString())
-          .orderBy('effectiveDateTime', 'desc'),
-    )
+          .where("effectiveDateTime", ">", cutoffDate.toISOString())
+          .orderBy("effectiveDateTime", "desc"),
+    );
     return compactMap(
       observations,
       (observation) => observation.content.heartRate,
-    )
+    );
   }
 
   async getMostRecentCreatinineObservation(
@@ -154,10 +154,10 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.creatinine)
-          .orderBy('effectiveDateTime', 'desc')
+          .orderBy("effectiveDateTime", "desc")
           .limit(1),
-    )
-    return result.at(0)?.content.creatinine
+    );
+    return result.at(0)?.content.creatinine;
   }
 
   async getMostRecentDryWeightObservation(
@@ -167,10 +167,10 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.dryWeight)
-          .orderBy('effectiveDateTime', 'desc')
+          .orderBy("effectiveDateTime", "desc")
           .limit(1),
-    )
-    return result.at(0)?.content.bodyWeight(QuantityUnit.lbs)
+    );
+    return result.at(0)?.content.bodyWeight(QuantityUnit.lbs);
   }
 
   async getMostRecentEstimatedGlomerularFiltrationRateObservation(
@@ -180,10 +180,10 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.eGfr)
-          .orderBy('effectiveDateTime', 'desc')
+          .orderBy("effectiveDateTime", "desc")
           .limit(1),
-    )
-    return result.at(0)?.content.estimatedGlomerularFiltrationRate
+    );
+    return result.at(0)?.content.estimatedGlomerularFiltrationRate;
   }
 
   async getMostRecentPotassiumObservation(
@@ -193,10 +193,10 @@ export class DatabasePatientService implements PatientService {
       (collections) =>
         collections
           .userObservations(userId, UserObservationCollection.potassium)
-          .orderBy('effectiveDateTime', 'desc')
+          .orderBy("effectiveDateTime", "desc")
           .limit(1),
-    )
-    return result.at(0)?.content.potassium
+    );
+    return result.at(0)?.content.potassium;
   }
 
   // Methods - Questionnaire Responses
@@ -206,7 +206,7 @@ export class DatabasePatientService implements PatientService {
   ): Promise<Array<Document<FHIRQuestionnaireResponse>>> {
     return this.databaseService.getQuery<FHIRQuestionnaireResponse>(
       (collections) => collections.userQuestionnaireResponses(userId),
-    )
+    );
   }
 
   async getSymptomScores(
@@ -216,9 +216,9 @@ export class DatabasePatientService implements PatientService {
     return this.databaseService.getQuery<SymptomScore>((collections) => {
       const query = collections
         .userSymptomScores(userId)
-        .orderBy('date', 'desc')
-      return options?.limit ? query.limit(options.limit) : query
-    })
+        .orderBy("date", "desc");
+      return options?.limit ? query.limit(options.limit) : query;
+    });
   }
 
   async getLatestSymptomScore(
@@ -226,9 +226,9 @@ export class DatabasePatientService implements PatientService {
   ): Promise<Document<SymptomScore> | undefined> {
     const result = await this.databaseService.getQuery<SymptomScore>(
       (collections) =>
-        collections.userSymptomScores(userId).orderBy('date', 'desc').limit(1),
-    )
-    return result.at(0)
+        collections.userSymptomScores(userId).orderBy("date", "desc").limit(1),
+    );
+    return result.at(0);
   }
 
   async updateSymptomScore(
@@ -237,13 +237,12 @@ export class DatabasePatientService implements PatientService {
     symptomScore: SymptomScore | undefined,
   ): Promise<void> {
     return this.databaseService.runTransaction((collections, transaction) => {
-      const ref = collections.userSymptomScores(userId).doc(symptomScoreId)
+      const ref = collections.userSymptomScores(userId).doc(symptomScoreId);
       if (symptomScore) {
-        transaction.set(ref, symptomScore)
+        transaction.set(ref, symptomScore);
       } else {
-        transaction.delete(ref)
+        transaction.delete(ref);
       }
-    })
+    });
   }
-
 }

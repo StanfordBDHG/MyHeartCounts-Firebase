@@ -9,19 +9,19 @@
 import {
   dismissMessageInputSchema,
   type DismissMessageOutput,
-} from '@stanfordbdhg/engagehf-models'
-import { validatedOnCall } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/engagehf-models";
+import {validatedOnCall} from "./helpers.js";
+import {UserRole} from "../services/credential/credential.js";
+import {getServiceFactory} from "../services/factory/getServiceFactory.js";
 
 export const dismissMessage = validatedOnCall(
-  'dismissMessage',
+  "dismissMessage",
   dismissMessageInputSchema,
   async (request): Promise<DismissMessageOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    const userId = request.data.userId ?? credential.userId
-    credential.check(UserRole.admin, UserRole.user(userId))
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    const userId = request.data.userId ?? credential.userId;
+    credential.check(UserRole.admin, UserRole.user(userId));
 
     await factory
       .message()
@@ -29,6 +29,6 @@ export const dismissMessage = validatedOnCall(
         userId,
         request.data.messageId,
         request.data.didPerformAction,
-      )
+      );
   },
-)
+);

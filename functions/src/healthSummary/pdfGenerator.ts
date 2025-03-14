@@ -6,10 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-import fs from 'fs'
-import { Resvg, type ResvgRenderOptions } from '@resvg/resvg-js'
-import { logger } from 'firebase-functions'
-import { jsPDF } from 'jspdf'
+import fs from "fs";
+import {Resvg, type ResvgRenderOptions} from "@resvg/resvg-js";
+import {logger} from "firebase-functions";
+import {jsPDF} from "jspdf";
 import 'jspdf-autotable' /* eslint-disable-line */
 import {
   type Styles,
@@ -18,10 +18,10 @@ import {
 } from 'jspdf-autotable' /* eslint-disable-line */
 
 enum FontStyle {
-  normal = 'normal',
-  bold = 'bold',
-  italic = 'italic',
-  boldItalic = 'bolditalic',
+  normal = "normal",
+  bold = "bold",
+  italic = "italic",
+  boldItalic = "bolditalic",
 }
 
 interface TextStyle {
@@ -35,19 +35,19 @@ interface TextStyle {
 export class PdfGenerator {
   // Properties
 
-  doc: jsPDF
-  pageWidth = 612
-  pageHeight = 792
-  margins = { top: 50, bottom: 50, left: 40, right: 40 }
-  cursor = { x: this.margins.left, y: this.margins.top }
+  doc: jsPDF;
+  pageWidth = 612;
+  pageHeight = 792;
+  margins = {top: 50, bottom: 50, left: 40, right: 40};
+  cursor = {x: this.margins.left, y: this.margins.top};
 
   colors = {
     black: [0, 0, 0] as [number, number, number],
     primary: [0, 117, 116] as [number, number, number],
     lightGray: [211, 211, 211] as [number, number, number],
-  }
+  };
 
-  fontName = 'Open Sans'
+  fontName = "Open Sans";
   textStyles = {
     h1: {
       fontName: this.fontName,
@@ -109,32 +109,32 @@ export class PdfGenerator {
       fontStyle: FontStyle.boldItalic,
       fontSize: 10,
     } as TextStyle,
-  }
+  };
 
   // Constructor
 
   constructor() {
-    this.doc = new jsPDF('p', 'pt', [this.pageWidth, this.pageHeight], true)
+    this.doc = new jsPDF("p", "pt", [this.pageWidth, this.pageHeight], true);
     this.addFont(
-      'resources/fonts/OpenSans-Regular.ttf',
+      "resources/fonts/OpenSans-Regular.ttf",
       this.fontName,
       FontStyle.normal,
-    )
+    );
     this.addFont(
-      'resources/fonts/OpenSans-Bold.ttf',
+      "resources/fonts/OpenSans-Bold.ttf",
       this.fontName,
       FontStyle.bold,
-    )
+    );
     this.addFont(
-      'resources/fonts/OpenSans-Italic.ttf',
+      "resources/fonts/OpenSans-Italic.ttf",
       this.fontName,
       FontStyle.italic,
-    )
+    );
     this.addFont(
-      'resources/fonts/OpenSans-BoldItalic.ttf',
+      "resources/fonts/OpenSans-BoldItalic.ttf",
       this.fontName,
       FontStyle.boldItalic,
-    )
+    );
   }
 
   // Methods
@@ -142,31 +142,31 @@ export class PdfGenerator {
   finish(): Buffer {
     logger.debug(
       `HealthSummaryPDFGenerator.finish: ${this.doc.getNumberOfPages()} pages total.`,
-    )
-    return Buffer.from(this.doc.output('arraybuffer'))
+    );
+    return Buffer.from(this.doc.output("arraybuffer"));
   }
 
   newPage() {
-    this.doc.addPage([this.pageWidth, this.pageHeight])
-    this.cursor = { x: this.margins.left, y: this.margins.top }
+    this.doc.addPage([this.pageWidth, this.pageHeight]);
+    this.cursor = {x: this.margins.left, y: this.margins.top};
   }
 
   addSectionTitle(title: string) {
-    this.moveDown(8)
-    this.addText(title, this.textStyles.h3)
-    this.moveDown(4)
+    this.moveDown(8);
+    this.addText(title, this.textStyles.h3);
+    this.moveDown(4);
   }
 
   addSvg(svg: string, maxWidth?: number) {
-    const img = this.convertSvgToPng(svg)
-    this.addPng(img, maxWidth)
+    const img = this.convertSvgToPng(svg);
+    this.addPng(img, maxWidth);
   }
 
   private convertSvgToPng(svg: string): Buffer {
     const options: ResvgRenderOptions = {
       font: {
         loadSystemFonts: false,
-        fontDirs: ['resources/fonts'],
+        fontDirs: ["resources/fonts"],
         defaultFontFamily: this.fontName,
         serifFamily: this.fontName,
         sansSerifFamily: this.fontName,
@@ -177,17 +177,17 @@ export class PdfGenerator {
       shapeRendering: 2,
       textRendering: 1,
       imageRendering: 0,
-      fitTo: { mode: 'zoom', value: 3 },
-    }
-    return new Resvg(svg, options).render().asPng()
+      fitTo: {mode: "zoom", value: 3},
+    };
+    return new Resvg(svg, options).render().asPng();
   }
 
   addPng(data: Buffer, maxWidth?: number) {
     const width =
-      maxWidth ?? this.pageWidth - this.margins.left - this.margins.right
-    const imgData = 'data:image/png;base64,' + data.toString('base64')
-    const imgProperties = this.doc.getImageProperties(imgData)
-    const height = width / (imgProperties.width / imgProperties.height)
+      maxWidth ?? this.pageWidth - this.margins.left - this.margins.right;
+    const imgData = "data:image/png;base64," + data.toString("base64");
+    const imgProperties = this.doc.getImageProperties(imgData);
+    const height = width / (imgProperties.width / imgProperties.height);
     this.doc.addImage(
       imgData,
       this.cursor.x,
@@ -195,24 +195,24 @@ export class PdfGenerator {
       width,
       height,
       undefined,
-      'FAST',
-    )
-    this.moveDown(height)
+      "FAST",
+    );
+    this.moveDown(height);
   }
 
   addTable(rows: CellDef[][], maxWidth?: number) {
-    const textStyle = this.textStyles.body
+    const textStyle = this.textStyles.body;
     const options: UserOptions = {
       margin: {
         left: this.cursor.x,
         right:
           maxWidth !== undefined ?
-            maxWidth - this.cursor.x
-          : this.margins.right,
+            maxWidth - this.cursor.x :
+            this.margins.right,
       },
-      theme: 'grid',
+      theme: "grid",
       startY: this.cursor.y,
-      tableWidth: 'wrap',
+      tableWidth: "wrap",
       body: rows,
       styles: {
         font: textStyle.fontName,
@@ -233,15 +233,15 @@ export class PdfGenerator {
       textStyle.fontName,
       textStyle.fontStyle,
       textStyle.fontWeight,
-    )
-    this.doc.setFontSize(textStyle.fontSize)
-    const previousTextColor = this.doc.getTextColor()
+    );
+    this.doc.setFontSize(textStyle.fontSize);
+    const previousTextColor = this.doc.getTextColor();
     if (textStyle.color) {
-      this.doc.setTextColor(...textStyle.color)
+      this.doc.setTextColor(...textStyle.color);
     }
     const textWidth =
-      maxWidth ?? this.pageWidth - this.cursor.x - this.margins.right
-    const splitText = this.doc.splitTextToSize(text, textWidth) as string[]
+      maxWidth ?? this.pageWidth - this.cursor.x - this.margins.right;
+    const splitText = this.doc.splitTextToSize(text, textWidth) as string[];
     for (const textSegment of splitText) {
       this.doc.text(
         textSegment,
@@ -250,23 +250,23 @@ export class PdfGenerator {
         {
           lineHeightFactor: 1.5,
         },
-      )
-      this.cursor.y += textStyle.fontSize * 1.5
+      );
+      this.cursor.y += textStyle.fontSize * 1.5;
     }
     if (textStyle.color) {
-      this.doc.setTextColor(previousTextColor)
+      this.doc.setTextColor(previousTextColor);
     }
   }
 
   addList(texts: string[], textStyle: TextStyle) {
     texts.forEach((text, index) => {
-      this.indent(1, textStyle)
-      this.addText(`${index + 1}.`, textStyle)
-      this.moveDown(-textStyle.fontSize * 1.5)
-      this.indent(1.5, textStyle)
-      this.addText(text, textStyle)
-      this.indent(-2.5, textStyle)
-    })
+      this.indent(1, textStyle);
+      this.addText(`${index + 1}.`, textStyle);
+      this.moveDown(-textStyle.fontSize * 1.5);
+      this.indent(1.5, textStyle);
+      this.addText(text, textStyle);
+      this.indent(-2.5, textStyle);
+    });
   }
 
   addLine(
@@ -275,59 +275,59 @@ export class PdfGenerator {
     color: [number, number, number],
     width: number,
   ) {
-    this.doc.setLineWidth(width)
-    this.doc.setDrawColor(color[0], color[1], color[2])
-    this.doc.line(start.x, start.y, end.x, end.y)
+    this.doc.setLineWidth(width);
+    this.doc.setDrawColor(color[0], color[1], color[2]);
+    this.doc.line(start.x, start.y, end.x, end.y);
   }
 
   splitTwoColumns(
     firstColumn: (width: number) => void,
     secondColumn: (width: number) => void,
   ) {
-    const cursorBeforeSplit = structuredClone(this.cursor)
-    const splitMargin = 8
-    const innerWidth = this.pageWidth - this.margins.left - this.margins.right
-    const columnWidth = innerWidth / 2 - splitMargin
-    firstColumn(columnWidth)
-    const firstColumnMaxY = this.cursor.y
-    this.cursor = structuredClone(cursorBeforeSplit)
-    this.cursor.x += columnWidth + splitMargin
-    secondColumn(columnWidth)
+    const cursorBeforeSplit = structuredClone(this.cursor);
+    const splitMargin = 8;
+    const innerWidth = this.pageWidth - this.margins.left - this.margins.right;
+    const columnWidth = innerWidth / 2 - splitMargin;
+    firstColumn(columnWidth);
+    const firstColumnMaxY = this.cursor.y;
+    this.cursor = structuredClone(cursorBeforeSplit);
+    this.cursor.x += columnWidth + splitMargin;
+    secondColumn(columnWidth);
     this.cursor = {
       x: cursorBeforeSplit.x,
       y: Math.max(firstColumnMaxY, this.cursor.y),
-    }
+    };
   }
 
   moveDown(deltaY: number) {
-    this.cursor.y += deltaY
+    this.cursor.y += deltaY;
   }
 
   private addFont(file: string, name: string, style: FontStyle) {
-    const fontFileContent = fs.readFileSync(file).toString('base64')
-    const fileName = file.split('/').at(-1) ?? file
-    this.doc.addFileToVFS(fileName, fontFileContent)
-    this.doc.addFont(fileName, name, style.toString())
+    const fontFileContent = fs.readFileSync(file).toString("base64");
+    const fileName = file.split("/").at(-1) ?? file;
+    this.doc.addFileToVFS(fileName, fontFileContent);
+    this.doc.addFont(fileName, name, style.toString());
   }
 
   cell(title: string, styles: Partial<Styles> = {}): CellDef {
-    styles.cellPadding = styles.cellPadding ?? { vertical: 0, horizontal: 0 }
-    styles.cellPadding = styles.fontSize ?? 4
+    styles.cellPadding = styles.cellPadding ?? {vertical: 0, horizontal: 0};
+    styles.cellPadding = styles.fontSize ?? 4;
     styles.lineWidth = styles.lineWidth ?? {
       top: 0.5,
       bottom: 0.5,
       left: 0.5,
       right: 0.5,
-    }
-    styles.textColor = styles.textColor ?? 'black'
-    styles.lineColor = styles.lineColor ?? this.colors.black
+    };
+    styles.textColor = styles.textColor ?? "black";
+    styles.lineColor = styles.lineColor ?? this.colors.black;
     return {
       styles: styles,
       title: title,
-    }
+    };
   }
 
   private indent(amount: number, textStyle: TextStyle) {
-    this.cursor.x += amount * textStyle.fontSize
+    this.cursor.x += amount * textStyle.fontSize;
   }
 }

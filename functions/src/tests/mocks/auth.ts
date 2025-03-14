@@ -6,35 +6,35 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type UserRecord } from 'firebase-admin/auth'
+import {type UserRecord} from "firebase-admin/auth";
 
 /* eslint-disable @typescript-eslint/require-await */
 
 export class MockAuth {
-  collections: Record<string, UserRecord | undefined> = {}
+  collections: Record<string, UserRecord | undefined> = {};
 
   async getUser(userId: string): Promise<UserRecord> {
-    const result = this.collections[userId]
+    const result = this.collections[userId];
     if (result === undefined) {
-      throw new Error('User not found')
+      throw new Error("User not found");
     }
-    return result
+    return result;
   }
 
   async updateUser(userId: string, record: UserRecord): Promise<void> {
-    this.collections[userId] = record
+    this.collections[userId] = record;
   }
 
   async setCustomUserClaims(userId: string, claims: Record<string, unknown>) {
-    const user = this.collections[userId]
+    const user = this.collections[userId];
     if (user === undefined) {
-      throw new Error('User not found')
+      throw new Error("User not found");
     }
     const updatedUser: UserRecord = {
       ...user,
       customClaims: claims,
       toJSON: () => this,
-    }
-    this.collections[userId] = updatedUser
+    };
+    this.collections[userId] = updatedUser;
   }
 }

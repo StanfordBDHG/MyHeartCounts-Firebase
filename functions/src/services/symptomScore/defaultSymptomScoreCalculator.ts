@@ -10,18 +10,18 @@ import {
   average,
   type FHIRQuestionnaireResponse,
   SymptomScore,
-} from '@stanfordbdhg/engagehf-models'
-import { type SymptomScoreCalculator } from './symptomScoreCalculator.js'
+} from "@stanfordbdhg/engagehf-models";
+import {type SymptomScoreCalculator} from "./symptomScoreCalculator.js";
 
 export class DefaultSymptomScoreCalculator implements SymptomScoreCalculator {
   // Methods
-  
+
   calculateSymptomScore(questionnaireResponse: FHIRQuestionnaireResponse): SymptomScore {
-    return this.calculate(questionnaireResponse)
+    return this.calculate(questionnaireResponse);
   }
 
   calculate(questionnaireResponse: FHIRQuestionnaireResponse): SymptomScore {
-    const response = questionnaireResponse.symptomQuestionnaireResponse
+    const response = questionnaireResponse.symptomQuestionnaireResponse;
 
     const result = {
       questionnaireResponseId: questionnaireResponse.id,
@@ -32,7 +32,7 @@ export class DefaultSymptomScoreCalculator implements SymptomScoreCalculator {
       qualityOfLifeScore: undefined as number | undefined,
       symptomFrequencyScore: undefined as number | undefined,
       dizzinessScore: response.answer9,
-    }
+    };
 
     const physicalLimitsAnswers = [
       response.answer1a,
@@ -40,26 +40,26 @@ export class DefaultSymptomScoreCalculator implements SymptomScoreCalculator {
       response.answer1c,
     ]
       .filter((x) => x !== 6)
-      .map((x) => (100 * (x - 1)) / 4)
+      .map((x) => (100 * (x - 1)) / 4);
 
     result.physicalLimitsScore =
       physicalLimitsAnswers.length >= 2 ?
-        average(physicalLimitsAnswers)
-      : undefined
+        average(physicalLimitsAnswers) :
+        undefined;
 
     const symptomFrequencyAnswers = [
       (response.answer2 - 1) / 4,
       (response.answer3 - 1) / 6,
       (response.answer4 - 1) / 6,
       (response.answer5 - 1) / 4,
-    ].map((x) => x * 100)
+    ].map((x) => x * 100);
 
-    result.symptomFrequencyScore = average(symptomFrequencyAnswers)
+    result.symptomFrequencyScore = average(symptomFrequencyAnswers);
 
     const qualityOfLifeAnswers = [response.answer6, response.answer7].map(
       (x) => (100 * (x - 1)) / 4,
-    )
-    result.qualityOfLifeScore = average(qualityOfLifeAnswers)
+    );
+    result.qualityOfLifeScore = average(qualityOfLifeAnswers);
 
     const socialLimitsAnswers = [
       response.answer8a,
@@ -67,19 +67,19 @@ export class DefaultSymptomScoreCalculator implements SymptomScoreCalculator {
       response.answer8c,
     ]
       .filter((x) => x !== 6)
-      .map((x) => (100 * (x - 1)) / 4)
+      .map((x) => (100 * (x - 1)) / 4);
 
     result.socialLimitsScore =
-      socialLimitsAnswers.length >= 2 ? average(socialLimitsAnswers) : undefined
+      socialLimitsAnswers.length >= 2 ? average(socialLimitsAnswers) : undefined;
 
     const domainScores = [
       result.physicalLimitsScore,
       result.symptomFrequencyScore,
       result.qualityOfLifeScore,
       result.socialLimitsScore,
-    ].flatMap((score) => (score !== undefined ? [score] : []))
-    result.overallScore = average(domainScores) ?? 0
+    ].flatMap((score) => (score !== undefined ? [score] : []));
+    result.overallScore = average(domainScores) ?? 0;
 
-    return new SymptomScore(result)
+    return new SymptomScore(result);
   }
 }

@@ -10,8 +10,8 @@ import {
   type Transaction,
   type BulkWriter,
   type BulkWriterOptions,
-} from 'firebase-admin/firestore'
-import { type CollectionsService } from './collections'
+} from "firebase-admin/firestore";
+import {type CollectionsService} from "./collections";
 
 export interface Document<Content> {
   id: string

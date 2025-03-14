@@ -9,25 +9,25 @@
 import {
   dismissMessagesInputSchema,
   type DismissMessagesOutput,
-} from '@stanfordbdhg/engagehf-models'
-import { validatedOnCall } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/engagehf-models";
+import {validatedOnCall} from "./helpers.js";
+import {UserRole} from "../services/credential/credential.js";
+import {getServiceFactory} from "../services/factory/getServiceFactory.js";
 
 export const dismissMessages = validatedOnCall(
-  'dismissMessages',
+  "dismissMessages",
   dismissMessagesInputSchema,
   async (request): Promise<DismissMessagesOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    const userId = request.data.userId ?? credential.userId
-    credential.check(UserRole.admin, UserRole.user(userId))
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    const userId = request.data.userId ?? credential.userId;
+    credential.check(UserRole.admin, UserRole.user(userId));
 
     const dismissedCount = await factory.message().dismissMessages(userId, {
       messageIds: request.data.messageIds,
       didPerformAction: request.data.didPerformAction,
-    })
+    });
 
-    return { dismissedCount }
+    return {dismissedCount};
   },
-)
+);

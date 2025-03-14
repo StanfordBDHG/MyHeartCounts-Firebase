@@ -9,7 +9,7 @@
 import {
   type FHIRQuestionnaireResponse,
   type SymptomScore,
-} from '@stanfordbdhg/engagehf-models'
+} from "@stanfordbdhg/engagehf-models";
 
 export interface SymptomScoreCalculator {
   calculate(response: FHIRQuestionnaireResponse): SymptomScore
