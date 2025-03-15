@@ -11,73 +11,64 @@ import {
   beforeUserCreated,
   beforeUserSignedIn,
 } from 'firebase-functions/v2/identity'
-import { serviceAccount } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
-export const beforeUserCreatedFunction = beforeUserCreated(
-  { serviceAccount: serviceAccount },
-  async (event) => {
-    const userId = event.data.uid
-    logger.info(`${userId}: Start.`)
+export const beforeUserCreatedFunction = beforeUserCreated(async (event) => {
+  const userId = event.data.uid
+  logger.info(`${userId}: Start.`)
 
-    const factory = getServiceFactory()
-    const userService = factory.user()
+  const factory = getServiceFactory()
+  const userService = factory.user()
 
-    // Check for email
-    if (event.data.email === undefined) {
-      logger.error('Email address not set.')
-      throw new https.HttpsError(
-        'invalid-argument',
-        'Email address is required for user.',
-      )
-    }
+  // Check for email
+  if (event.data.email === undefined) {
+    logger.error('Email address not set.')
+    throw new https.HttpsError(
+      'invalid-argument',
+      'Email address is required for user.',
+    )
+  }
 
-    logger.info(`${userId}: Creating user document for ${event.data.email}`)
+  logger.info(`${userId}: Creating user document for ${event.data.email}`)
 
-    try {
-      // For MyHeartCounts, we'll use direct enrollment without invitations
-      const userDoc = await userService.enrollUserDirectly(userId, {
-        isSingleSignOn: event.credential !== undefined,
-      })
+  try {
+    // For MyHeartCounts, we'll use direct enrollment without invitations
+    const userDoc = await userService.enrollUserDirectly(userId, {
+      isSingleSignOn: event.credential !== undefined,
+    })
 
-      logger.info(`${userId}: Finishing user enrollment.`)
+    logger.info(`${userId}: Finishing user enrollment.`)
 
-      // Trigger any post-enrollment actions
-      await factory.trigger().userEnrolled(userDoc)
+    // Trigger any post-enrollment actions
+    await factory.trigger().userEnrolled(userDoc)
 
-      logger.info(`${userId}: Successfully enrolled user.`)
+    logger.info(`${userId}: Successfully enrolled user.`)
 
-      // Return empty claims - they'll be updated by userEnrolled trigger
-      return { customClaims: {} }
-    } catch (error) {
-      logger.error(
-        `${userId}: Failed to create user document: ${String(error)}`,
-      )
-      // We don't throw here because we still want to allow sign-up even if
-      // document creation fails (it can be created later)
-      return { customClaims: {} }
-    }
-  },
-)
+    // Return empty claims - they'll be updated by userEnrolled trigger
+    return { customClaims: {} }
+  } catch (error) {
+    logger.error(`${userId}: Failed to create user document: ${String(error)}`)
+    // We don't throw here because we still want to allow sign-up even if
+    // document creation fails (it can be created later)
+    return { customClaims: {} }
+  }
+})
 
-export const beforeUserSignedInFunction = beforeUserSignedIn(
-  { serviceAccount: serviceAccount },
-  async (event) => {
-    try {
-      const userService = getServiceFactory().user()
-      const user = await userService.getUser(event.data.uid)
-      if (user !== undefined) {
-        logger.info('beforeUserSignedIn finished successfully.')
-        return {
-          customClaims: user.content.claims,
-          sessionClaims: user.content.claims,
-        }
+export const beforeUserSignedInFunction = beforeUserSignedIn(async (event) => {
+  try {
+    const userService = getServiceFactory().user()
+    const user = await userService.getUser(event.data.uid)
+    if (user !== undefined) {
+      logger.info('beforeUserSignedIn finished successfully.')
+      return {
+        customClaims: user.content.claims,
+        sessionClaims: user.content.claims,
       }
-      logger.info('beforeUserSignedIn finished without user.')
-      return { customClaims: {} }
-    } catch (error) {
-      logger.error(`beforeUserSignedIn finished with error: ${String(error)}`)
-      return { customClaims: {} }
     }
-  },
-)
+    logger.info('beforeUserSignedIn finished without user.')
+    return { customClaims: {} }
+  } catch (error) {
+    logger.error(`beforeUserSignedIn finished with error: ${String(error)}`)
+    return { customClaims: {} }
+  }
+})
