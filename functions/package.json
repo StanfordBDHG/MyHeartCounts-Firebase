@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "description": "Cloud Functions for Firebase",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",

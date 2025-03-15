@@ -22,6 +22,7 @@ module.exports = {
     'prettier',
   ],
   rules: {
+    '@typescript-eslint/no-unnecessary-condition': 'off',
     'prettier/prettier': 'error',
     'import/order': [
       'warn',

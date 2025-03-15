@@ -16,20 +16,20 @@ import {
   VideoReference,
   UserObservationCollection,
   type User,
-  CachingStrategy,
+  type CachingStrategy,
   StaticDataComponent,
   UserType,
-  Invitation,
-  UserRegistration,
+  type Invitation,
+  type UserRegistration,
   advanceDateByHours,
-} from "@stanfordbdhg/engagehf-models";
-import {logger} from "firebase-functions";
-import {_updateStaticData} from "../../functions/updateStaticData.js";
-import {type Document} from "../database/databaseService.js";
-import {type ServiceFactory} from "../factory/serviceFactory.js";
-import {type MessageService} from "../message/messageService.js";
-import {type PatientService} from "../patient/patientService.js";
-import {type UserService} from "../user/userService.js";
+} from '@stanfordbdhg/engagehf-models'
+import { logger } from 'firebase-functions'
+import { _updateStaticData } from '../../functions/updateStaticData.js'
+import { type Document } from '../database/databaseService.js'
+import { type ServiceFactory } from '../factory/serviceFactory.js'
+import { type MessageService } from '../message/messageService.js'
+import { type PatientService } from '../patient/patientService.js'
+import { type UserService } from '../user/userService.js'
 
 export interface TriggerService {
   // Event triggers
@@ -37,8 +37,16 @@ export interface TriggerService {
   userCreated(userId: string): Promise<void>
   userUpdated(userId: string): Promise<void>
   updateAllSymptomScores(userId: string): Promise<void>
-  updateSymptomScore(userId: string, questionnaireResponse: Document<FHIRQuestionnaireResponse>): Promise<void>
-  userObservationWritten(userId: string, observationType: string, documentId: string, document: Document<any>): Promise<void>
+  updateSymptomScore(
+    userId: string,
+    questionnaireResponse: Document<FHIRQuestionnaireResponse>,
+  ): Promise<void>
+  userObservationWritten(
+    userId: string,
+    observationType: string,
+    documentId: string,
+    document: Document<any>,
+  ): Promise<void>
 
   // Legacy methods (for backward compatibility)
   everyMorning(): Promise<void>
@@ -47,40 +55,40 @@ export interface TriggerService {
 export class TriggerServiceImpl implements TriggerService {
   // Properties
 
-  private readonly factory: ServiceFactory;
+  private readonly factory: ServiceFactory
 
   // Constructor
 
   constructor(factory: ServiceFactory) {
-    this.factory = factory;
+    this.factory = factory
   }
 
   // Methods - Schedule
 
   async sendDailyReminders() {
     // Read all patients whose latest blood pressure are more than 5 days old
-    const userIds: string[] = [];
+    const userIds: string[] = []
     for (const userId of userIds) {
       try {
-        await this.sendVitalsReminder(userId);
+        await this.sendVitalsReminder(userId)
       } catch (error) {
         logger.error(
           `TriggerService.sendDailyReminders(): User ${userId}: ${String(error)}`,
-        );
+        )
       }
     }
   }
 
   async sendWeeklySymptomQuestionnaires() {
     // Read all users
-    const userIds: string[] = [];
+    const userIds: string[] = []
     for (const userId of userIds) {
       try {
-        await this.sendSymptomQuestionnaireReminderIfNeeded(userId);
+        await this.sendSymptomQuestionnaireReminderIfNeeded(userId)
       } catch (error) {
         logger.error(
           `TriggerService.sendWeeklySymptomQuestionnaires(): User ${userId}: ${String(error)}`,
-        );
+        )
       }
     }
   }
@@ -88,16 +96,23 @@ export class TriggerServiceImpl implements TriggerService {
   // Implementation of interface methods
 
   async userEnrolled(user: Document<User>): Promise<void> {
-    logger.debug(`TriggerService.userEnrolled(${user.id})`);
-    await this.userCreated(user.id);
+    logger.debug(`TriggerService.userEnrolled(${user.id})`)
+    await this.userCreated(user.id)
   }
 
   async everyMorning(): Promise<void> {
-    logger.debug("TriggerService.everyMorning - deprecated");
+    logger.debug('TriggerService.everyMorning - deprecated')
   }
 
-  async userObservationWritten(userId: string, observationType: string, documentId: string, document: Document<any>): Promise<void> {
-    logger.debug(`TriggerService.userObservationWritten(${userId}, ${observationType}, ${documentId})`);
+  async userObservationWritten(
+    userId: string,
+    observationType: string,
+    documentId: string,
+    document: Document<any>,
+  ): Promise<void> {
+    logger.debug(
+      `TriggerService.userObservationWritten(${userId}, ${observationType}, ${documentId})`,
+    )
   }
 
   // Methods - Events
@@ -109,38 +124,40 @@ export class TriggerServiceImpl implements TriggerService {
         UserMessage.createWelcome({
           videoReference: VideoReference.welcome,
         }),
-        {notify: true},
-      );
+        { notify: true },
+      )
 
       await this.factory.message().addMessage(
         userId,
         UserMessage.createSymptomQuestionnaire({
           questionnaireReference: QuestionnaireReference.enUS,
         }),
-        {notify: true},
-      );
+        { notify: true },
+      )
 
-      await this.factory.message().addMessage(
-        userId,
-        UserMessage.createVitals({}),
-        {notify: false},
-      );
+      await this.factory
+        .message()
+        .addMessage(userId, UserMessage.createVitals({}), { notify: false })
     } catch (error) {
-      logger.error(
-        `TriggerService.userCreated(${userId}): ${String(error)}`,
-      );
+      logger.error(`TriggerService.userCreated(${userId}): ${String(error)}`)
     }
   }
 
   async userUpdated(userId: string) {
-    logger.debug(`TriggerService.userUpdated(${userId})`);
+    logger.debug(`TriggerService.userUpdated(${userId})`)
   }
 
-  async userRegistrationWritten(userId: string, document: Document<UserRegistration>) {
-    logger.debug(`TriggerService.userRegistrationWritten(${userId})`);
+  async userRegistrationWritten(
+    userId: string,
+    document: Document<UserRegistration>,
+  ) {
+    logger.debug(`TriggerService.userRegistrationWritten(${userId})`)
   }
 
-  async userInvitationWritten(invitationId: string, document: Document<Invitation>) {
+  async userInvitationWritten(
+    invitationId: string,
+    document: Document<Invitation>,
+  ) {
     // ...
   }
 
@@ -150,34 +167,34 @@ export class TriggerServiceImpl implements TriggerService {
     document: Document<FHIRQuestionnaireResponse>,
   ) {
     try {
-      await this.updateSymptomScore(userId, document);
+      await this.updateSymptomScore(userId, document)
     } catch (error) {
       logger.error(
         `TriggerService.userQuestionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
-      );
+      )
     }
   }
 
   // Methods - Actions
 
   async updateAllSymptomScores(userId: string) {
-    const patientService = this.factory.patient();
+    const patientService = this.factory.patient()
 
     // Get all questionnaire responses
     const questionnaireResponses =
-      await patientService.getQuestionnaireResponses(userId);
+      await patientService.getQuestionnaireResponses(userId)
 
     // Update symptom score for each response
     for (const questionnaireResponse of questionnaireResponses) {
       if (
-        questionnaireResponse.content.resourceType === "QuestionnaireResponse"
+        questionnaireResponse.content.resourceType === 'QuestionnaireResponse'
       ) {
         try {
-          await this.updateSymptomScore(userId, questionnaireResponse);
+          await this.updateSymptomScore(userId, questionnaireResponse)
         } catch (error) {
           logger.error(
             `TriggerService.updateAllSymptomScores(${userId}): ${questionnaireResponse.id}: ${String(error)}`,
-          );
+          )
         }
       }
     }
@@ -187,7 +204,7 @@ export class TriggerServiceImpl implements TriggerService {
     await _updateStaticData(this.factory, {
       cachingStrategy,
       only: Object.values(StaticDataComponent),
-    });
+    })
   }
 
   // Helpers - Implements TriggerService interface
@@ -196,39 +213,39 @@ export class TriggerServiceImpl implements TriggerService {
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
   ) {
-    const symptomScoreCalculator = this.factory.symptomScore();
-    const patientService = this.factory.patient();
+    const symptomScoreCalculator = this.factory.symptomScore()
+    const patientService = this.factory.patient()
 
     const symptomScore = symptomScoreCalculator.calculateSymptomScore(
-      document.content
-    );
+      document.content,
+    )
 
-    await patientService.updateSymptomScore(userId, document.id, symptomScore);
+    await patientService.updateSymptomScore(userId, document.id, symptomScore)
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
-    const needsQuestionnaire = await this.checkIfUserNeedsQuestionnaire(userId);
+    const needsQuestionnaire = await this.checkIfUserNeedsQuestionnaire(userId)
     if (needsQuestionnaire) {
       await this.factory.message().addMessage(
         userId,
         UserMessage.createSymptomQuestionnaire({
           questionnaireReference: QuestionnaireReference.enUS,
         }),
-        {notify: true},
-      );
+        { notify: true },
+      )
     }
   }
 
-  private async checkIfUserNeedsQuestionnaire(userId: string): Promise<boolean> {
+  private async checkIfUserNeedsQuestionnaire(
+    userId: string,
+  ): Promise<boolean> {
     // Simplified implementation
-    return true;
+    return true
   }
 
   private async sendVitalsReminder(userId: string) {
-    await this.factory.message().addMessage(
-      userId,
-      UserMessage.createVitals({}),
-      {notify: true},
-    );
+    await this.factory
+      .message()
+      .addMessage(userId, UserMessage.createVitals({}), { notify: true })
   }
 }

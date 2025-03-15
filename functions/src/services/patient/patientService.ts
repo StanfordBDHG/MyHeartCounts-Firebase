@@ -13,8 +13,8 @@ import {
   type FHIRAppointment,
   type FHIRQuestionnaireResponse,
   type SymptomScore,
-} from "@stanfordbdhg/engagehf-models";
-import {type Document} from "../database/databaseService.js";
+} from '@stanfordbdhg/engagehf-models'
+import { type Document } from '../database/databaseService.js'
 
 export interface PatientService {
   // Appointments
@@ -34,7 +34,6 @@ export interface PatientService {
   getContraindications(
     userId: string,
   ): Promise<Array<Document<FHIRAllergyIntolerance>>>
-
 
   // Observations
 

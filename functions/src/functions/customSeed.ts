@@ -6,23 +6,23 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {customSeedingOptionsSchema} from "@stanfordbdhg/engagehf-models";
-import {validatedOnRequest} from "./helpers.js";
-import {Flags} from "../flags.js";
-import {getServiceFactory} from "../services/factory/getServiceFactory.js";
+import { customSeedingOptionsSchema } from '@stanfordbdhg/engagehf-models'
+import { validatedOnRequest } from './helpers.js'
+import { Flags } from '../flags.js'
+import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const customSeed = validatedOnRequest(
-  "customSeed",
+  'customSeed',
   customSeedingOptionsSchema,
   async (_, data, response) => {
-    const factory = getServiceFactory();
+    const factory = getServiceFactory()
 
     if (!Flags.isEmulator) {
-      throw factory.credential(undefined).permissionDeniedError();
+      throw factory.credential(undefined).permissionDeniedError()
     }
 
-    await factory.debugData().seedCustom(data);
-    response.write("Success", "utf8");
-    response.end();
+    await factory.debugData().seedCustom(data)
+    response.write('Success', 'utf8')
+    response.end()
   },
-);
+)

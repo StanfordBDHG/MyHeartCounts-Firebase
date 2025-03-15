@@ -6,11 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  type User,
-  type UserAuth,
-} from "@stanfordbdhg/engagehf-models";
-import {type Document} from "../database/databaseService.js";
+import { type User, type UserAuth } from '@stanfordbdhg/engagehf-models'
+import { type Document } from '../database/databaseService.js'
 
 export interface UserService {
   // Auth
@@ -37,7 +34,11 @@ export interface UserService {
   // Legacy methods (stubs for backward compatibility)
 
   getInvitationByCode(code: string): Promise<Document<any> | undefined>
-  enrollUser(invitation: Document<any>, userId: string, options: any): Promise<Document<User>>
+  enrollUser(
+    invitation: Document<any>,
+    userId: string,
+    options: any,
+  ): Promise<Document<User>>
   deleteInvitation(invitation: Document<any>): Promise<void>
   createInvitation(content: any): Promise<{ id: string }>
   getOrganizationBySsoProviderId(providerId: string): Promise<any>

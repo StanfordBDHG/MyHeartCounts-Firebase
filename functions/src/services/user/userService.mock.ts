@@ -12,15 +12,15 @@ import {
   type UserAuth,
   UserRegistration,
   UserType,
-} from "@stanfordbdhg/engagehf-models";
+} from '@stanfordbdhg/engagehf-models'
 
 // Define a placeholder Organization type
 class Organization {
-  name: string;
-  contactName: string;
-  phoneNumber: string;
-  emailAddress: string;
-  ssoProviderId: string;
+  name: string
+  contactName: string
+  phoneNumber: string
+  emailAddress: string
+  ssoProviderId: string
 
   constructor(props: {
     name: string
@@ -29,15 +29,15 @@ class Organization {
     emailAddress: string
     ssoProviderId: string
   }) {
-    this.name = props.name;
-    this.contactName = props.contactName;
-    this.phoneNumber = props.phoneNumber;
-    this.emailAddress = props.emailAddress;
-    this.ssoProviderId = props.ssoProviderId;
+    this.name = props.name
+    this.contactName = props.contactName
+    this.phoneNumber = props.phoneNumber
+    this.emailAddress = props.emailAddress
+    this.ssoProviderId = props.ssoProviderId
   }
 }
-import {type UserService} from "./userService.js";
-import {type Document} from "../database/databaseService.js";
+import { type UserService } from './userService.js'
+import { type Document } from '../database/databaseService.js'
 
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -47,63 +47,63 @@ export class MockUserService implements UserService {
 
   async getAuth(userId: string): Promise<UserAuth> {
     switch (userId) {
-    case "mockClinician":
-      return {
-        displayName: "Dr. XXX",
-      };
-    case "mockUser":
-      return {
-        displayName: "John Doe",
-      };
-    default:
-      return {
-        displayName: "Unknown",
-      };
+      case 'mockClinician':
+        return {
+          displayName: 'Dr. XXX',
+        }
+      case 'mockUser':
+        return {
+          displayName: 'John Doe',
+        }
+      default:
+        return {
+          displayName: 'Unknown',
+        }
     }
   }
 
   async updateAuth(userId: string, user: UserAuth): Promise<void> {
-    return;
+    return
   }
 
   async updateClaims(userId: string): Promise<void> {
-    return;
+    return
   }
 
   // Methods - Invitations
 
   async createInvitation(content: Invitation): Promise<{ id: string }> {
-    return {id: "OpEbLvZgsKwqVNnD8FzN"};
+    return { id: 'OpEbLvZgsKwqVNnD8FzN' }
   }
 
   async getInvitationByCode(
     invitationCode: string,
   ): Promise<Document<Invitation>> {
     return {
-      id: "1",
-      path: "invitations/1",
+      id: '1',
+      path: 'invitations/1',
       lastUpdate: new Date(),
       content: new Invitation({
         user: new UserRegistration({
           type: UserType.patient,
           disabled: false,
-          dateOfBirth: new Date("1970-01-02"),
-          clinician: "mockPatient",
+          dateOfBirth: new Date('1970-01-02'),
+          clinician: 'mockPatient',
           receivesInactivityReminders: true,
           receivesQuestionnaireReminders: true,
           receivesRecommendationUpdates: true,
-          timeZone: "America/Los_Angeles",
+          timeZone: 'America/Los_Angeles',
         }),
         code: invitationCode,
       }),
-    };
+    }
   }
 
   async enrollUserDirectly(
     userId: string,
     options: { isSingleSignOn: boolean },
   ): Promise<Document<User>> {
-    return this.getUser(userId);
+    return this.getUser(userId)
   }
 
   async enrollUser(
@@ -111,11 +111,11 @@ export class MockUserService implements UserService {
     userId: string,
     options: any,
   ): Promise<Document<User>> {
-    return this.getUser(userId);
+    return this.getUser(userId)
   }
 
   async finishUserEnrollment(user: Document<User>): Promise<void> {
-    return;
+    return
   }
 
   // Methods - Organizations
@@ -123,11 +123,11 @@ export class MockUserService implements UserService {
   async getOrganizationBySsoProviderId(
     providerId: string,
   ): Promise<Document<Organization> | undefined> {
-    return undefined;
+    return undefined
   }
 
   async getOrganizations(): Promise<Array<Document<Organization>>> {
-    return [];
+    return []
   }
 
   async getOrganization(
@@ -135,69 +135,69 @@ export class MockUserService implements UserService {
   ): Promise<Document<Organization> | undefined> {
     return {
       id: organizationId,
-      path: "organizations/" + organizationId,
+      path: 'organizations/' + organizationId,
       lastUpdate: new Date(),
       content: new Organization({
-        name: "Stanford University",
-        contactName: "Alex Sandhu, MD",
-        phoneNumber: "+1 (650) 493-5000",
-        emailAddress: "dothfteam@stanford.edu",
-        ssoProviderId: "oidc.stanford",
+        name: 'Stanford University',
+        contactName: 'Alex Sandhu, MD',
+        phoneNumber: '+1 (650) 493-5000',
+        emailAddress: 'dothfteam@stanford.edu',
+        ssoProviderId: 'oidc.stanford',
       }),
-    };
+    }
   }
 
   async deleteInvitation(invitation: Document<Invitation>): Promise<void> {
-    return;
+    return
   }
 
   // Methods - User
 
   async disableUser(userId: string): Promise<void> {
-    return;
+    return
   }
 
   async enableUser(userId: string): Promise<void> {
-    return;
+    return
   }
 
   async getAllOwners(organizationId: string): Promise<Array<Document<User>>> {
-    return [];
+    return []
   }
 
   async getAllPatients(): Promise<Array<Document<User>>> {
-    return [];
+    return []
   }
 
   async getUser(userId: string): Promise<Document<User>> {
     return {
       id: userId,
-      path: "users/" + userId,
+      path: 'users/' + userId,
       lastUpdate: new Date(),
       content: new User({
         type: UserType.clinician,
         disabled: false,
-        dateOfBirth: new Date("1970-01-02"),
-        clinician: "mockClinician",
-        lastActiveDate: new Date("2024-04-04"),
+        dateOfBirth: new Date('1970-01-02'),
+        clinician: 'mockClinician',
+        lastActiveDate: new Date('2024-04-04'),
         receivesInactivityReminders: true,
         receivesQuestionnaireReminders: true,
         receivesRecommendationUpdates: true,
-        dateOfEnrollment: new Date("2024-04-02"),
-        timeZone: "America/Los_Angeles",
+        dateOfEnrollment: new Date('2024-04-02'),
+        timeZone: 'America/Los_Angeles',
       }),
-    };
+    }
   }
 
   async updateLastActiveDate(userId: string): Promise<void> {
-    return;
+    return
   }
 
   async deleteUser(userId: string): Promise<void> {
-    return;
+    return
   }
 
   async deleteExpiredAccounts(): Promise<void> {
-    return;
+    return
   }
 }

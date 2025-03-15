@@ -6,51 +6,51 @@
 // SPDX-License-Identifier: MIT
 //
 
-import admin from "firebase-admin";
-import {https} from "firebase-functions";
+import admin from 'firebase-admin'
+import { https } from 'firebase-functions'
 
 // Initialize Firebase with default settings
-admin.initializeApp();
+admin.initializeApp()
 
 // Set Firestore settings to ignore undefined properties
-const firestore = admin.firestore();
+const firestore = admin.firestore()
 firestore.settings({
   ignoreUndefinedProperties: true,
-});
+})
 
 // Get study definition - this will be available at /getStudyDefinition
 export const getStudyDefinition = https.onRequest(async (req, res) => {
-  const bucket = "myheartcounts-firebase.appspot.com"; // adjust this to your actual bucket name
-  const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`;
+  const bucket = 'myheartcounts-firebase.appspot.com' // adjust this to your actual bucket name
+  const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`
 
   // Set CORS headers
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
+  res.set('Access-Control-Allow-Origin', '*')
+  res.set('Access-Control-Allow-Headers', 'Content-Type')
 
   // Redirect to the actual file
-  res.redirect(302, file);
-});
+  res.redirect(302, file)
+})
 
 export {
   beforeUserCreatedFunction as beforeUserCreated,
   beforeUserSignedInFunction as beforeUserSignedIn,
-} from "./functions/blocking.js";
-export * from "./functions/customSeed.js";
-export * from "./functions/defaultSeed.js";
-export * from "./functions/deleteUser.js";
-export * from "./functions/dismissMessage.js";
-export * from "./functions/dismissMessages.js";
-export * from "./functions/enrollUser.js";
-export * from "./functions/exportHealthSummary.js";
-export * from "./functions/getUsersInformation.js";
-export * from "./functions/onHistoryWritten.js";
-export * from "./functions/onSchedule.js";
-export * from "./functions/onUserDocumentWritten.js";
-export * from "./functions/onUserWritten.js";
-export * from "./functions/registerDevice.js";
-export * from "./functions/unregisterDevice.js";
-export * from "./functions/updateStaticData.js";
-export * from "./functions/updateUserInformation.js";
-export * from "./functions/disableUser.js";
-export * from "./functions/enableUser.js";
-export * from "./functions/testCreateUser.js";
+} from './functions/blocking.js'
+export * from './functions/customSeed.js'
+export * from './functions/defaultSeed.js'
+export * from './functions/deleteUser.js'
+export * from './functions/dismissMessage.js'
+export * from './functions/dismissMessages.js'
+export * from './functions/enrollUser.js'
+export * from './functions/exportHealthSummary.js'
+export * from './functions/getUsersInformation.js'
+export * from './functions/onHistoryWritten.js'
+export * from './functions/onSchedule.js'
+export * from './functions/onUserDocumentWritten.js'
+export * from './functions/onUserWritten.js'
+export * from './functions/registerDevice.js'
+export * from './functions/unregisterDevice.js'
+export * from './functions/updateStaticData.js'
+export * from './functions/updateUserInformation.js'
+export * from './functions/disableUser.js'
+export * from './functions/enableUser.js'
+export * from './functions/testCreateUser.js'

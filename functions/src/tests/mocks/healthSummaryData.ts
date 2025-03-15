@@ -5,13 +5,13 @@
 //
 // SPDX-License-Identifier: MIT
 //
-import {type HealthSummaryData} from "../../models/healthSummaryData.js";
-import {MockHealthSummaryService} from "../../services/healthSummary/healthSummaryService.mock.js";
+import { type HealthSummaryData } from '../../models/healthSummaryData.js'
+import { MockHealthSummaryService } from '../../services/healthSummary/healthSummaryService.mock.js'
 
 export function mockHealthSummaryData(
   userId: string,
   startDate: Date = new Date(2024, 2, 2, 12, 30),
 ): Promise<HealthSummaryData> {
-  const service = new MockHealthSummaryService();
-  return service.getHealthSummaryData(userId, startDate);
+  const service = new MockHealthSummaryService()
+  return service.getHealthSummaryData(userId, startDate)
 }

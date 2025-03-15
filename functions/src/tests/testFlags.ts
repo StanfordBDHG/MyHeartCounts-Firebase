@@ -10,10 +10,10 @@
 
 export namespace TestFlags {
   export const forceRunDisabledTests =
-    process.env.FORCE_RUN_DISABLED_TESTS === "true";
+    process.env.FORCE_RUN_DISABLED_TESTS === 'true'
   export const forceRunExpensiveTests =
-    process.env.FORCE_RUN_EXPENSIVE_TESTS === "true";
-  export const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
-  export const regenerateValues = process.env.REGENERATE_VALUES === "true";
-  export const connectsToEmulator = process.env.EMULATORS_ACTIVE == "true";
+    process.env.FORCE_RUN_EXPENSIVE_TESTS === 'true'
+  export const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true'
+  export const regenerateValues = process.env.REGENERATE_VALUES === 'true'
+  export const connectsToEmulator = process.env.EMULATORS_ACTIVE == 'true'
 }

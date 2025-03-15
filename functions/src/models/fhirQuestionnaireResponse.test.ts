@@ -9,16 +9,16 @@
 import {
   FHIRQuestionnaireResponse,
   type SymptomQuestionnaireResponse,
-} from "@stanfordbdhg/engagehf-models";
-import {expect} from "chai";
-import {describe} from "mocha";
+} from '@stanfordbdhg/engagehf-models'
+import { expect } from 'chai'
+import { describe } from 'mocha'
 
-describe("FHIRQuestionnaireResponse", () => {
-  it("decodes an encoded questionnaire response", () => {
+describe('FHIRQuestionnaireResponse', () => {
+  it('decodes an encoded questionnaire response', () => {
     const questionnaireResponse: SymptomQuestionnaireResponse = {
       questionnaire:
-        "http://spezi.health/fhir/questionnaire/9528ccc2-d1be-4c4c-9c3c-19f78e51ec19",
-      questionnaireResponse: "questionnaireResponse",
+        'http://spezi.health/fhir/questionnaire/9528ccc2-d1be-4c4c-9c3c-19f78e51ec19',
+      questionnaireResponse: 'questionnaireResponse',
       date: new Date(),
       answer1a: 1,
       answer1b: 2,
@@ -33,11 +33,11 @@ describe("FHIRQuestionnaireResponse", () => {
       answer8b: 2,
       answer8c: 1,
       answer9: 3,
-    };
+    }
 
-    const encoded = FHIRQuestionnaireResponse.create(questionnaireResponse);
+    const encoded = FHIRQuestionnaireResponse.create(questionnaireResponse)
     expect(encoded.symptomQuestionnaireResponse).to.deep.equal(
       questionnaireResponse,
-    );
-  });
-});
+    )
+  })
+})

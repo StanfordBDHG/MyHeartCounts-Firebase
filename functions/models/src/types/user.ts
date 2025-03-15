@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
 import {
   userRegistrationConverter,
   userRegistrationInputConverter,

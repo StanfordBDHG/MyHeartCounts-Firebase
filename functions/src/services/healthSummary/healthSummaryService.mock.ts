@@ -13,12 +13,12 @@ import {
   LocalizedText,
   type Observation,
   QuantityUnit,
-} from "@stanfordbdhg/engagehf-models";
-import {type HealthSummaryService} from "./healthSummaryService.js";
+} from '@stanfordbdhg/engagehf-models'
+import { type HealthSummaryService } from './healthSummaryService.js'
 import {
   HealthSummaryData,
   type HealthSummaryVitals,
-} from "../../models/healthSummaryData.js";
+} from '../../models/healthSummaryData.js'
 
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -31,9 +31,9 @@ export class MockHealthSummaryService implements HealthSummaryService {
     date: Date,
   ): Promise<HealthSummaryData> {
     return new HealthSummaryData({
-      name: "John Doe",
-      dateOfBirth: new Date("1970-01-02"),
-      providerName: "Dr. XXX",
+      name: 'John Doe',
+      dateOfBirth: new Date('1970-01-02'),
+      providerName: 'Dr. XXX',
       nextAppointment: FHIRAppointment.create({
         userId,
         status: FHIRAppointmentStatus.booked,
@@ -44,7 +44,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
       vitals: await this.getVitals(date),
       symptomScores: [
         {
-          questionnaireResponseId: "4",
+          questionnaireResponseId: '4',
           overallScore: 40,
           physicalLimitsScore: 50,
           socialLimitsScore: 38,
@@ -54,7 +54,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
           date: advanceDateByDays(date, -9),
         },
         {
-          questionnaireResponseId: "3",
+          questionnaireResponseId: '3',
           overallScore: 60,
           physicalLimitsScore: 58,
           socialLimitsScore: 75,
@@ -64,7 +64,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
           date: advanceDateByDays(date, -18),
         },
         {
-          questionnaireResponseId: "2",
+          questionnaireResponseId: '2',
           overallScore: 44,
           physicalLimitsScore: 50,
           socialLimitsScore: 41,
@@ -74,7 +74,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
           date: advanceDateByDays(date, -34),
         },
         {
-          questionnaireResponseId: "1",
+          questionnaireResponseId: '1',
           overallScore: 75,
           physicalLimitsScore: 58,
           socialLimitsScore: 75,
@@ -85,21 +85,21 @@ export class MockHealthSummaryService implements HealthSummaryService {
         },
       ],
       now: date,
-    });
+    })
   }
 
   // Helpers
 
   private async getVitals(date: Date): Promise<HealthSummaryVitals> {
     const [systolicBloodPressure, diastolicBloodPressure] =
-      await this.getBloodPressureObservations(date);
+      await this.getBloodPressureObservations(date)
     return {
       systolicBloodPressure: systolicBloodPressure,
       diastolicBloodPressure: diastolicBloodPressure,
       heartRate: await this.getHeartRateObservations(date),
       bodyWeight: await this.getBodyWeightObservations(date),
       dryWeight: await this.getMostRecentDryWeightObservation(date),
-    };
+    }
   }
 
   private async getBloodPressureObservations(
@@ -200,7 +200,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
           unit: QuantityUnit.mmHg,
         },
       ],
-    ];
+    ]
   }
 
   private async getHeartRateObservations(date: Date): Promise<Observation[]> {
@@ -250,7 +250,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
         value: 65,
         unit: QuantityUnit.bpm,
       },
-    ];
+    ]
   }
 
   private async getBodyWeightObservations(date: Date): Promise<Observation[]> {
@@ -300,7 +300,7 @@ export class MockHealthSummaryService implements HealthSummaryService {
         value: 267,
         unit: QuantityUnit.lbs,
       },
-    ];
+    ]
   }
 
   private async getMostRecentDryWeightObservation(
@@ -310,6 +310,6 @@ export class MockHealthSummaryService implements HealthSummaryService {
       date: advanceDateByDays(date, -4),
       value: 267.5,
       unit: QuantityUnit.lbs,
-    };
+    }
   }
 }
