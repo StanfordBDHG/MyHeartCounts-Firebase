@@ -13,6 +13,8 @@ import {
   UserRegistration,
   UserType,
 } from '@stanfordbdhg/engagehf-models'
+import { type UserService } from './userService.js'
+import { type Document } from '../database/databaseService.js'
 
 // Define a placeholder Organization type
 class Organization {
@@ -36,9 +38,6 @@ class Organization {
     this.ssoProviderId = props.ssoProviderId
   }
 }
-import { type UserService } from './userService.js'
-import { type Document } from '../database/databaseService.js'
-
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 

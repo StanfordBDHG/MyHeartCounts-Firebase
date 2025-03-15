@@ -81,9 +81,7 @@ export class QuantityUnit {
           converter.targetUnit.equals(this),
       )
       .convert(observation.value)
-    return value !== undefined ?
-        { ...observation, value, unit: this }
-      : undefined
+    return value ? { ...observation, value, unit: this } : undefined
   }
 
   fhirQuantity(value: number): FHIRQuantity {

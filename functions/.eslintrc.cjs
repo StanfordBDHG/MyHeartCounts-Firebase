@@ -31,6 +31,8 @@ module.exports = {
     '@typescript-eslint/require-await': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',
     '@typescript-eslint/class-literal-property-style': 'off',
+    '@typescript-eslint/no-redundant-type-constituents': 'off',
+    'import/extensions': 'off',
     'prettier/prettier': 'error',
     'import/order': [
       'warn',

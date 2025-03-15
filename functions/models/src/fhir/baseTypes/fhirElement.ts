@@ -131,10 +131,9 @@ export abstract class FHIRElement {
   // Methods
 
   extensionsWithUrl(url: FHIRExtensionUrl): FHIRExtension[] {
-    return (
-      this.extension.filter((extension) => extension.url === url.toString()) ??
-      []
-    )
+    return this.extension ?
+        this.extension.filter((extension) => extension.url === url.toString())
+      : []
   }
 }
 

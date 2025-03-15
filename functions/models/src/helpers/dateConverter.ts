@@ -33,7 +33,7 @@ export const dateConverter = new SchemaConverter({
     z.null().transform(() => new Date()),
   ]),
   encode: (object) => {
-    if (!object || !(object instanceof Date)) {
+    if (!(object instanceof Date)) {
       return new Date().toISOString() // Default to current date if null
     }
     return object.toISOString()

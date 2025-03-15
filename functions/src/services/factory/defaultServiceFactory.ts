@@ -13,8 +13,6 @@ import { type ServiceFactoryOptions } from './getServiceFactory.js'
 import { type ServiceFactory } from './serviceFactory.js'
 import { Credential } from '../credential/credential.js'
 import { FirestoreService } from '../database/firestoreService.js'
-import { DefaultHealthSummaryService } from '../healthSummary/databaseHealthSummaryService.js'
-import { type HealthSummaryService } from '../healthSummary/healthSummaryService.js'
 import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
@@ -23,8 +21,6 @@ import { DatabasePatientService } from '../patient/databasePatientService.js'
 import { type PatientService } from '../patient/patientService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
-import { DefaultSymptomScoreCalculator } from '../symptomScore/defaultSymptomScoreCalculator.js'
-import { type SymptomScoreCalculator } from '../symptomScore/symptomScoreCalculator.js'
 import {
   TriggerServiceImpl,
   type TriggerService,
