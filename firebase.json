@@ -8,7 +8,7 @@
   },
   "functions": [
     {
-      "codebase": "engage",
+      "codebase": "mhc",
       "source": "functions",
       "ignore": [
         "node_modules",
