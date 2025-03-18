@@ -38,6 +38,69 @@ export enum UserObservationCollection {
   eGfr = 'eGfrObservations',
   heartRate = 'heartRateObservations',
   potassium = 'potassiumObservations',
+
+  // HealthKit mobility metrics
+  flightsClimbed = 'flightsClimbedObservations',
+  stepCount = 'stepCountObservations',
+  distanceWalkingRunning = 'distanceWalkingRunningObservations',
+  distanceCycling = 'distanceCyclingObservations',
+  distanceWheelchair = 'distanceWheelchairObservations',
+  distanceSwimming = 'distanceSwimmingObservations',
+  walkingSpeed = 'walkingSpeedObservations',
+  walkingStepLength = 'walkingStepLengthObservations',
+  walkingAsymmetryPercentage = 'walkingAsymmetryPercentageObservations',
+  walkingDoubleSupportPercentage = 'walkingDoubleSupportPercentageObservations',
+  stairAscentSpeed = 'stairAscentSpeedObservations',
+  stairDescentSpeed = 'stairDescentSpeedObservations',
+  walkingSteadiness = 'walkingSteadinessObservations',
+  walkingSteadinessEvent = 'walkingSteadinessEventObservations',
+  sixMinuteWalkTestDistance = 'sixMinuteWalkTestDistanceObservations',
+
+  // HealthKit activity metrics
+  appleExerciseTime = 'appleExerciseTimeObservations',
+  appleMoveTime = 'appleMoveTimeObservations',
+  appleStandTime = 'appleStandTimeObservations',
+  appleStandHour = 'appleStandHourObservations',
+
+  // HealthKit vital signs
+  oxygenSaturation = 'oxygenSaturationObservations',
+  bodyTemperature = 'bodyTemperatureObservations',
+  bloodPressureSystolic = 'bloodPressureSystolicObservations',
+  bloodPressureDiastolic = 'bloodPressureDiastolicObservations',
+  respiratoryRate = 'respiratoryRateObservations',
+  basalBodyTemperature = 'basalBodyTemperatureObservations',
+  bloodGlucose = 'bloodGlucoseObservations',
+  vo2Max = 'vo2MaxObservations',
+
+  // HealthKit heart metrics
+  restingHeartRate = 'restingHeartRateObservations',
+  heartRateVariabilitySDNN = 'heartRateVariabilitySDNNObservations',
+  heartRateRecoveryOneMinute = 'heartRateRecoveryOneMinuteObservations',
+  atrialFibrillationBurden = 'atrialFibrillationBurdenObservations',
+  walkingHeartRateAverage = 'walkingHeartRateAverageObservations',
+  lowHeartRateEvent = 'lowHeartRateEventObservations',
+  highHeartRateEvent = 'highHeartRateEventObservations',
+  irregularHeartRhythmEvent = 'irregularHeartRhythmEventObservations',
+
+  // HealthKit body measurements
+  height = 'heightObservations',
+  bodyMassIndex = 'bodyMassIndexObservations',
+  leanBodyMass = 'leanBodyMassObservations',
+  bodyFatPercentage = 'bodyFatPercentageObservations',
+  waistCircumference = 'waistCircumferenceObservations',
+
+  // HealthKit other measurements
+  mindfulSession = 'mindfulSessionObservations',
+  bloodAlcoholContent = 'bloodAlcoholContentObservations',
+  dietaryCholesterol = 'dietaryCholesterolObservations',
+  dietaryVitaminD = 'dietaryVitaminDObservations',
+  inhalerUsage = 'inhalerUsageObservations',
+
+  // HealthKit electrocardiograms
+  electrocardiogram = 'electrocardiogramObservations',
+
+  // HealthKit workouts
+  workout = 'workoutObservations',
 }
 
 export enum FHIRObservationStatus {
@@ -128,6 +191,7 @@ export class FHIRObservation extends FHIRResource {
   // Static Functions
 
   private static readonly loincDisplay = new Map<LoincCode, string>([
+    // Existing LOINC codes
     [
       LoincCode.bloodPressure,
       'Blood pressure panel with all children optional',
@@ -142,6 +206,65 @@ export class FHIRObservation extends FHIRResource {
     ],
     [LoincCode.heartRate, 'Heart rate'],
     [LoincCode.potassium, 'Potassium [Moles/volume] in Blood'],
+
+    // HealthKit mobility metrics
+    [LoincCode.flightsClimbed, 'Stairs climbed'],
+    [LoincCode.stepCount, 'Step count'],
+    [LoincCode.distanceWalkingRunning, 'Distance walked/run'],
+    [LoincCode.distanceCycling, 'Distance cycled'],
+    [LoincCode.distanceWheelchair, 'Wheelchair distance'],
+    [LoincCode.distanceSwimming, 'Swimming distance'],
+    [LoincCode.walkingSpeed, 'Walking speed'],
+    [LoincCode.walkingStepLength, 'Step length'],
+    [LoincCode.walkingAsymmetryPercentage, 'Walking asymmetry percentage'],
+    [LoincCode.walkingDoubleSupportPercentage, 'Double support percentage'],
+    [LoincCode.stairAscentSpeed, 'Stair ascent speed'],
+    [LoincCode.stairDescentSpeed, 'Stair descent speed'],
+    [LoincCode.walkingSteadiness, 'Walking steadiness'],
+    [LoincCode.walkingSteadinessEvent, 'Walking steadiness event'],
+    [LoincCode.sixMinuteWalkTestDistance, 'Six-minute walk test distance'],
+
+    // HealthKit activity metrics
+    [LoincCode.appleExerciseTime, 'Exercise time'],
+    [LoincCode.appleMoveTime, 'Move time'],
+    [LoincCode.appleStandTime, 'Stand time'],
+    [LoincCode.appleStandHour, 'Stand hour'],
+
+    // HealthKit vital signs
+    [LoincCode.oxygenSaturation, 'Oxygen saturation'],
+    [LoincCode.bodyTemperature, 'Body temperature'],
+    [LoincCode.respiratoryRate, 'Respiratory rate'],
+    [LoincCode.basalBodyTemperature, 'Basal body temperature'],
+    [LoincCode.bloodGlucose, 'Blood glucose'],
+    [LoincCode.vo2Max, 'VO2 max'],
+
+    // HealthKit heart metrics
+    [LoincCode.restingHeartRate, 'Resting heart rate'],
+    [LoincCode.heartRateVariabilitySDNN, 'Heart rate variability SDNN'],
+    [LoincCode.heartRateRecoveryOneMinute, 'Heart rate recovery (1 min)'],
+    [LoincCode.atrialFibrillationBurden, 'Atrial fibrillation burden'],
+    [LoincCode.walkingHeartRateAverage, 'Walking heart rate average'],
+    [LoincCode.lowHeartRateEvent, 'Low heart rate event'],
+    [LoincCode.highHeartRateEvent, 'High heart rate event'],
+    [LoincCode.irregularHeartRhythmEvent, 'Irregular heart rhythm event'],
+
+    // HealthKit body measurements
+    [LoincCode.height, 'Body height'],
+    [LoincCode.bodyMassIndex, 'Body mass index'],
+    [LoincCode.leanBodyMass, 'Lean body mass'],
+    [LoincCode.bodyFatPercentage, 'Body fat percentage'],
+    [LoincCode.waistCircumference, 'Waist circumference'],
+
+    // HealthKit other measurements
+    [LoincCode.mindfulSession, 'Mindful session'],
+    [LoincCode.bloodAlcoholContent, 'Blood alcohol content'],
+    [LoincCode.dietaryCholesterol, 'Dietary cholesterol'],
+    [LoincCode.dietaryVitaminD, 'Dietary vitamin D'],
+    [LoincCode.inhalerUsage, 'Inhaler usage'],
+
+    // HealthKit electrocardiograms and workouts
+    [LoincCode.electrocardiogram, 'Electrocardiogram'],
+    [LoincCode.workout, 'Workout'],
   ])
 
   static createBloodPressure(input: {
@@ -311,6 +434,256 @@ export class FHIRObservation extends FHIRResource {
       code: LoincCode.potassium,
       system: CodingSystem.loinc,
       unit: QuantityUnit.mEq_L,
+    }).at(0)
+  }
+
+  // HealthKit mobility metrics
+
+  get flightsClimbed(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.flightsClimbed,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.flights,
+    }).at(0)
+  }
+
+  get stepCount(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.stepCount,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.steps,
+    }).at(0)
+  }
+
+  get distanceWalkingRunning(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.distanceWalkingRunning,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.meters,
+    }).at(0)
+  }
+
+  get distanceCycling(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.distanceCycling,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.meters,
+    }).at(0)
+  }
+
+  get distanceWheelchair(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.distanceWheelchair,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.meters,
+    }).at(0)
+  }
+
+  get distanceSwimming(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.distanceSwimming,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.meters,
+    }).at(0)
+  }
+
+  get walkingSpeed(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.walkingSpeed,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.m_s,
+    }).at(0)
+  }
+
+  get walkingStepLength(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.walkingStepLength,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.cm,
+    }).at(0)
+  }
+
+  get walkingAsymmetryPercentage(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.walkingAsymmetryPercentage,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.percent,
+    }).at(0)
+  }
+
+  get walkingDoubleSupportPercentage(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.walkingDoubleSupportPercentage,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.percent,
+    }).at(0)
+  }
+
+  get stairAscentSpeed(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.stairAscentSpeed,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.m_s,
+    }).at(0)
+  }
+
+  get stairDescentSpeed(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.stairDescentSpeed,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.m_s,
+    }).at(0)
+  }
+
+  get walkingSteadiness(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.walkingSteadiness,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.percent,
+    }).at(0)
+  }
+
+  get sixMinuteWalkTestDistance(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.sixMinuteWalkTestDistance,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.meters,
+    }).at(0)
+  }
+
+  // HealthKit activity metrics
+
+  get appleExerciseTime(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.appleExerciseTime,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.minutes,
+    }).at(0)
+  }
+
+  get appleMoveTime(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.appleMoveTime,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.minutes,
+    }).at(0)
+  }
+
+  get appleStandTime(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.appleStandTime,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.hours,
+    }).at(0)
+  }
+
+  // HealthKit vital signs
+
+  get oxygenSaturation(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.oxygenSaturation,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.percent,
+    }).at(0)
+  }
+
+  get bodyTemperature(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.bodyTemperature,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.celsius,
+    }).at(0)
+  }
+
+  get respiratoryRate(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.respiratoryRate,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.resp_min,
+    }).at(0)
+  }
+
+  get bloodGlucose(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.bloodGlucose,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.mg_dL_glu,
+    }).at(0)
+  }
+
+  get vo2Max(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.vo2Max,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.mL_kg_min,
+    }).at(0)
+  }
+
+  // HealthKit heart metrics
+
+  get restingHeartRate(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.restingHeartRate,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.bpm,
+    }).at(0)
+  }
+
+  get heartRateVariabilitySDNN(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.heartRateVariabilitySDNN,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.bpm,
+    }).at(0)
+  }
+
+  get walkingHeartRateAverage(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.walkingHeartRateAverage,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.bpm,
+    }).at(0)
+  }
+
+  // HealthKit body measurements
+
+  get height(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.height,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.cm_height,
+    }).at(0)
+  }
+
+  get bodyMassIndex(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.bodyMassIndex,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.kg_m2,
+    }).at(0)
+  }
+
+  get leanBodyMass(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.leanBodyMass,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.kg,
+    }).at(0)
+  }
+
+  get bodyFatPercentage(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.bodyFatPercentage,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.percent,
+    }).at(0)
+  }
+
+  get waistCircumference(): Observation | undefined {
+    return this.observations({
+      code: LoincCode.waistCircumference,
+      system: CodingSystem.loinc,
+      unit: QuantityUnit.cm,
     }).at(0)
   }
 

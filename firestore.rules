@@ -89,8 +89,11 @@ service cloud.firestore {
       }
 
       function isPatientWritableCollectionName() {
-        return collectionName.matches('^[A-Za-z]+Observations$')
-          || collectionName in ['questionnaireResponses'];
+        // Regex pattern for observation collections
+        // This matches any collection ending with "Observations" or "ObservationSeries"
+        // and requires at least one character before these suffixes
+        return collectionName.matches('^[A-Za-z]+(Observations|ObservationSeries)$')
+          || collectionName in ['questionnaireResponses', 'workouts', 'electrocardiograms'];
       }
 
       function isClinicianWritableCollectionName() {
