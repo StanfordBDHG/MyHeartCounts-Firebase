@@ -89,13 +89,13 @@ export const fhirQuestionnaireConverter = new Lazy(
         language: object.language ?? null,
         subjectType: object.subjectType ?? null,
         contact:
-          object.contact.map(fhirContactDetailConverter.value.encode) ?? null,
+          object.contact?.map(fhirContactDetailConverter.value.encode) ?? null,
         useContext:
-          object.useContext.map(fhirUsageContextConverter.encode) ?? null,
+          object.useContext?.map(fhirUsageContextConverter.encode) ?? null,
         publisher: object.publisher ?? null,
         url: object.url ?? null,
         item:
-          object.item.map(fhirQuestionnaireItemConverter.value.encode) ?? null,
+          object.item?.map(fhirQuestionnaireItemConverter.value.encode) ?? null,
       }),
     }),
 )

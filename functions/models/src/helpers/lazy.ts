@@ -16,10 +16,14 @@ export class Lazy<T> {
 
   get value(): T {
     if (this._value === undefined) {
-      this._value = this._factory()
-      this._factory = undefined
+      if (this._factory) {
+        this._value = this._factory()
+        this._factory = undefined
+      } else {
+        throw new Error('Factory is undefined and no value is available')
+      }
     }
-    return this._value // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    return this._value
   }
 
   set value(value: T) {

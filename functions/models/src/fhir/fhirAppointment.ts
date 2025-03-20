@@ -87,7 +87,7 @@ export const fhirAppointmentConverter = new Lazy(
         comment: object.comment ?? null,
         patientInstruction: object.patientInstruction ?? null,
         participant:
-          object.participant.map(
+          object.participant?.map(
             fhirAppointmentParticipantConverter.value.encode,
           ) ?? null,
       }),
