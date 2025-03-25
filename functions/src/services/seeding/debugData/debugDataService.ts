@@ -73,8 +73,6 @@ export class DebugDataService extends SeedingService {
     return userIds
   }
 
-  // Invitation-related methods have been removed
-
   async seedUsers() {
     const users = this.readJSONArray('users.json', userSeedingOptionsSchema)
     const userIds = await Promise.all(
@@ -84,7 +82,7 @@ export class DebugDataService extends SeedingService {
   }
 
   async seedUserConsent(userId: string) {
-    await this.storage.bucket().upload('data/consent.pdf', {
+    await this.storage.bucket().upload('data/public/consent.pdf', {
       destination: `users/${userId}/consent/consent.pdf`,
       contentType: 'application/pdf',
     })
