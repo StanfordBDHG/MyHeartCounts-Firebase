@@ -23,7 +23,7 @@
     "build": "npm --prefix functions/models run build && npm --prefix functions run build",
     "clean": "npm --prefix functions/models run clean && npm --prefix functions run clean",
     "prepare": "npm run clean && npm run install && npm run build",
-    "test:ci": "firebase emulators:exec --only auth,firestore,storage 'npm --prefix functions run test:emulators'",
+    "test:ci": "cd functions && npm run test",
     "serve": "npm --prefix functions run serve",
     "serve:seeded": "npm --prefix functions run serve:seeded"
   }

@@ -16,9 +16,7 @@ Firebase cloud hosting infrastructure for the Stanford MyHeart Counts project.
 
 ## Behavior
 
-The base functionality of the ENGAGE-HF Firebase Functions revolve around three parts:
-- recommending medication changes to patients based on existing medication, vitals and symptom scores
-- calculating symptom scores from questionnaire responses of patients
+The base functionality of the MyHeart Counts Functions revolve around multiple areas:
 - generating Health Summary PDFs containing recommendations, vitals and symptom scores
 
 ## Usage
