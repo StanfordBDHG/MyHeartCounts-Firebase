@@ -6,9 +6,6 @@ SPDX-License-Identifier: MIT
 
 # Stanford MyHeart Counts Open-Source-Project
 
-[![Build and Test](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml)
-[![Deployment](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/deployment.yml/badge.svg)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/deployment.yml)
-
 > [!NOTE]  
 > This repository contains code that is work in progress.
 
