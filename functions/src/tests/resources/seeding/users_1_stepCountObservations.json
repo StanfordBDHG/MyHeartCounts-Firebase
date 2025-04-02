@@ -1,0 +1,126 @@
+{
+  "0": {
+    "id": "0",
+    "extension": null,
+    "resourceType": "Observation",
+    "meta": null,
+    "status": "final",
+    "code": {
+      "coding": [
+        {
+          "id": null,
+          "extension": null,
+          "system": "http://loinc.org",
+          "version": null,
+          "code": "41950-7",
+          "display": "Step count",
+          "userSelected": null
+        }
+      ],
+      "text": "Step count"
+    },
+    "component": null,
+    "valueQuantity": {
+      "code": "steps",
+      "system": "http://unitsofmeasure.org",
+      "unit": "steps",
+      "value": 6241
+    },
+    "effectivePeriod": null,
+    "effectiveDateTime": "2024-04-01T00:00:00.000Z",
+    "effectiveInstant": null
+  },
+  "1": {
+    "id": "1",
+    "extension": null,
+    "resourceType": "Observation",
+    "meta": null,
+    "status": "final",
+    "code": {
+      "coding": [
+        {
+          "id": null,
+          "extension": null,
+          "system": "http://loinc.org",
+          "version": null,
+          "code": "41950-7",
+          "display": "Step count",
+          "userSelected": null
+        }
+      ],
+      "text": "Step count"
+    },
+    "component": null,
+    "valueQuantity": {
+      "code": "steps",
+      "system": "http://unitsofmeasure.org",
+      "unit": "steps",
+      "value": 5924
+    },
+    "effectivePeriod": null,
+    "effectiveDateTime": "2024-04-01T00:00:00.000Z",
+    "effectiveInstant": null
+  },
+  "2": {
+    "id": "2",
+    "extension": null,
+    "resourceType": "Observation",
+    "meta": null,
+    "status": "final",
+    "code": {
+      "coding": [
+        {
+          "id": null,
+          "extension": null,
+          "system": "http://loinc.org",
+          "version": null,
+          "code": "41950-7",
+          "display": "Step count",
+          "userSelected": null
+        }
+      ],
+      "text": "Step count"
+    },
+    "component": null,
+    "valueQuantity": {
+      "code": "steps",
+      "system": "http://unitsofmeasure.org",
+      "unit": "steps",
+      "value": 9123
+    },
+    "effectivePeriod": null,
+    "effectiveDateTime": "2024-04-02T00:00:00.000Z",
+    "effectiveInstant": null
+  },
+  "3": {
+    "id": "3",
+    "extension": null,
+    "resourceType": "Observation",
+    "meta": null,
+    "status": "final",
+    "code": {
+      "coding": [
+        {
+          "id": null,
+          "extension": null,
+          "system": "http://loinc.org",
+          "version": null,
+          "code": "41950-7",
+          "display": "Step count",
+          "userSelected": null
+        }
+      ],
+      "text": "Step count"
+    },
+    "component": null,
+    "valueQuantity": {
+      "code": "steps",
+      "system": "http://unitsofmeasure.org",
+      "unit": "steps",
+      "value": 8740
+    },
+    "effectivePeriod": null,
+    "effectiveDateTime": "2024-04-02T00:00:00.000Z",
+    "effectiveInstant": null
+  }
+}
