@@ -130,12 +130,11 @@ export class QuantityUnit {
   }
 
   convert(observation: Observation): Observation | undefined {
-    const converter = QuantityUnitConverter.allValues
-      .find(
-        (converter) =>
-          converter.sourceUnit.equals(observation.unit) &&
-          converter.targetUnit.equals(this),
-      )
+    const converter = QuantityUnitConverter.allValues.find(
+      (converter) =>
+        converter.sourceUnit.equals(observation.unit) &&
+        converter.targetUnit.equals(this),
+    )
     if (!converter) return undefined
     const value = converter.convert(observation.value)
     return value ? { ...observation, value, unit: this } : undefined
@@ -151,15 +150,14 @@ export class QuantityUnit {
   }
 
   valueOf(quantity: FHIRQuantity | undefined): number | undefined {
-    if (!quantity || !quantity.value) return undefined
+    if (!quantity?.value) return undefined
     if (this.isUsedIn(quantity)) return quantity.value
 
-    const converter = QuantityUnitConverter.allValues
-      .find(
-        (converter) =>
-          converter.sourceUnit.isUsedIn(quantity) &&
-          converter.targetUnit.equals(this),
-      )
+    const converter = QuantityUnitConverter.allValues.find(
+      (converter) =>
+        converter.sourceUnit.isUsedIn(quantity) &&
+        converter.targetUnit.equals(this),
+    )
     if (!converter) return undefined
     return converter.convert(quantity.value)
   }

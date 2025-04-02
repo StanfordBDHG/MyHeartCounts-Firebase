@@ -723,8 +723,8 @@ export class FHIRObservation extends FHIRResource {
     const date =
       this.effectiveDateTime ??
       this.effectiveInstant ??
-      (this.effectivePeriod?.start ??
-      this.effectivePeriod?.end)
+      this.effectivePeriod?.start ??
+      this.effectivePeriod?.end
     if (!date) return result
 
     if (options.component) {
