@@ -445,7 +445,7 @@ describeWithEmulators('TriggerService', (env) => {
           date: advanceDateByMinutes(new Date(), -30),
         })
         await env.collections
-          .userObservations(patientId, UserObservationCollection.bodyWeight)
+          .userObservations(patientId, UserObservationCollection.heartRate)
           .doc()
           .set(slightlyHigherWeight)
         // Use heartRate instead of bodyWeight since bodyWeight was removed
@@ -485,7 +485,7 @@ describeWithEmulators('TriggerService', (env) => {
           date: advanceDateByMinutes(new Date(), -15),
         })
         await env.collections
-          .userObservations(patientId, UserObservationCollection.bodyWeight)
+          .userObservations(patientId, UserObservationCollection.heartRate)
           .doc()
           .set(actuallyHigherWeight)
         // Use heartRate instead of bodyWeight since bodyWeight was removed

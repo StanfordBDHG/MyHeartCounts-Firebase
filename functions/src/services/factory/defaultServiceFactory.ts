@@ -57,13 +57,7 @@ export class DefaultServiceFactory implements ServiceFactory {
       ),
   )
 
-  private readonly healthSummaryService = new Lazy(
-    () =>
-      new DefaultHealthSummaryService(
-        this.patientService.value,
-        this.userService.value,
-      ),
-  )
+  // HealthSummary service removed
 
   private readonly historyService = new Lazy(
     () => new DatabaseHistoryService(this.databaseService.value),
@@ -86,9 +80,7 @@ export class DefaultServiceFactory implements ServiceFactory {
     () => new StaticDataService(this.databaseService.value),
   )
 
-  private readonly symptomScoreCalculator = new Lazy(
-    () => new DefaultSymptomScoreCalculator(),
-  )
+  // SymptomScore calculator removed
 
   private readonly triggerService = new Lazy(() => new TriggerServiceImpl(this))
 
@@ -128,17 +120,13 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   // Methods - Patient
 
-  healthSummary(): HealthSummaryService {
-    return this.healthSummaryService.value
-  }
+  // HealthSummary method removed
 
   patient(): PatientService {
     return this.patientService.value
   }
 
-  symptomScore(): SymptomScoreCalculator {
-    return this.symptomScoreCalculator.value
-  }
+  // SymptomScore method removed
 
   // Methods - Trigger
 

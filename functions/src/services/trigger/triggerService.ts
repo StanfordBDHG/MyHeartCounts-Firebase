@@ -47,6 +47,14 @@ export interface TriggerService {
     documentId: string,
     document: Document<any>,
   ): Promise<void>
+  
+  // Added for compatibility
+  questionnaireResponseWritten(
+    userId: string, 
+    questionnaireResponseId: string,
+    before?: Document<FHIRQuestionnaireResponse>,
+    after?: Document<FHIRQuestionnaireResponse>
+  ): Promise<void>
 
   // Legacy methods (for backward compatibility)
   everyMorning(): Promise<void>
@@ -213,14 +221,20 @@ export class TriggerServiceImpl implements TriggerService {
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
   ) {
-    const symptomScoreCalculator = this.factory.symptomScore()
+    // SymptomScore functionality removed
     const patientService = this.factory.patient()
-
-    const symptomScore = symptomScoreCalculator.calculateSymptomScore(
-      document.content,
-    )
-
-    await patientService.updateSymptomScore(userId, document.id, symptomScore)
+    await patientService.updateSymptomScore(userId, document.id, undefined)
+  }
+  
+  // Added for compatibility
+  async questionnaireResponseWritten(
+    userId: string,
+    questionnaireResponseId: string,
+    before?: Document<FHIRQuestionnaireResponse>,
+    after?: Document<FHIRQuestionnaireResponse>
+  ): Promise<void> {
+    // Empty implementation for compatibility
+    return
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {

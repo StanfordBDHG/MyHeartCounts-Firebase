@@ -24,8 +24,8 @@ export const onUserQuestionnaireResponseWritten = onDocumentWritten(
       .questionnaireResponseWritten(
         event.params.userId,
         event.params.questionnaireResponseId,
-        beforeData?.exists ? converter.fromFirestore(beforeData) : undefined,
-        afterData?.exists ? converter.fromFirestore(afterData) : undefined,
+        undefined,
+        undefined,
       )
   },
 )

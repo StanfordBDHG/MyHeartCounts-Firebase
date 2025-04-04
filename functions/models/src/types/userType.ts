@@ -10,4 +10,5 @@ export enum UserType {
   admin = 'admin',
   clinician = 'clinician',
   patient = 'patient',
+  owner = 'owner', // Added owner type for backwards compatibility
 }
