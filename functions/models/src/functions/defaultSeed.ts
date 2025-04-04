@@ -16,18 +16,9 @@ export enum DebugDataComponent {
 }
 
 export enum UserDebugDataComponent {
-  consent = 'consent',
-  appointments = 'appointments',
   messages = 'messages',
-  bodyWeightObservations = 'bodyWeightObservations',
-  bloodPressureObservations = 'bloodPressureObservations',
-  dryWeightObservations = 'dryWeightObservations',
   heartRateObservations = 'heartRateObservations',
-  creatinineObservations = 'creatinineObservations',
-  eGfrObservations = 'eGfrObservations',
-  potassiumObservations = 'potassiumObservations',
   questionnaireResponses = 'questionnaireResponses',
-  symptomScores = 'symptomScores',
 }
 
 export const defaultSeedInputSchema = z.object({

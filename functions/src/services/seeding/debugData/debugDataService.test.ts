@@ -56,60 +56,21 @@ describe('DebugDataService', () => {
     }
   }
 
-  it('recreates the same appointments', async () => {
-    await generatesSameCollectionAsBefore('users/0/appointments', () =>
-      service.seedUserAppointments('0', date),
-    )
-  })
-
-  it('recreates the same blood pressure observations', async () => {
-    await generatesSameCollectionAsBefore(
-      'users/0/bloodPressureObservations',
-      () => service.seedUserBloodPressureObservations('0', date),
-    )
-  })
-
-  it('recreates the same body weight observations', async () => {
-    await generatesSameCollectionAsBefore(
-      'users/0/bodyWeightObservations',
-      () => service.seedUserBodyWeightObservations('0', date),
-    )
-  })
-
-  it('recreates the same creatinine observations', async () => {
-    await generatesSameCollectionAsBefore(
-      'users/0/creatinineObservations',
-      () => service.seedUserCreatinineObservations('0', date),
-    )
-  })
-
-  it('recreates the same dry weight observations', async () => {
-    await generatesSameCollectionAsBefore('users/0/dryWeightObservations', () =>
-      service.seedUserDryWeightObservations('0', date),
-    )
-  })
-
-  it('recreates the same eGfr observations', async () => {
-    await generatesSameCollectionAsBefore('users/0/eGfrObservations', () =>
-      service.seedUserEgfrObservations('0', date),
-    )
-  })
-
   it('recreates the same heart rate observations', async () => {
     await generatesSameCollectionAsBefore('users/0/heartRateObservations', () =>
       service.seedUserHeartRateObservations('0', date),
     )
   })
 
-  it('recreates the same potassium observations', async () => {
-    await generatesSameCollectionAsBefore('users/0/potassiumObservations', () =>
-      service.seedUserPotassiumObservations('0', date),
-    )
-  })
-
   it('recreates the same messages', async () => {
     await generatesSameCollectionAsBefore('users/0/messages', () =>
       service.seedUserMessages('0', date),
+    )
+  })
+  
+  it('recreates the same questionnaire responses', async () => {
+    await generatesSameCollectionAsBefore('users/0/questionnaireResponses', () =>
+      service.seedUserQuestionnaireResponses('0', date),
     )
   })
 })

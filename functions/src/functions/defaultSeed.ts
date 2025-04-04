@@ -51,60 +51,14 @@ async function _seedPatientCollections(input: {
   date: Date
 }): Promise<void> {
   const promises: Array<Promise<void>> = []
-  if (input.components.includes(UserDebugDataComponent.appointments)) {
-    promises.push(
-      input.debugData.seedUserAppointments(input.userId, input.date),
-    )
-  }
-  if (
-    input.components.includes(UserDebugDataComponent.bloodPressureObservations)
-  ) {
-    promises.push(
-      input.debugData.seedUserBloodPressureObservations(
-        input.userId,
-        input.date,
-      ),
-    )
-  }
-  if (
-    input.components.includes(UserDebugDataComponent.bodyWeightObservations)
-  ) {
-    promises.push(
-      input.debugData.seedUserBodyWeightObservations(input.userId, input.date),
-    )
-  }
-  if (
-    input.components.includes(UserDebugDataComponent.creatinineObservations)
-  ) {
-    promises.push(
-      input.debugData.seedUserCreatinineObservations(input.userId, input.date),
-    )
-  }
-  if (input.components.includes(UserDebugDataComponent.dryWeightObservations)) {
-    promises.push(
-      input.debugData.seedUserDryWeightObservations(input.userId, input.date),
-    )
-  }
-  if (input.components.includes(UserDebugDataComponent.eGfrObservations)) {
-    promises.push(
-      input.debugData.seedUserEgfrObservations(input.userId, input.date),
-    )
-  }
+  
   if (input.components.includes(UserDebugDataComponent.heartRateObservations)) {
     promises.push(
       input.debugData.seedUserHeartRateObservations(input.userId, input.date),
     )
   }
-  if (input.components.includes(UserDebugDataComponent.potassiumObservations)) {
-    promises.push(
-      input.debugData.seedUserPotassiumObservations(input.userId, input.date),
-    )
-  }
   if (input.components.includes(UserDebugDataComponent.messages)) {
     promises.push(input.debugData.seedUserMessages(input.userId, input.date))
-  }
-  if (input.components.includes(UserDebugDataComponent.consent)) {
-    promises.push(input.debugData.seedUserConsent(input.userId))
   }
   if (
     input.components.includes(UserDebugDataComponent.questionnaireResponses)
@@ -113,9 +67,7 @@ async function _seedPatientCollections(input: {
       input.debugData.seedUserQuestionnaireResponses(input.userId, input.date),
     )
   }
-  if (input.components.includes(UserDebugDataComponent.symptomScores)) {
-    promises.push(input.trigger.updateAllSymptomScores(input.userId))
-  }
+  
   await Promise.all(promises)
 }
 

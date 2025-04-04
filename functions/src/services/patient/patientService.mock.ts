@@ -74,105 +74,7 @@ export class MockPatientService implements PatientService {
 
   // Methods - Observations
 
-  async getBloodPressureObservations(
-    userId: string,
-  ): Promise<[Observation[], Observation[]]> {
-    const values = [
-      this.bloodPressureObservations(110, 70, new Date(2024, 1, 30, 12, 30)),
-      this.bloodPressureObservations(114, 82, new Date(2024, 1, 29, 12, 30)),
-      this.bloodPressureObservations(123, 75, new Date(2024, 1, 28, 12, 30)),
-      this.bloodPressureObservations(109, 77, new Date(2024, 1, 27, 12, 30)),
-      this.bloodPressureObservations(105, 72, new Date(2024, 1, 26, 12, 30)),
-      this.bloodPressureObservations(98, 68, new Date(2024, 1, 25, 12, 30)),
-      this.bloodPressureObservations(94, 65, new Date(2024, 1, 24, 12, 30)),
-      this.bloodPressureObservations(104, 72, new Date(2024, 1, 23, 12, 30)),
-      this.bloodPressureObservations(102, 80, new Date(2024, 1, 22, 12, 30)),
-    ]
-    return [values.map((value) => value[0]), values.map((value) => value[1])]
-  }
-
-  private bloodPressureObservations(
-    systolicBloodPressure: number,
-    diastolicBloodPressure: number,
-    date: Date,
-  ): [Observation, Observation] {
-    return [
-      {
-        value: systolicBloodPressure,
-        unit: QuantityUnit.mmHg,
-        date: date,
-      },
-      {
-        value: diastolicBloodPressure,
-        unit: QuantityUnit.mmHg,
-        date: date,
-      },
-    ]
-  }
-
-  async getBodyWeightObservations(userId: string): Promise<Observation[]> {
-    return [
-      this.bodyWeightObservation(
-        269,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 30, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        267,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 29, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        267,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 28, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        265,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 27, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        268,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 26, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        268,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 25, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        266,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 24, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        266,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 23, 12, 30),
-      ),
-      this.bodyWeightObservation(
-        267,
-        QuantityUnit.lbs,
-        new Date(2024, 1, 22, 12, 30),
-      ),
-    ]
-  }
-
-  private bodyWeightObservation(
-    value: number,
-    unit: QuantityUnit,
-    date: Date,
-  ): Observation {
-    return {
-      date: date,
-      value: value,
-      unit: unit,
-    }
-  }
-
-  async getHeartRateObservations(userId: string): Promise<Observation[]> {
+  async getHeartRateObservations(userId: string, cutoffDate: Date): Promise<Observation[]> {
     return [
       this.heartRateObservation(79, new Date(2024, 1, 30, 12, 30)),
       this.heartRateObservation(62, new Date(2024, 1, 29, 12, 30)),
@@ -183,7 +85,7 @@ export class MockPatientService implements PatientService {
       this.heartRateObservation(67, new Date(2024, 1, 24, 12, 30)),
       this.heartRateObservation(80, new Date(2024, 1, 23, 12, 30)),
       this.heartRateObservation(65, new Date(2024, 1, 22, 12, 30)),
-    ]
+    ].filter(obs => obs.date > cutoffDate)
   }
 
   private heartRateObservation(value: number, date: Date): Observation {
@@ -191,45 +93,6 @@ export class MockPatientService implements PatientService {
       date: date,
       value: value,
       unit: QuantityUnit.bpm,
-    }
-  }
-
-  async getMostRecentCreatinineObservation(
-    userId: string,
-  ): Promise<Observation | undefined> {
-    return {
-      date: new Date('2024-01-29'),
-      value: 1.1,
-      unit: QuantityUnit.mg_dL,
-    }
-  }
-
-  async getMostRecentDryWeightObservation(
-    userId: string,
-    unit: QuantityUnit,
-  ): Promise<Observation | undefined> {
-    return {
-      date: new Date(2024, 1, 27, 12, 30),
-      value: 267.5,
-      unit: QuantityUnit.lbs,
-    }
-  }
-
-  async getMostRecentEstimatedGlomerularFiltrationRateObservation(): Promise<
-    Observation | undefined
-  > {
-    return {
-      date: new Date('2024-01-29'),
-      value: 60,
-      unit: QuantityUnit.mL_min_173m2,
-    }
-  }
-
-  async getMostRecentPotassiumObservation(): Promise<Observation | undefined> {
-    return {
-      date: new Date('2024-01-29'),
-      unit: QuantityUnit.mEq_L,
-      value: 4.2,
     }
   }
 

@@ -88,45 +88,9 @@ export class DatabasePatientService implements PatientService {
 
   // Methods - Observations
 
-  async getBloodPressureObservations(
-    userId: string,
-    cutoffDate: Date,
-  ): Promise<[Observation[], Observation[]]> {
-    const observations = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userObservations(userId, UserObservationCollection.bloodPressure)
-          .where('effectiveDateTime', '>', cutoffDate.toISOString())
-          .orderBy('effectiveDateTime', 'desc'),
-    )
-    return [
-      compactMap(
-        observations,
-        (observation) => observation.content.systolicBloodPressure,
-      ),
-      compactMap(
-        observations,
-        (observation) => observation.content.diastolicBloodPressure,
-      ),
-    ]
-  }
+  // Blood pressure observations method removed
 
-  async getBodyWeightObservations(
-    userId: string,
-    unit: QuantityUnit,
-    cutoffDate: Date,
-  ): Promise<Observation[]> {
-    const observations = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userObservations(userId, UserObservationCollection.bodyWeight)
-          .where('effectiveDateTime', '>', cutoffDate.toISOString())
-          .orderBy('effectiveDateTime', 'desc'),
-    )
-    return compactMap(observations, (observation) =>
-      observation.content.bodyWeight(unit),
-    )
-  }
+  // Body weight observations method removed
 
   async getHeartRateObservations(
     userId: string,
@@ -145,57 +109,13 @@ export class DatabasePatientService implements PatientService {
     )
   }
 
-  async getMostRecentCreatinineObservation(
-    userId: string,
-  ): Promise<Observation | undefined> {
-    const result = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userObservations(userId, UserObservationCollection.creatinine)
-          .orderBy('effectiveDateTime', 'desc')
-          .limit(1),
-    )
-    return result.at(0)?.content.creatinine
-  }
+  // Creatinine observation method removed
 
-  async getMostRecentDryWeightObservation(
-    userId: string,
-  ): Promise<Observation | undefined> {
-    const result = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userObservations(userId, UserObservationCollection.dryWeight)
-          .orderBy('effectiveDateTime', 'desc')
-          .limit(1),
-    )
-    return result.at(0)?.content.bodyWeight(QuantityUnit.lbs)
-  }
+  // Dry weight observation method removed
 
-  async getMostRecentEstimatedGlomerularFiltrationRateObservation(
-    userId: string,
-  ): Promise<Observation | undefined> {
-    const result = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userObservations(userId, UserObservationCollection.eGfr)
-          .orderBy('effectiveDateTime', 'desc')
-          .limit(1),
-    )
-    return result.at(0)?.content.estimatedGlomerularFiltrationRate
-  }
+  // eGFR observation method removed
 
-  async getMostRecentPotassiumObservation(
-    userId: string,
-  ): Promise<Observation | undefined> {
-    const result = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userObservations(userId, UserObservationCollection.potassium)
-          .orderBy('effectiveDateTime', 'desc')
-          .limit(1),
-    )
-    return result.at(0)?.content.potassium
-  }
+  // Potassium observation method removed
 
   // Methods - Questionnaire Responses
 

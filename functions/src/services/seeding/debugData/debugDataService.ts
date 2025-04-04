@@ -114,23 +114,6 @@ export class DebugDataService extends SeedingService {
     return 'public/studyDefinition.json'
   }
 
-  async seedUserAppointments(userId: string, date: Date) {
-    const values = [
-      FHIRAppointment.create({
-        userId,
-        created: advanceDateByDays(date, -2),
-        status: FHIRAppointmentStatus.booked,
-        start: advanceDateByDays(date, 2),
-        durationInMinutes: 30,
-      }),
-    ]
-
-    await this.replaceCollection(
-      (collections) => collections.userAppointments(userId),
-      values,
-    )
-  }
-
   async seedUserMessages(userId: string, date: Date) {
     const values = [
       UserMessage.createInactive({
@@ -191,147 +174,6 @@ export class DebugDataService extends SeedingService {
     )
   }
 
-  async seedUserBloodPressureObservations(userId: string, date: Date) {
-    // This is just a list of pseudo-random numbers that is used to generate
-    // the different user collections
-    const randomNumbers = [
-      77, 26, 85, 88, 0, 69, 5, 91, 83, 60, 67, 51, 28, 13, 6, 63, 36, 97, 52,
-      11, 99, 53, 33, 98, 44, 39, 76, 78, 66, 73, 64, 68, 23, 32, 48, 71, 90,
-      37, 8, 93, 12, 38, 43, 25, 40, 81, 65, 46, 42, 79, 21, 74, 75, 96, 56, 15,
-      30, 95, 47, 89, 55, 84, 57, 9, 58, 24, 10, 45, 86, 61, 54, 87, 17, 41, 62,
-      49, 34, 4, 92, 14, 59, 16, 18, 3, 35, 2, 72, 50, 22, 1, 80, 7, 29, 82, 31,
-      94, 19, 27, 70, 20, 77, 26, 85, 88, 0, 69, 5, 91, 83, 60, 67, 51, 28, 13,
-      6, 63, 36, 97, 52, 11, 99, 53, 33, 98, 44, 39, 76, 78, 66, 73, 64, 68, 23,
-      32, 48, 71, 90, 37, 8, 93, 12, 38, 43, 25, 40, 81, 65, 46, 42, 79, 21, 74,
-      75, 96, 56, 15, 30, 95, 47, 89, 55, 84, 57, 9, 58, 24, 10, 45, 86, 61, 54,
-      87, 17, 41, 62, 49, 34, 4, 92, 14, 59, 16, 18, 3, 35, 2, 72, 50, 22, 1,
-      80, 7, 29, 82, 31, 94, 19, 27, 70, 20,
-    ].map((n) => n / 100)
-
-    const values = randomNumbers.map((number, index) =>
-      FHIRObservation.createBloodPressure({
-        id: index.toString(),
-        date: advanceDateByDays(date, -index - 2),
-        systolic: 80 + number * 70,
-        diastolic: 50 + number * 40,
-      }),
-    )
-
-    await this.replaceCollection(
-      (collections) =>
-        collections.userObservations(
-          userId,
-          UserObservationCollection.bloodPressure,
-        ),
-      values,
-    )
-  }
-
-  async seedUserBodyWeightObservations(userId: string, date: Date) {
-    // This is just a list of pseudo-random numbers that is used to generate
-    // the different user collections
-    const randomNumbers = [
-      88, 42, 11, 71, 4, 0, 86, 15, 41, 1, 98, 85, 90, 47, 84, 3, 61, 6, 77, 76,
-      79, 63, 46, 53, 55, 78, 14, 34, 60, 92, 52, 43, 74, 87, 40, 10, 8, 69, 24,
-      37, 97, 57, 83, 49, 22, 95, 17, 18, 44, 5, 80, 50, 29, 58, 39, 2, 70, 16,
-      64, 56, 59, 19, 33, 99, 13, 23, 81, 27, 38, 65, 26, 45, 7, 72, 30, 28, 12,
-      73, 31, 89, 25, 36, 96, 91, 35, 48, 21, 62, 51, 9, 68, 82, 93, 94, 54, 32,
-      66, 20, 75, 67, 88, 42, 11, 71, 4, 0, 86, 15, 41, 1, 98, 85, 90, 47, 84,
-      3, 61, 6, 77, 76, 79, 63, 46, 53, 55, 78, 14, 34, 60, 92, 52, 43, 74, 87,
-      40, 10, 8, 69, 24, 37, 97, 57, 83, 49, 22, 95, 17, 18, 44, 5, 80, 50, 29,
-      58, 39, 2, 70, 16, 64, 56, 59, 19, 33, 99, 13, 23, 81, 27, 38, 65, 26, 45,
-      7, 72, 30, 28, 12, 73, 31, 89, 25, 36, 96, 91, 35, 48, 21, 62, 51, 9, 68,
-      82, 93, 94, 54, 32, 66, 20, 75, 67,
-    ].map((n) => n / 100)
-
-    const values = [
-      FHIRObservation.createSimple({
-        id: '0',
-        date: advanceDateByDays(date, -2),
-        value: 70,
-        unit: QuantityUnit.kg,
-        code: LoincCode.bodyWeight,
-      }),
-      ...randomNumbers.map((number, index) =>
-        FHIRObservation.createSimple({
-          id: (index + 1).toString(),
-          date: advanceDateByDays(date, -index - 3),
-          value: 150 + number * 20,
-          unit: QuantityUnit.lbs,
-          code: LoincCode.bodyWeight,
-        }),
-      ),
-    ]
-    await this.replaceCollection(
-      (collections) =>
-        collections.userObservations(
-          userId,
-          UserObservationCollection.bodyWeight,
-        ),
-      values,
-    )
-  }
-
-  async seedUserCreatinineObservations(userId: string, date: Date) {
-    const values = [
-      FHIRObservation.createSimple({
-        id: '0',
-        date: advanceDateByDays(date, -2),
-        value: 1.2,
-        unit: QuantityUnit.mg_dL,
-        code: LoincCode.creatinine,
-      }),
-    ]
-
-    await this.replaceCollection(
-      (collections) =>
-        collections.userObservations(
-          userId,
-          UserObservationCollection.creatinine,
-        ),
-      values,
-    )
-  }
-
-  async seedUserDryWeightObservations(userId: string, date: Date) {
-    const values = [
-      FHIRObservation.createSimple({
-        id: '0',
-        date: advanceDateByDays(date, -2),
-        value: 71.5,
-        unit: QuantityUnit.kg,
-        code: LoincCode.bodyWeight,
-      }),
-    ]
-
-    await this.replaceCollection(
-      (collections) =>
-        collections.userObservations(
-          userId,
-          UserObservationCollection.dryWeight,
-        ),
-      values,
-    )
-  }
-
-  async seedUserEgfrObservations(userId: string, date: Date) {
-    const values = [
-      FHIRObservation.createSimple({
-        id: '0',
-        date: advanceDateByDays(date, -2),
-        value: 60,
-        unit: QuantityUnit.mL_min_173m2,
-        code: LoincCode.estimatedGlomerularFiltrationRate,
-      }),
-    ]
-
-    await this.replaceCollection(
-      (collections) =>
-        collections.userObservations(userId, UserObservationCollection.eGfr),
-      values,
-    )
-  }
-
   async seedUserHeartRateObservations(userId: string, date: Date) {
     // This is just a list of pseudo-random numbers that is used to generate
     // the different user collections
@@ -364,27 +206,6 @@ export class DebugDataService extends SeedingService {
         collections.userObservations(
           userId,
           UserObservationCollection.heartRate,
-        ),
-      values,
-    )
-  }
-
-  async seedUserPotassiumObservations(userId: string, date: Date) {
-    const values = [
-      FHIRObservation.createSimple({
-        id: '0',
-        date: advanceDateByDays(date, -2),
-        value: 4.2,
-        unit: QuantityUnit.mEq_L,
-        code: LoincCode.potassium,
-      }),
-    ]
-
-    await this.replaceCollection(
-      (collections) =>
-        collections.userObservations(
-          userId,
-          UserObservationCollection.potassium,
         ),
       values,
     )

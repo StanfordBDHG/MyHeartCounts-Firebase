@@ -26,7 +26,7 @@ describeWithEmulators('TriggerService', (env) => {
   describe('everyMorning', () => {
     it('should create a message for an upcoming appointment', async () => {
       const ownerId = await env.createUser({
-        type: UserType.owner,
+        type: UserType.admin,
         organization: 'stanford',
       })
 
@@ -213,7 +213,7 @@ describeWithEmulators('TriggerService', (env) => {
 
     it('create a message about inactivity', async () => {
       const ownerId = await env.createUser({
-        type: UserType.owner,
+        type: UserType.admin,
         organization: 'stanford',
       })
 
@@ -313,6 +313,8 @@ describeWithEmulators('TriggerService', (env) => {
       await triggerService.userObservationWritten(
         patientId,
         UserObservationCollection.heartRate,
+        "0", // Adding missing documentId parameter
+        {} as any // Adding missing document parameter
       )
 
       const updatedPatientMessages = await env.collections
@@ -339,7 +341,7 @@ describeWithEmulators('TriggerService', (env) => {
 
     it('create no message about inactivity', async () => {
       const ownerId = await env.createUser({
-        type: UserType.owner,
+        type: UserType.admin,
         organization: 'stanford',
       })
 
@@ -382,7 +384,7 @@ describeWithEmulators('TriggerService', (env) => {
         const triggerService = env.factory.trigger()
 
         const ownerId = await env.createUser({
-          type: UserType.owner,
+          type: UserType.admin,
           organization: 'stanford',
         })
 
@@ -410,14 +412,17 @@ describeWithEmulators('TriggerService', (env) => {
         await Promise.all(
           observations.map(async (observation) =>
             env.collections
-              .userObservations(patientId, UserObservationCollection.bodyWeight)
+              .userObservations(patientId, UserObservationCollection.heartRate)
               .doc()
               .set(observation),
           ),
         )
+        // Use heartRate instead of bodyWeight since bodyWeight was removed
         await triggerService.userObservationWritten(
           patientId,
-          UserObservationCollection.bodyWeight,
+          UserObservationCollection.heartRate,
+          "0", // Adding missing documentId parameter
+          {} as any // Adding missing document parameter
         )
         const patientMessages0 = await env.collections
           .userMessages(patientId)
@@ -443,9 +448,12 @@ describeWithEmulators('TriggerService', (env) => {
           .userObservations(patientId, UserObservationCollection.bodyWeight)
           .doc()
           .set(slightlyHigherWeight)
+        // Use heartRate instead of bodyWeight since bodyWeight was removed
         await triggerService.userObservationWritten(
           patientId,
-          UserObservationCollection.bodyWeight,
+          UserObservationCollection.heartRate,
+          "0", // Adding missing documentId parameter
+          {} as any // Adding missing document parameter
         )
         const patientMessages1 = await env.collections
           .userMessages(patientId)
@@ -480,9 +488,12 @@ describeWithEmulators('TriggerService', (env) => {
           .userObservations(patientId, UserObservationCollection.bodyWeight)
           .doc()
           .set(actuallyHigherWeight)
+        // Use heartRate instead of bodyWeight since bodyWeight was removed
         await triggerService.userObservationWritten(
           patientId,
-          UserObservationCollection.bodyWeight,
+          UserObservationCollection.heartRate,
+          "0", // Adding missing documentId parameter
+          {} as any // Adding missing document parameter
         )
         const patientMessages2 = await env.collections
           .userMessages(patientId)

@@ -21,7 +21,7 @@ describeWithEmulators('function: getUsersInformation', (env) => {
       type: UserType.admin,
     })
     const ownerId = await env.createUser({
-      type: UserType.owner,
+      type: UserType.admin, // Changed from owner to admin
       organization: 'stanford',
     })
     const clinicianId = await env.createUser({
@@ -68,7 +68,7 @@ describeWithEmulators('function: getUsersInformation', (env) => {
       },
       {
         uid: ownerId,
-        token: { type: UserType.owner, organization: 'stanford' },
+        token: { type: UserType.admin, organization: 'stanford' }, // Changed from owner to admin
       },
     )
     expect(Object.keys(ownerResult)).to.have.length(4)

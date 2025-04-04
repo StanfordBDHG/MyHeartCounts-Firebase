@@ -31,13 +31,7 @@ import { SchemaConverter } from '../helpers/schemaConverter.js'
 import { type Observation } from '../types/observation.js'
 
 export enum UserObservationCollection {
-  bodyWeight = 'bodyWeightObservations',
-  bloodPressure = 'bloodPressureObservations',
-  creatinine = 'creatinineObservations',
-  dryWeight = 'dryWeightObservations',
-  eGfr = 'eGfrObservations',
   heartRate = 'heartRateObservations',
-  potassium = 'potassiumObservations',
 
   // HealthKit mobility metrics
   flightsClimbed = 'flightsClimbedObservations',
@@ -267,68 +261,6 @@ export class FHIRObservation extends FHIRResource {
     [LoincCode.workout, 'Workout'],
   ])
 
-  static createBloodPressure(input: {
-    id: string
-    date: Date
-    systolic: number
-    diastolic: number
-  }): FHIRObservation {
-    return new FHIRObservation({
-      id: input.id,
-      status: FHIRObservationStatus.final,
-      code: {
-        text: this.loincDisplay.get(LoincCode.bloodPressure),
-        coding: [
-          {
-            system: CodingSystem.loinc,
-            code: LoincCode.bloodPressure,
-            display: this.loincDisplay.get(LoincCode.bloodPressure),
-          },
-        ],
-      },
-      component: [
-        {
-          code: {
-            text: this.loincDisplay.get(LoincCode.systolicBloodPressure),
-            coding: [
-              {
-                system: CodingSystem.loinc,
-                code: LoincCode.systolicBloodPressure,
-                display: this.loincDisplay.get(LoincCode.systolicBloodPressure),
-              },
-            ],
-          },
-          valueQuantity: {
-            value: input.systolic,
-            unit: QuantityUnit.mmHg.unit,
-            system: QuantityUnit.mmHg.system,
-            code: QuantityUnit.mmHg.code,
-          },
-        },
-        {
-          code: {
-            text: this.loincDisplay.get(LoincCode.diastolicBloodPressure),
-            coding: [
-              {
-                system: CodingSystem.loinc,
-                code: LoincCode.diastolicBloodPressure,
-                display: this.loincDisplay.get(
-                  LoincCode.diastolicBloodPressure,
-                ),
-              },
-            ],
-          },
-          valueQuantity: {
-            value: input.diastolic,
-            unit: QuantityUnit.mmHg.unit,
-            system: QuantityUnit.mmHg.system,
-            code: QuantityUnit.mmHg.code,
-          },
-        },
-      ],
-      effectiveDateTime: input.date,
-    })
-  }
 
   static createSimple(input: {
     id: string

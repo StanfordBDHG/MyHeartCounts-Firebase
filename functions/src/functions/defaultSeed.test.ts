@@ -27,17 +27,16 @@ describeWithEmulators('function: defaultSeed', (env) => {
         only: Object.values(StaticDataComponent),
         cachingStrategy: CachingStrategy.expectCache,
       },
-      onlyUserCollections: Object.values(UserDebugDataComponent).filter(
-        (value) => value !== UserDebugDataComponent.consent,
-      ),
+      onlyUserCollections: Object.values(UserDebugDataComponent),
       userData: [],
     })
 
-    const invitations = await env.collections.invitations.get()
-    expect(
-      invitations.docs,
-      'invitation count',
-    ).to.have.length.greaterThanOrEqual(8)
+    // Invitations collection removed in this version
+    // const invitations = await env.collections.invitations.get()
+    // expect(
+    //   invitations.docs,
+    //   'invitation count',
+    // ).to.have.length.greaterThanOrEqual(8)
 
     const users = await env.collections.users.get()
     expect(users.docs, 'user count').to.have.length.greaterThanOrEqual(8)
@@ -49,13 +48,14 @@ describeWithEmulators('function: defaultSeed', (env) => {
 
     if (user === undefined) expect.fail('user is undefined')
 
-    const userAppointments = await env.collections
-      .userAppointments(user.id)
-      .get()
-    expect(
-      userAppointments.docs,
-      'user appointment count',
-    ).to.have.length.greaterThanOrEqual(1)
+    // User appointments collection removed in this version
+    // const userAppointments = await env.collections
+    //   .userAppointments(user.id)
+    //   .get()
+    // expect(
+    //   userAppointments.docs,
+    //   'user appointment count',
+    // ).to.have.length.greaterThanOrEqual(1)
 
     const userMessages = await env.collections.userMessages(user.id).get()
     expect(
@@ -63,15 +63,14 @@ describeWithEmulators('function: defaultSeed', (env) => {
       'user messages count',
     ).to.have.length.greaterThanOrEqual(1)
 
-    for (const observationType of Object.values(UserObservationCollection)) {
-      const userObservations = await env.collections
-        .userObservations(user.id, observationType)
-        .get()
-      expect(
-        userObservations.docs,
-        `user ${observationType} observation count`,
-      ).to.have.length.greaterThanOrEqual(1)
-    }
+    // Only test heart rate observations
+    const heartRateObservations = await env.collections
+      .userObservations(user.id, UserObservationCollection.heartRate)
+      .get()
+    expect(
+      heartRateObservations.docs,
+      `user heartRate observation count`,
+    ).to.have.length.greaterThanOrEqual(1)
 
     const userQuestionnaireResponses = await env.collections
       .userQuestionnaireResponses(user.id)

@@ -36,34 +36,12 @@ export interface PatientService {
   ): Promise<Array<Document<FHIRAllergyIntolerance>>>
 
   // Observations
-
-  getBloodPressureObservations(
-    userId: string,
-    cutoffDate: Date,
-  ): Promise<[Observation[], Observation[]]>
-  getBodyWeightObservations(
-    userId: string,
-    unit: QuantityUnit,
-    cutoffDate: Date,
-  ): Promise<Observation[]>
+  
+  // Only heart rate observations are implemented
   getHeartRateObservations(
     userId: string,
     cutoffDate: Date,
   ): Promise<Observation[]>
-
-  getMostRecentCreatinineObservation(
-    userId: string,
-  ): Promise<Observation | undefined>
-  getMostRecentDryWeightObservation(
-    userId: string,
-    unit: QuantityUnit,
-  ): Promise<Observation | undefined>
-  getMostRecentEstimatedGlomerularFiltrationRateObservation(
-    userId: string,
-  ): Promise<Observation | undefined>
-  getMostRecentPotassiumObservation(
-    userId: string,
-  ): Promise<Observation | undefined>
 
   // Questionnaire Responses
 
