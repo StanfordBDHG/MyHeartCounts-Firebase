@@ -28,7 +28,6 @@ export enum UserDebugDataComponent {
   potassiumObservations = 'potassiumObservations',
   questionnaireResponses = 'questionnaireResponses',
   symptomScores = 'symptomScores',
-  stepCountObservations = 'stepCountObservations',
 }
 
 export const defaultSeedInputSchema = z.object({
@@ -38,11 +37,8 @@ export const defaultSeedInputSchema = z.object({
     Object.values(DebugDataComponent),
   ),
   onlyUserCollections: optionalishDefault(
-    z.union([
-      z.nativeEnum(UserDebugDataComponent),
-      z.literal('healthKitObservations') // Add custom value for HealthKit
-    ]).array(),
-    [...Object.values(UserDebugDataComponent), 'healthKitObservations'],
+    z.nativeEnum(UserDebugDataComponent).array(),
+    Object.values(UserDebugDataComponent),
   ),
   staticData: optionalish(updateStaticDataInputSchema),
   userData: optionalishDefault(
@@ -50,11 +46,8 @@ export const defaultSeedInputSchema = z.object({
       .object({
         userId: z.string(),
         only: optionalishDefault(
-          z.union([
-            z.nativeEnum(UserDebugDataComponent),
-            z.literal('healthKitObservations') // Add custom value for HealthKit
-          ]).array(),
-          [...Object.values(UserDebugDataComponent), 'healthKitObservations'],
+          z.nativeEnum(UserDebugDataComponent).array(),
+          Object.values(UserDebugDataComponent),
         ),
       })
       .array(),
