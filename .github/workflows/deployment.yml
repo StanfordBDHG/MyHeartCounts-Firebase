@@ -54,7 +54,7 @@ jobs:
           else
             echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
           fi
-  injectenv:
+  vars:
     name: Inject Environment Variables In Deployment Workflow
     needs: determineenvironment
     runs-on: ubuntu-latest
