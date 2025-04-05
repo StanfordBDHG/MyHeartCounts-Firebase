@@ -261,7 +261,6 @@ export class FHIRObservation extends FHIRResource {
     [LoincCode.workout, 'Workout'],
   ])
 
-
   static createSimple(input: {
     id: string
     date: Date

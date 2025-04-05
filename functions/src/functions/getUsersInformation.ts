@@ -32,13 +32,8 @@ export const getUsersInformation = validatedOnCall(
 
         credential.check(
           UserRole.admin,
+          UserRole.clinician,
           UserRole.user(userId),
-          ...(userData?.content.organization ?
-            [
-              UserRole.owner(userData.content.organization),
-              UserRole.clinician(userData.content.organization),
-            ]
-          : []),
         )
 
         const user = await userService.getAuth(userId)

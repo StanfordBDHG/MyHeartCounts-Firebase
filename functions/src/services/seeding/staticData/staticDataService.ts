@@ -28,7 +28,7 @@ export class StaticDataService extends SeedingService {
     super({ useIndicesAsKeys: true, path: './data/' })
     this.databaseService = databaseService
   }
-  
+
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   async updateOrganizations(strategy: CachingStrategy) {
     // No-op implementation for compatibility

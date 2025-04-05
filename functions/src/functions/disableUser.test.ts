@@ -15,12 +15,10 @@ describeWithEmulators('function: disableUser', (env) => {
   it('disables an enabled user', async () => {
     const clinicianId = await env.createUser({
       type: UserType.clinician,
-      organization: 'stanford',
     })
 
     const userId = await env.createUser({
       type: UserType.patient,
-      organization: 'stanford',
       clinician: clinicianId,
     })
 
@@ -38,7 +36,6 @@ describeWithEmulators('function: disableUser', (env) => {
         uid: clinicianId,
         token: {
           type: UserType.clinician,
-          organization: 'stanford',
           disabled: false,
         },
       },
@@ -53,12 +50,10 @@ describeWithEmulators('function: disableUser', (env) => {
   it('keeps disabled users disabled', async () => {
     const clinicianId = await env.createUser({
       type: UserType.clinician,
-      organization: 'stanford',
     })
 
     const userId = await env.createUser({
       type: UserType.patient,
-      organization: 'stanford',
       clinician: clinicianId,
       disabled: true,
     })
@@ -77,7 +72,6 @@ describeWithEmulators('function: disableUser', (env) => {
         uid: clinicianId,
         token: {
           type: UserType.clinician,
-          organization: 'stanford',
           disabled: false,
         },
       },

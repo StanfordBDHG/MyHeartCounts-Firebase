@@ -22,18 +22,10 @@ export const updateUserInformation = validatedOnCall(
     const credential = factory.credential(request.auth)
     const userService = factory.user()
 
-    await credential.checkAsync(
-      () => [UserRole.admin, UserRole.user(request.data.userId)],
-      async () => {
-        const user = await userService.getUser(credential.userId)
-        if (user?.content.organization === undefined) {
-          throw credential.permissionDeniedError()
-        }
-        return [
-          UserRole.owner(user.content.organization),
-          UserRole.clinician(user.content.organization),
-        ]
-      },
+    credential.check(
+      UserRole.admin,
+      UserRole.clinician,
+      UserRole.user(request.data.userId),
     )
 
     await userService.updateAuth(request.data.userId, request.data.data.auth)

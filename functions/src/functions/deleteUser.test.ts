@@ -20,7 +20,6 @@ describeWithEmulators('function: deleteUser', (env) => {
   it('should not allow deleting user without claims', async () => {
     const userId = await env.createUser({
       type: UserType.patient,
-      organization: 'stanford',
     })
 
     await expectError(
@@ -39,7 +38,6 @@ describeWithEmulators('function: deleteUser', (env) => {
   it('should not allow deleting user with claims of other organization', async () => {
     const userId = await env.createUser({
       type: UserType.patient,
-      organization: 'stanford',
     })
 
     await expectError(
@@ -49,7 +47,7 @@ describeWithEmulators('function: deleteUser', (env) => {
           { userId: userId },
           {
             uid: 'user',
-            token: { type: UserType.owner, organization: 'other' },
+            token: { type: UserType.admin },
           },
         ),
       (error) =>
@@ -66,7 +64,6 @@ describeWithEmulators('function: deleteUser', (env) => {
   it('should delete a user', async () => {
     const userId = await env.createUser({
       type: UserType.patient,
-      organization: 'stanford',
     })
 
     const appointment = new FHIRAppointment({

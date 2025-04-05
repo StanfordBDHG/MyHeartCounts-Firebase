@@ -23,18 +23,7 @@ export const enableUser = validatedOnCall(
     const userId = request.data.userId
     const userService = factory.user()
 
-    await credential.checkAsync(
-      () => [UserRole.admin],
-      async () => {
-        const user = await userService.getUser(credential.userId)
-        return user?.content.organization !== undefined ?
-            [
-              UserRole.owner(user.content.organization),
-              UserRole.clinician(user.content.organization),
-            ]
-          : []
-      },
-    )
+    credential.check(UserRole.admin)
 
     await userService.enableUser(userId)
   },

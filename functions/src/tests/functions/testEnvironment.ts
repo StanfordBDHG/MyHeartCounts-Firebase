@@ -128,18 +128,12 @@ export class EmulatorTestEnvironment {
     options: {
       type: UserType
       disabled?: boolean
-      organization?: string
       clinician?: string
       dateOfEnrollment?: Date
       lastActiveDate?: Date
-      invitationCode?: string
-      receivesAppointmentReminders?: boolean
       receivesInactivityReminders?: boolean
-      receivesMedicationUpdates?: boolean
       receivesQuestionnaireReminders?: boolean
       receivesRecommendationUpdates?: boolean
-      receivesVitalsReminders?: boolean
-      receivesWeightAlerts?: boolean
     } & admin.auth.CreateRequest,
   ) {
     const authUser = await this.auth.createUser(options)
@@ -147,22 +141,15 @@ export class EmulatorTestEnvironment {
       new User({
         type: options.type,
         disabled: options.disabled ?? false,
-        organization: options.organization,
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
         clinician: options.clinician,
         lastActiveDate: options.lastActiveDate ?? new Date(),
-        invitationCode: options.invitationCode ?? 'TESTCODE',
-        receivesAppointmentReminders:
-          options.receivesAppointmentReminders ?? true,
         receivesInactivityReminders:
           options.receivesInactivityReminders ?? true,
-        receivesMedicationUpdates: options.receivesMedicationUpdates ?? true,
         receivesQuestionnaireReminders:
           options.receivesQuestionnaireReminders ?? true,
         receivesRecommendationUpdates:
           options.receivesRecommendationUpdates ?? true,
-        receivesVitalsReminders: options.receivesVitalsReminders ?? true,
-        receivesWeightAlerts: options.receivesWeightAlerts ?? true,
       }),
     )
     return authUser.uid

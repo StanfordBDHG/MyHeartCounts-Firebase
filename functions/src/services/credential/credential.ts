@@ -16,7 +16,6 @@ import { type AuthData } from 'firebase-functions/v2/tasks'
 
 enum UserRoleType {
   admin = 'admin',
-  owner = 'owner',
   clinician = 'clinician',
   patient = 'patient',
   user = 'user',
@@ -54,15 +53,16 @@ export class UserRole {
   // Static Properties
 
   static readonly admin = new UserRole(UserRoleType.admin, undefined, undefined)
-  static owner(organization: string): UserRole {
-    return new UserRole(UserRoleType.owner, organization, undefined)
-  }
-  static clinician(organization: string): UserRole {
-    return new UserRole(UserRoleType.clinician, organization, undefined)
-  }
-  static patient(organization: string): UserRole {
-    return new UserRole(UserRoleType.patient, organization, undefined)
-  }
+  static readonly clinician = new UserRole(
+    UserRoleType.clinician,
+    undefined,
+    undefined,
+  )
+  static readonly patient = new UserRole(
+    UserRoleType.patient,
+    undefined,
+    undefined,
+  )
   static user(userId: string): UserRole {
     return new UserRole(UserRoleType.user, undefined, userId)
   }
@@ -133,23 +133,11 @@ export class Credential {
       case UserRoleType.admin: {
         return this.claims.type === UserType.admin
       }
-      case UserRoleType.owner: {
-        return (
-          this.claims.type === UserType.owner &&
-          this.claims.organization === role.organization
-        )
-      }
       case UserRoleType.clinician: {
-        return (
-          this.claims.type === UserType.clinician &&
-          this.claims.organization === role.organization
-        )
+        return this.claims.type === UserType.clinician
       }
       case UserRoleType.patient: {
-        return (
-          this.claims.type === UserType.patient &&
-          this.claims.organization === role.organization
-        )
+        return this.claims.type === UserType.patient
       }
       case UserRoleType.user: {
         return this.userId === role.userId

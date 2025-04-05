@@ -14,34 +14,18 @@ import { describe } from 'mocha'
 import { Credential, UserRole } from './credential.js'
 
 describe('Credential', () => {
-  function createAuthData(
-    userId: string,
-    type: UserType,
-    organization?: string,
-  ): AuthData {
+  function createAuthData(userId: string, type: UserType): AuthData {
     return {
       uid: userId,
       token: {
         type: type,
-        organization: organization,
       } as unknown as DecodedIdToken,
     } as AuthData
   }
 
-  const organizationId = 'mockOrganization'
-  const otherOrganizationId = 'otherOrganization'
   const adminAuth = createAuthData('mockAdmin', UserType.admin)
-  const ownerAuth = createAuthData('mockOwner', UserType.owner, organizationId)
-  const clinicianAuth = createAuthData(
-    'mockClinician',
-    UserType.clinician,
-    organizationId,
-  )
-  const patientAuth = createAuthData(
-    'mockPatient',
-    UserType.patient,
-    organizationId,
-  )
+  const clinicianAuth = createAuthData('mockClinician', UserType.clinician)
+  const patientAuth = createAuthData('mockPatient', UserType.patient)
 
   it('correctly understands whether a user is an admin', async () => {
     const credential = new Credential(adminAuth)
@@ -49,81 +33,16 @@ describe('Credential', () => {
     await expectToNotThrow(() => credential.check(UserRole.admin))
 
     await expectToThrow(
-      () => credential.check(UserRole.owner(organizationId)),
+      () => credential.check(UserRole.clinician),
       credential.permissionDeniedError(),
     )
 
     await expectToThrow(
-      () => credential.check(UserRole.owner(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(organizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(organizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(otherOrganizationId)),
+      () => credential.check(UserRole.patient),
       credential.permissionDeniedError(),
     )
 
     await expectToNotThrow(() => credential.check(UserRole.user(adminAuth.uid)))
-
-    await expectToThrow(
-      () => credential.check(UserRole.user(patientAuth.uid)),
-      credential.permissionDeniedError(),
-    )
-  })
-
-  it('correctly understands whether a user is an owner', async () => {
-    const credential = new Credential(ownerAuth)
-
-    await expectToThrow(
-      () => credential.check(UserRole.admin),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToNotThrow(() =>
-      credential.check(UserRole.owner(organizationId)),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.owner(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(organizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(organizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToNotThrow(() => credential.check(UserRole.user(ownerAuth.uid)))
 
     await expectToThrow(
       () => credential.check(UserRole.user(patientAuth.uid)),
@@ -139,29 +58,10 @@ describe('Credential', () => {
       credential.permissionDeniedError(),
     )
 
-    await expectToThrow(() => credential.check(UserRole.owner(organizationId)))
+    await expectToNotThrow(() => credential.check(UserRole.clinician))
 
     await expectToThrow(
-      () => credential.check(UserRole.owner(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToNotThrow(() =>
-      credential.check(UserRole.clinician(organizationId)),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(organizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(otherOrganizationId)),
+      () => credential.check(UserRole.patient),
       credential.permissionDeniedError(),
     )
 
@@ -183,38 +83,19 @@ describe('Credential', () => {
       credential.permissionDeniedError(),
     )
 
-    await expectToThrow(() => credential.check(UserRole.owner(organizationId)))
-
     await expectToThrow(
-      () => credential.check(UserRole.owner(otherOrganizationId)),
+      () => credential.check(UserRole.clinician),
       credential.permissionDeniedError(),
     )
 
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(organizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToNotThrow(() =>
-      credential.check(UserRole.patient(organizationId)),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient(otherOrganizationId)),
-      credential.permissionDeniedError(),
-    )
+    await expectToNotThrow(() => credential.check(UserRole.patient))
 
     await expectToNotThrow(() =>
       credential.check(UserRole.user(patientAuth.uid)),
     )
 
     await expectToThrow(
-      () => credential.check(UserRole.user(ownerAuth.uid)),
+      () => credential.check(UserRole.user(adminAuth.uid)),
       credential.permissionDeniedError(),
     )
   })

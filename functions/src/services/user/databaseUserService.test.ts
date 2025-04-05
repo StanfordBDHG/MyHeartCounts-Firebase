@@ -7,7 +7,7 @@
 //
 
 import { UserType } from '@stanfordbdhg/engagehf-models'
-import { assert, expect } from 'chai'
+import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { describe } from 'mocha'
 import { type UserService } from './userService.js'
@@ -31,138 +31,21 @@ describe('DatabaseUserService', () => {
     cleanupMocks()
   })
 
-  describe('enrollUser', () => {
-    it('enrolls an admin', async () => {
-      const userId = 'mockAdminUserId'
-      const invitationCode = 'mockAdmin'
-      const displayName = 'Mock Admin'
-
-      mockFirestore.replaceAll({
-        invitations: {
-          invitationId: {
-            code: invitationCode,
-            userId,
-            user: {
-              type: UserType.admin,
-            },
-            auth: {
-              displayName: displayName,
-            },
-          },
-        },
-      })
-
-      const invitation = await userService.getInvitationByCode(invitationCode)
-      if (!invitation) assert.fail('Invitation not found')
-      await userService.enrollUser(invitation, userId, {
-        isSingleSignOn: false,
-      })
-
-      const auth = await admin.auth().getUser(userId)
-      expect(auth.displayName).to.equal(displayName)
-
-      const userSnapshot = await collectionsService.users.doc(userId).get()
-      expect(userSnapshot.exists).to.be.true
-      const userData = userSnapshot.data()
-      expect(userData).to.exist
-      expect(userData?.invitationCode).to.equal(invitationCode)
-      expect(userData?.dateOfEnrollment).to.exist
-      expect(userData?.claims).to.deep.equal({
-        type: UserType.admin,
-        disabled: false,
-      })
-    })
-
-    it('enrolls a clinician', async () => {
-      const userId = 'mockClinicianUserId'
-      const invitationCode = 'mockClinician'
-      const displayName = 'Mock Clinician'
-
-      mockFirestore.replaceAll({
-        invitations: {
-          invitationId: {
-            code: invitationCode,
-            userId,
-            user: {
-              type: UserType.clinician,
-              organization: 'mockOrganization',
-            },
-            auth: {
-              displayName: displayName,
-            },
-          },
-        },
-        organizations: {
-          mockOrganization: {},
-        },
-      })
-
-      const invitation = await userService.getInvitationByCode(invitationCode)
-      if (!invitation) assert.fail('Invitation not found')
-      await userService.enrollUser(invitation, userId, {
-        isSingleSignOn: false,
-      })
-
-      const auth = await admin.auth().getUser(userId)
-      expect(auth.displayName).to.equal(displayName)
-
-      const userSnapshot = await collectionsService.users.doc(userId).get()
-      expect(userSnapshot.exists).to.be.true
-      const userData = userSnapshot.data()
-      expect(userData).to.exist
-      expect(userData?.invitationCode).to.equal(invitationCode)
-      expect(userData?.dateOfEnrollment).to.exist
-      expect(userData?.claims).to.deep.equal({
-        type: UserType.clinician,
-        organization: 'mockOrganization',
-        disabled: false,
-      })
-    })
-
-    it('enrolls a patient', async () => {
+  describe('enrollUserDirectly', () => {
+    it('enrolls a patient directly', async () => {
       const userId = 'mockPatientUserId'
-      const invitationCode = 'mockPatient'
-      const displayName = 'Mock Patient'
 
-      mockFirestore.replaceAll({
-        invitations: {
-          invitationId: {
-            code: invitationCode,
-            userId,
-            user: {
-              type: UserType.patient,
-              clinician: 'mockClinician',
-              dateOfBirth: new Date().toISOString(),
-              organization: 'mockOrganization',
-            },
-            auth: {
-              displayName: displayName,
-            },
-          },
-        },
-        organizations: {
-          mockOrganization: {},
-        },
-      })
-
-      const invitation = await userService.getInvitationByCode(invitationCode)
-      if (!invitation) assert.fail('Invitation not found')
-      await userService.enrollUser(invitation, userId, {
+      await userService.enrollUserDirectly(userId, {
         isSingleSignOn: false,
       })
-
-      const auth = await admin.auth().getUser(userId)
-      expect(auth.displayName).to.equal(displayName)
 
       const userSnapshot = await collectionsService.users.doc(userId).get()
       expect(userSnapshot.exists).to.be.true
       const userData = userSnapshot.data()
       expect(userData).to.exist
-      expect(userData?.invitationCode).to.equal(invitationCode)
       expect(userData?.dateOfEnrollment).to.exist
       expect(userData?.claims).to.deep.equal({
         type: UserType.patient,
-        organization: 'mockOrganization',
         disabled: false,
       })
     })

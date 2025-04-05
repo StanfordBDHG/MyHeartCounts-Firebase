@@ -67,10 +67,11 @@ describe('DebugDataService', () => {
       service.seedUserMessages('0', date),
     )
   })
-  
+
   it('recreates the same questionnaire responses', async () => {
-    await generatesSameCollectionAsBefore('users/0/questionnaireResponses', () =>
-      service.seedUserQuestionnaireResponses('0', date),
+    await generatesSameCollectionAsBefore(
+      'users/0/questionnaireResponses',
+      () => service.seedUserQuestionnaireResponses('0', date),
     )
   })
 })

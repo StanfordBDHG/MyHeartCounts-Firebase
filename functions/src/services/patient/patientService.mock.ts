@@ -74,7 +74,10 @@ export class MockPatientService implements PatientService {
 
   // Methods - Observations
 
-  async getHeartRateObservations(userId: string, cutoffDate: Date): Promise<Observation[]> {
+  async getHeartRateObservations(
+    userId: string,
+    cutoffDate: Date,
+  ): Promise<Observation[]> {
     return [
       this.heartRateObservation(79, new Date(2024, 1, 30, 12, 30)),
       this.heartRateObservation(62, new Date(2024, 1, 29, 12, 30)),
@@ -85,7 +88,7 @@ export class MockPatientService implements PatientService {
       this.heartRateObservation(67, new Date(2024, 1, 24, 12, 30)),
       this.heartRateObservation(80, new Date(2024, 1, 23, 12, 30)),
       this.heartRateObservation(65, new Date(2024, 1, 22, 12, 30)),
-    ].filter(obs => obs.date > cutoffDate)
+    ].filter((obs) => obs.date > cutoffDate)
   }
 
   private heartRateObservation(value: number, date: Date): Observation {

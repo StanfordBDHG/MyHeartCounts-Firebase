@@ -22,18 +22,7 @@ export const deleteUser = validatedOnCall(
     const credential = factory.credential(request.auth)
     const userService = factory.user()
 
-    await credential.checkAsync(
-      () => [UserRole.admin],
-      async () => {
-        const user = await userService.getUser(credential.userId)
-        return user?.content.organization !== undefined ?
-            [
-              UserRole.owner(user.content.organization),
-              UserRole.clinician(user.content.organization),
-            ]
-          : []
-      },
-    )
+    credential.check(UserRole.admin)
 
     await userService.deleteUser(request.data.userId)
   },

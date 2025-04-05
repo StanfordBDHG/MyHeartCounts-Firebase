@@ -51,7 +51,7 @@ async function _seedPatientCollections(input: {
   date: Date
 }): Promise<void> {
   const promises: Array<Promise<void>> = []
-  
+
   if (input.components.includes(UserDebugDataComponent.heartRateObservations)) {
     promises.push(
       input.debugData.seedUserHeartRateObservations(input.userId, input.date),
@@ -67,7 +67,7 @@ async function _seedPatientCollections(input: {
       input.debugData.seedUserQuestionnaireResponses(input.userId, input.date),
     )
   }
-  
+
   await Promise.all(promises)
 }
 

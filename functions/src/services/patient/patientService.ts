@@ -36,7 +36,7 @@ export interface PatientService {
   ): Promise<Array<Document<FHIRAllergyIntolerance>>>
 
   // Observations
-  
+
   // Only heart rate observations are implemented
   getHeartRateObservations(
     userId: string,

@@ -47,13 +47,13 @@ export interface TriggerService {
     documentId: string,
     document: Document<any>,
   ): Promise<void>
-  
+
   // Added for compatibility
   questionnaireResponseWritten(
-    userId: string, 
+    userId: string,
     questionnaireResponseId: string,
     before?: Document<FHIRQuestionnaireResponse>,
-    after?: Document<FHIRQuestionnaireResponse>
+    after?: Document<FHIRQuestionnaireResponse>,
   ): Promise<void>
 
   // Legacy methods (for backward compatibility)
@@ -225,13 +225,13 @@ export class TriggerServiceImpl implements TriggerService {
     const patientService = this.factory.patient()
     await patientService.updateSymptomScore(userId, document.id, undefined)
   }
-  
+
   // Added for compatibility
   async questionnaireResponseWritten(
     userId: string,
     questionnaireResponseId: string,
     before?: Document<FHIRQuestionnaireResponse>,
-    after?: Document<FHIRQuestionnaireResponse>
+    after?: Document<FHIRQuestionnaireResponse>,
   ): Promise<void> {
     // Empty implementation for compatibility
     return
