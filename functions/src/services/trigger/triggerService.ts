@@ -76,11 +76,13 @@ export class TriggerServiceImpl implements TriggerService {
       }
     }
   }
-  
+
   // Helper method for sendDailyReminders
   private async sendVitalsReminder(userId: string) {
     // Functionality removed as part of refactoring
-    logger.debug(`sendVitalsReminder for user ${userId} - functionality removed`)
+    logger.debug(
+      `sendVitalsReminder for user ${userId} - functionality removed`,
+    )
   }
 
   async sendWeeklySymptomQuestionnaires() {
@@ -123,12 +125,9 @@ export class TriggerServiceImpl implements TriggerService {
 
   async userCreated(userId: string) {
     try {
-      await this.factory.message().addMessage(
-        userId,
-        UserMessage.createWelcome({
-        }),
-        { notify: true },
-      )
+      await this.factory
+        .message()
+        .addMessage(userId, UserMessage.createWelcome({}), { notify: true })
 
       await this.factory.message().addMessage(
         userId,
@@ -195,7 +194,9 @@ export class TriggerServiceImpl implements TriggerService {
   ) {
     // SymptomScore functionality removed
     // Patient service was removed as part of the refactoring
-    logger.debug(`updateSymptomScore for user ${userId} called - functionality removed`)
+    logger.debug(
+      `updateSymptomScore for user ${userId} called - functionality removed`,
+    )
   }
 
   // Added for compatibility

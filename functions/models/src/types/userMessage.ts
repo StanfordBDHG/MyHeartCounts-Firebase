@@ -8,9 +8,7 @@
 
 import { z } from 'zod'
 import { LocalizedText, localizedTextConverter } from './localizedText.js'
-import {
-  type QuestionnaireReference
-} from '../codes/references.js'
+import { type QuestionnaireReference } from '../codes/references.js'
 import { advanceDateByDays } from '../helpers/date+extras.js'
 import { dateConverter } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
@@ -287,9 +285,7 @@ export class UserMessage {
     })
   }
 
-  static createWelcome(input: {
-    creationDate?: Date
-  }): UserMessage {
+  static createWelcome(input: { creationDate?: Date }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
       title: new LocalizedText({

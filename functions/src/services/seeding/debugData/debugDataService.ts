@@ -131,7 +131,7 @@ export class DebugDataService extends SeedingService {
         creationDate: date,
       }),
       UserMessage.createWelcome({
-        creationDate: date
+        creationDate: date,
       }),
     ]
     await this.replaceCollection(

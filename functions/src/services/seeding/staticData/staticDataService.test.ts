@@ -52,5 +52,4 @@ describe('StaticDataService', () => {
       .get()
     expect(updatedQuestionnaires.size).to.be.greaterThan(0)
   })
-
 })
