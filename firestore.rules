@@ -109,10 +109,5 @@ service cloud.firestore {
         || (isUser(userId) && isPatientWritableCollectionName())
         || (isClinicianForThisPatient() && isClinicianWritableCollectionName());
     }
-
-    match /videoSections/{documents=**} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
   }
 }

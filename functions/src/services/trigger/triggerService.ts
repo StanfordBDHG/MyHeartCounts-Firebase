@@ -7,36 +7,25 @@
 //
 
 import {
-  advanceDateByDays,
   type FHIRQuestionnaireResponse,
-  QuantityUnit,
   QuestionnaireReference,
   UserMessage,
-  UserMessageType,
-  VideoReference,
-  UserObservationCollection,
   type User,
   type CachingStrategy,
   StaticDataComponent,
-  UserType,
   type Invitation,
   type UserRegistration,
-  advanceDateByHours,
 } from '@stanfordbdhg/engagehf-models'
 import { logger } from 'firebase-functions'
 import { _updateStaticData } from '../../functions/updateStaticData.js'
 import { type Document } from '../database/databaseService.js'
 import { type ServiceFactory } from '../factory/serviceFactory.js'
-import { type MessageService } from '../message/messageService.js'
-import { type PatientService } from '../patient/patientService.js'
-import { type UserService } from '../user/userService.js'
 
 export interface TriggerService {
   // Event triggers
   userEnrolled(user: Document<User>): Promise<void>
   userCreated(userId: string): Promise<void>
   userUpdated(userId: string): Promise<void>
-  updateAllSymptomScores(userId: string): Promise<void>
   updateSymptomScore(
     userId: string,
     questionnaireResponse: Document<FHIRQuestionnaireResponse>,
@@ -78,13 +67,20 @@ export class TriggerServiceImpl implements TriggerService {
     const userIds: string[] = []
     for (const userId of userIds) {
       try {
-        await this.sendVitalsReminder(userId)
+        // Vitals reminder functionality removed
+        logger.debug(`Would have sent vitals reminder to user ${userId}`)
       } catch (error) {
         logger.error(
           `TriggerService.sendDailyReminders(): User ${userId}: ${String(error)}`,
         )
       }
     }
+  }
+  
+  // Helper method for sendDailyReminders
+  private async sendVitalsReminder(userId: string) {
+    // Functionality removed as part of refactoring
+    logger.debug(`sendVitalsReminder for user ${userId} - functionality removed`)
   }
 
   async sendWeeklySymptomQuestionnaires() {
@@ -130,7 +126,6 @@ export class TriggerServiceImpl implements TriggerService {
       await this.factory.message().addMessage(
         userId,
         UserMessage.createWelcome({
-          videoReference: VideoReference.welcome,
         }),
         { notify: true },
       )
@@ -185,29 +180,6 @@ export class TriggerServiceImpl implements TriggerService {
 
   // Methods - Actions
 
-  async updateAllSymptomScores(userId: string) {
-    const patientService = this.factory.patient()
-
-    // Get all questionnaire responses
-    const questionnaireResponses =
-      await patientService.getQuestionnaireResponses(userId)
-
-    // Update symptom score for each response
-    for (const questionnaireResponse of questionnaireResponses) {
-      if (
-        questionnaireResponse.content.resourceType === 'QuestionnaireResponse'
-      ) {
-        try {
-          await this.updateSymptomScore(userId, questionnaireResponse)
-        } catch (error) {
-          logger.error(
-            `TriggerService.updateAllSymptomScores(${userId}): ${questionnaireResponse.id}: ${String(error)}`,
-          )
-        }
-      }
-    }
-  }
-
   async updateStaticData(cachingStrategy: CachingStrategy) {
     await _updateStaticData(this.factory, {
       cachingStrategy,
@@ -222,8 +194,8 @@ export class TriggerServiceImpl implements TriggerService {
     document: Document<FHIRQuestionnaireResponse>,
   ) {
     // SymptomScore functionality removed
-    const patientService = this.factory.patient()
-    await patientService.updateSymptomScore(userId, document.id, undefined)
+    // Patient service was removed as part of the refactoring
+    logger.debug(`updateSymptomScore for user ${userId} called - functionality removed`)
   }
 
   // Added for compatibility
@@ -255,11 +227,5 @@ export class TriggerServiceImpl implements TriggerService {
   ): Promise<boolean> {
     // Simplified implementation
     return true
-  }
-
-  private async sendVitalsReminder(userId: string) {
-    await this.factory
-      .message()
-      .addMessage(userId, UserMessage.createVitals({}), { notify: true })
   }
 }

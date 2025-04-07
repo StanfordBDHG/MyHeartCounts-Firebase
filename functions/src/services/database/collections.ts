@@ -7,17 +7,12 @@
 //
 
 import {
-  fhirAllergyIntoleranceConverter,
-  fhirAppointmentConverter,
   fhirObservationConverter,
   fhirQuestionnaireConverter,
   fhirQuestionnaireResponseConverter,
-  symptomScoreConverter,
   userConverter,
   userDeviceConverter,
   userMessageConverter,
-  videoConverter,
-  videoSectionConverter,
   type UserObservationCollection,
 } from '@stanfordbdhg/engagehf-models'
 import { type Firestore } from 'firebase-admin/firestore'
@@ -37,12 +32,6 @@ export class CollectionsService {
 
   // Methods
 
-  get appointments() {
-    return this.firestore
-      .collectionGroup('appointments')
-      .withConverter(new DatabaseConverter(fhirAppointmentConverter.value))
-  }
-
   get devices() {
     return this.firestore
       .collectionGroup('devices')
@@ -55,8 +44,6 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(historyChangeItemConverter))
   }
 
-  // Invitation-related collections have been removed
-
   get questionnaires() {
     return this.firestore
       .collection('questionnaires')
@@ -67,24 +54,6 @@ export class CollectionsService {
     return this.firestore
       .collection('users')
       .withConverter(new DatabaseConverter(userConverter.value))
-  }
-
-  userAllergyIntolerances(userId: string) {
-    return this.firestore
-      .collection('users')
-      .doc(userId)
-      .collection('allergyIntolerances')
-      .withConverter(
-        new DatabaseConverter(fhirAllergyIntoleranceConverter.value),
-      )
-  }
-
-  userAppointments(userId: string) {
-    return this.firestore
-      .collection('users')
-      .doc(userId)
-      .collection('appointments')
-      .withConverter(new DatabaseConverter(fhirAppointmentConverter.value))
   }
 
   userDevices(userId: string) {
@@ -119,27 +88,5 @@ export class CollectionsService {
       .withConverter(
         new DatabaseConverter(fhirQuestionnaireResponseConverter.value),
       )
-  }
-
-  userSymptomScores(userId: string) {
-    return this.firestore
-      .collection('users')
-      .doc(userId)
-      .collection('symptomScores')
-      .withConverter(new DatabaseConverter(symptomScoreConverter.value))
-  }
-
-  get videoSections() {
-    return this.firestore
-      .collection('videoSections')
-      .withConverter(new DatabaseConverter(videoSectionConverter.value))
-  }
-
-  videos(videoSectionId: string) {
-    return this.firestore
-      .collection('videoSections')
-      .doc(videoSectionId)
-      .collection('videos')
-      .withConverter(new DatabaseConverter(videoConverter.value))
   }
 }

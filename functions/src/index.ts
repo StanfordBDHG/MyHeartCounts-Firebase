@@ -37,7 +37,6 @@ export {
 } from './functions/blocking.js'
 export * from './functions/customSeed.js'
 export * from './functions/defaultSeed.js'
-export * from './functions/deleteUser.js'
 export * from './functions/dismissMessage.js'
 export * from './functions/dismissMessages.js'
 export * from './functions/getUsersInformation.js'

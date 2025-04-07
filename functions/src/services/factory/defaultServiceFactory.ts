@@ -17,8 +17,6 @@ import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
-import { DatabasePatientService } from '../patient/databasePatientService.js'
-import { type PatientService } from '../patient/patientService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
 import {
@@ -72,10 +70,6 @@ export class DefaultServiceFactory implements ServiceFactory {
       ),
   )
 
-  private readonly patientService = new Lazy(
-    () => new DatabasePatientService(this.databaseService.value),
-  )
-
   private readonly staticDataService = new Lazy(
     () => new StaticDataService(this.databaseService.value),
   )
@@ -117,17 +111,7 @@ export class DefaultServiceFactory implements ServiceFactory {
   history(): HistoryService {
     return this.historyService.value
   }
-
-  // Methods - Patient
-
-  // HealthSummary method removed
-
-  patient(): PatientService {
-    return this.patientService.value
-  }
-
-  // SymptomScore method removed
-
+  
   // Methods - Trigger
 
   message(): MessageService {

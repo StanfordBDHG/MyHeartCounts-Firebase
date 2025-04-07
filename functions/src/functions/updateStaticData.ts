@@ -27,9 +27,6 @@ export async function _updateStaticData(
   if (input.only.includes(StaticDataComponent.questionnaires)) {
     promises.push(service.updateQuestionnaires(input.cachingStrategy))
   }
-  if (input.only.includes(StaticDataComponent.videoSections)) {
-    promises.push(service.updateVideoSections(input.cachingStrategy))
-  }
   await Promise.all(promises)
 }
 

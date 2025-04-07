@@ -18,21 +18,6 @@
     "creationDate": "2024-06-05T00:00:00.000Z",
     "dueDate": null,
     "completionDate": null,
-    "type": "MedicationChange",
-    "title": {
-      "en": "Medication Change"
-    },
-    "description": {
-      "en": "Your dose of Losartan Potassium was changed. You can review medication information on the Education Page."
-    },
-    "action": "videoSections/1/videos/2",
-    "isDismissible": true,
-    "reference": "medications/203160"
-  },
-  "2": {
-    "creationDate": "2024-06-05T00:00:00.000Z",
-    "dueDate": null,
-    "completionDate": null,
     "type": "MedicationUptitration",
     "title": {
       "en": "Eligible Medication Change"
@@ -44,7 +29,7 @@
     "isDismissible": true,
     "reference": null
   },
-  "3": {
+  "2": {
     "creationDate": "2024-06-05T00:00:00.000Z",
     "dueDate": null,
     "completionDate": null,
@@ -59,7 +44,7 @@
     "isDismissible": false,
     "reference": "users/0/appointments/0"
   },
-  "4": {
+  "3": {
     "creationDate": "2024-06-05T00:00:00.000Z",
     "dueDate": null,
     "completionDate": null,
@@ -74,7 +59,7 @@
     "isDismissible": false,
     "reference": null
   },
-  "5": {
+  "4": {
     "creationDate": "2024-06-05T00:00:00.000Z",
     "dueDate": "2024-06-06T00:00:00.000Z",
     "completionDate": null,
@@ -89,7 +74,7 @@
     "isDismissible": false,
     "reference": null
   },
-  "6": {
+  "5": {
     "creationDate": "2024-06-05T00:00:00.000Z",
     "dueDate": null,
     "completionDate": null,
@@ -101,21 +86,6 @@
       "en": "Your weight increased over 3 lbs. Your care team will be informed. Please follow any instructions about diuretic changes after weight increase on the Medication page."
     },
     "action": "medications",
-    "isDismissible": true,
-    "reference": null
-  },
-  "7": {
-    "creationDate": "2024-06-05T00:00:00.000Z",
-    "dueDate": null,
-    "completionDate": null,
-    "type": "Welcome",
-    "title": {
-      "en": "Welcome"
-    },
-    "description": {
-      "en": "Watch Welcome Video on the Education Page."
-    },
-    "action": "videoSections/0/videos/0",
     "isDismissible": true,
     "reference": null
   }

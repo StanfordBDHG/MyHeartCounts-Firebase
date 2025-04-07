@@ -53,15 +53,4 @@ describe('StaticDataService', () => {
     expect(updatedQuestionnaires.size).to.be.greaterThan(0)
   })
 
-  it('actually creates videoSections', async () => {
-    const videoSections = await firestore.collection('videoSections').get()
-    expect(videoSections.size).to.equal(0)
-
-    await staticDataService.updateVideoSections(CachingStrategy.expectCache)
-
-    const updatedVideoSections = await firestore
-      .collection('videoSections')
-      .get()
-    expect(updatedVideoSections.size).to.be.greaterThan(0)
-  })
 })

@@ -10,7 +10,6 @@ import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type Credential } from '../credential/credential.js'
 import { type HistoryService } from '../history/historyService.js'
 import { type MessageService } from '../message/messageService.js'
-import { type PatientService } from '../patient/patientService.js'
 import { type DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { type StaticDataService } from '../seeding/staticData/staticDataService.js'
 import { type TriggerService } from '../trigger/triggerService.js'
@@ -27,9 +26,6 @@ export interface ServiceFactory {
   debugData(): DebugDataService
   staticData(): StaticDataService
   history(): HistoryService
-
-  // Patients
-  patient(): PatientService
 
   // Trigger
 

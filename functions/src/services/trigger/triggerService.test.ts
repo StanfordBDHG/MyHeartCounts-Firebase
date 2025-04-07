@@ -7,11 +7,9 @@
 //
 
 import {
-  LocalizedText,
   UserMessage,
   UserMessageType,
   UserType,
-  VideoReference,
 } from '@stanfordbdhg/engagehf-models'
 import { expect } from 'chai'
 import { describeWithEmulators } from '../../tests/functions/testEnvironment.js'
@@ -25,7 +23,6 @@ describeWithEmulators('TriggerService', (env) => {
 
       // Create a simple welcome message
       const message = UserMessage.createWelcome({
-        videoReference: VideoReference.welcome,
         creationDate: new Date(),
       })
 

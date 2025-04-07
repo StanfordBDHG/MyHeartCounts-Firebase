@@ -10,8 +10,6 @@ import {
   advanceDateByDays,
   chunks,
   type CustomSeedingOptions,
-  FHIRAppointment,
-  FHIRAppointmentStatus,
   FHIRObservation,
   fhirQuestionnaireConverter,
   FHIRQuestionnaireResponse,
@@ -21,7 +19,6 @@ import {
   UserMessage,
   type UserSeedingOptions,
   userSeedingOptionsSchema,
-  VideoReference,
   UserObservationCollection,
 } from '@stanfordbdhg/engagehf-models'
 import { type Auth } from 'firebase-admin/auth'
@@ -134,8 +131,7 @@ export class DebugDataService extends SeedingService {
         creationDate: date,
       }),
       UserMessage.createWelcome({
-        creationDate: date,
-        videoReference: VideoReference.welcome,
+        creationDate: date
       }),
     ]
     await this.replaceCollection(

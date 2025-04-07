@@ -9,8 +9,7 @@
 import { z } from 'zod'
 import { LocalizedText, localizedTextConverter } from './localizedText.js'
 import {
-  type QuestionnaireReference,
-  type VideoReference,
+  type QuestionnaireReference
 } from '../codes/references.js'
 import { advanceDateByDays } from '../helpers/date+extras.js'
 import { dateConverter } from '../helpers/dateConverter.js'
@@ -112,7 +111,6 @@ export class UserMessage {
     creationDate?: Date
     reference: string
     medicationName: string
-    videoReference?: string
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
@@ -122,7 +120,6 @@ export class UserMessage {
       description: new LocalizedText({
         en: `Your dose of ${input.medicationName} was changed. You can review medication information on the Education Page.`,
       }),
-      action: input.videoReference,
       type: UserMessageType.medicationChange,
       isDismissible: true,
       reference: input.reference,
@@ -292,17 +289,12 @@ export class UserMessage {
 
   static createWelcome(input: {
     creationDate?: Date
-    videoReference: VideoReference
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
       title: new LocalizedText({
         en: 'Welcome',
       }),
-      description: new LocalizedText({
-        en: 'Watch Welcome Video on the Education Page.',
-      }),
-      action: input.videoReference,
       type: UserMessageType.welcome,
       isDismissible: true,
     })

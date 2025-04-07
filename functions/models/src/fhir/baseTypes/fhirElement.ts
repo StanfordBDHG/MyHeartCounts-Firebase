@@ -18,7 +18,6 @@ import { fhirQuantityConverter } from './fhirQuantity.js'
 import { type FHIRReference, fhirReferenceConverter } from './fhirReference.js'
 import { type FHIRExtensionUrl } from '../../codes/codes.js'
 import { QuantityUnit } from '../../codes/quantityUnit.js'
-import { type DrugReference } from '../../codes/references.js'
 import { optionalish } from '../../helpers/optionalish.js'
 import { SchemaConverter } from '../../helpers/schemaConverter.js'
 
@@ -228,14 +227,10 @@ export class FHIRMedicationRequest extends FHIRResource {
   // Static Functions
 
   static create(input: {
-    drugReference: DrugReference
     frequencyPerDay: number
     quantity: number
   }): FHIRMedicationRequest {
     return new FHIRMedicationRequest({
-      medicationReference: {
-        reference: input.drugReference,
-      },
       dosageInstruction: [
         {
           timing: {

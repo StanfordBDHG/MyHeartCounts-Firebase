@@ -18,7 +18,6 @@ export enum CachingStrategy {
 
 export enum StaticDataComponent {
   questionnaires = 'questionnaires',
-  videoSections = 'videoSections',
 }
 
 export const updateStaticDataInputSchema = z.object({

@@ -27,23 +27,6 @@ describeWithEmulators('function: updateStaticData', (env) => {
       cachingStrategy: CachingStrategy.expectCache,
     })
 
-    const videoSections = await env.collections.videoSections.get()
-    expect(videoSections.docs).to.have.length(4)
-    const videoSectionsJson = JSON.parse(
-      fs.readFileSync('data/videoSections.json', 'utf8'),
-    )
-    for (const videoSection of videoSections.docs) {
-      const jsonVideoSection = videoSectionsJson[videoSection.id]
-      const jsonVideos = jsonVideoSection.videos
-      delete jsonVideoSection.videos
-      expect(simplify(videoSection.data())).to.deep.equal(jsonVideoSection)
-
-      const videos = await env.collections.videos(videoSection.id).get()
-      for (const video of videos.docs) {
-        expect(simplify(video.data())).to.deep.equal(jsonVideos[video.id])
-      }
-    }
-
     const questionnaires = await env.collections.questionnaires.get()
     expect(questionnaires.docs).to.have.length(1)
     const questionnairesJson = JSON.parse(

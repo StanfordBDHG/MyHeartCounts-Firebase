@@ -8,10 +8,7 @@
 
 import {
   type CachingStrategy,
-  fhirQuestionnaireConverter,
-  localizedTextConverter,
-  Video,
-  VideoSection,
+  fhirQuestionnaireConverter
 } from '@stanfordbdhg/engagehf-models'
 import { z } from 'zod'
 import { type DatabaseService } from '../../database/databaseService.js'
@@ -50,51 +47,6 @@ export class StaticDataService extends SeedingService {
           ),
           transaction,
         )
-      },
-    )
-  }
-
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  async updateVideoSections(strategy: CachingStrategy) {
-    await this.databaseService.runTransaction(
-      async (collections, transaction) => {
-        await this.deleteCollection(collections.videoSections, transaction)
-        const videoSections = this.readJSONArray(
-          'videoSections.json',
-          z.object({
-            title: localizedTextConverter.schema,
-            description: localizedTextConverter.schema,
-            orderIndex: z.number(),
-            videos: z
-              .object({
-                title: localizedTextConverter.schema,
-                youtubeId: localizedTextConverter.schema,
-                orderIndex: z.number(),
-                description: localizedTextConverter.schema,
-              })
-              .array(),
-          }),
-        )
-
-        let videoSectionIndex = 0
-        for (const videoSection of videoSections) {
-          const videoSectionId = videoSectionIndex.toString()
-          transaction.set(
-            collections.videoSections.doc(videoSectionId),
-            new VideoSection(videoSection),
-          )
-
-          let videoIndex = 0
-          for (const video of videoSection.videos) {
-            const videoId = videoIndex.toString()
-            transaction.set(
-              collections.videos(videoSectionId).doc(videoId),
-              new Video(video),
-            )
-            videoIndex++
-          }
-          videoSectionIndex++
-        }
       },
     )
   }
