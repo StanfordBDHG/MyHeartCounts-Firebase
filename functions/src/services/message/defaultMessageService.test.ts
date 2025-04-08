@@ -39,10 +39,10 @@ describe('DefaultMessageService', () => {
         dueDate: new Date('2024-01-01'),
         type: UserMessageType.weightGain,
         title: new LocalizedText({
-          en: 'Weight increase since last week'
+          en: 'Weight increase since last week',
         }),
         description: new LocalizedText({
-          en: 'Your weight increased over 3 lbs. Your care team will be informed.'
+          en: 'Your weight increased over 3 lbs. Your care team will be informed.',
         }),
         action: 'observations',
         isDismissible: true,
@@ -64,10 +64,10 @@ describe('DefaultMessageService', () => {
         dueDate: new Date('2024-01-01'),
         type: UserMessageType.preAppointment,
         title: new LocalizedText({
-          en: 'Upcoming appointment'
+          en: 'Upcoming appointment',
         }),
         description: new LocalizedText({
-          en: 'You have an upcoming appointment!'
+          en: 'You have an upcoming appointment!',
         }),
         action: 'healthSummary',
         isDismissible: false,

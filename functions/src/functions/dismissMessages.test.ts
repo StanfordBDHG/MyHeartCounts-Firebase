@@ -40,7 +40,7 @@ describeWithEmulators('function: dismissMessages', (env) => {
       completionDate: undefined,
       isDismissible: true,
     })
-  
+
     // Save messages to the database
     const messageRef1 = env.collections.userMessages(user.uid).doc()
     const messageRef2 = env.collections.userMessages(user.uid).doc()

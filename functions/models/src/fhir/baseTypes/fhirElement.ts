@@ -14,8 +14,7 @@ import {
 import { type FHIRCoding } from './fhirCoding.js'
 import { type FHIRMeta, fhirMetaConverter } from './fhirMeta.js'
 import { fhirQuantityConverter } from './fhirQuantity.js'
-import { type FHIRReference, fhirReferenceConverter } from './fhirReference.js'
-import { QuantityUnit } from '../../codes/quantityUnit.js'
+import { fhirReferenceConverter } from './fhirReference.js'
 import { optionalish } from '../../helpers/optionalish.js'
 import { SchemaConverter } from '../../helpers/schemaConverter.js'
 
@@ -110,7 +109,6 @@ export abstract class FHIRElement {
     this.id = input.id
     this.extension = input.extension
   }
-
 }
 
 export const fhirResourceConverter = new SchemaConverter({

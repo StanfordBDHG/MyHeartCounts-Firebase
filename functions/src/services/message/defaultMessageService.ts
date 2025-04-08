@@ -403,7 +403,7 @@ export class DefaultMessageService implements MessageService {
       default:
         // Default case to ensure all code paths return a value
         logger.debug(
-          `DefaultMessageService.handleOldMessages(unknown type ${newMessage.type}): No specific handling, using default behavior`,
+          `DefaultMessageService.handleOldMessages(unknown type ${String(newMessage.type)}): No specific handling, using default behavior`,
         )
         return true
     }
