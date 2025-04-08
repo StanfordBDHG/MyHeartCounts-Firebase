@@ -6,15 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-export enum FHIRExtensionUrl {
-  brandName = 'http://engagehf.bdh.stanford.edu/fhir/StructureDefinition/Medication/extension/brandName',
-  medicationClass = 'http://engagehf.bdh.stanford.edu/fhir/StructureDefinition/Medication/extension/medicationClass',
-  minimumDailyDose = 'http://engagehf.bdh.stanford.edu/fhir/StructureDefinition/Medication/extension/minimumDailyDose',
-  targetDailyDose = 'http://engagehf.bdh.stanford.edu/fhir/StructureDefinition/Medication/extension/targetDailyDose',
-  totalDailyDose = 'http://engagehf.bdh.stanford.edu/fhir/StructureDefinition/MedicationRequest/extension/totalDailyDose',
-  providerName = 'http://engagehf.bdh.stanford.edu/fhir/StructureDefinition/Appointment/extension/providerName',
-}
-
 export enum CodingSystem {
   loinc = 'http://loinc.org',
   rxNorm = 'http://www.nlm.nih.gov/research/umls/rxnorm',

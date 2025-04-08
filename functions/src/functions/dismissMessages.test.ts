@@ -40,23 +40,13 @@ describeWithEmulators('function: dismissMessages', (env) => {
       completionDate: undefined,
       isDismissible: true,
     })
-    const message3 = new UserMessage({
-      type: UserMessageType.medicationChange,
-      title: new LocalizedText({ text: 'Test Title 3' }),
-      description: new LocalizedText({ text: 'Test Description 3' }),
-      reference: 'test-reference-3',
-      creationDate: new Date(),
-      completionDate: undefined,
-      isDismissible: true,
-    })
-
+  
     // Save messages to the database
     const messageRef1 = env.collections.userMessages(user.uid).doc()
     const messageRef2 = env.collections.userMessages(user.uid).doc()
     const messageRef3 = env.collections.userMessages(user.uid).doc()
     await messageRef1.set(message1)
     await messageRef2.set(message2)
-    await messageRef3.set(message3)
 
     // Call the dismissMessages function
     const result = await env.call(

@@ -5,7 +5,6 @@
 //
 // SPDX-License-Identifier: MIT
 //
-
 import {
   LocalizedText,
   UserMessage,
@@ -38,14 +37,20 @@ describe('DefaultMessageService', () => {
       const message = new UserMessage({
         creationDate: new Date('2024-01-01'),
         dueDate: new Date('2024-01-01'),
-        type: UserMessageType.medicationChange,
-        title: new LocalizedText('Medication Change'),
-        description: new LocalizedText('You have a new medication!'),
-        action: 'medications',
+        type: UserMessageType.weightGain,
+        title: new LocalizedText({
+          en: 'Weight increase since last week'
+        }),
+        description: new LocalizedText({
+          en: 'Your weight increased over 3 lbs. Your care team will be informed.'
+        }),
+        action: 'observations',
         isDismissible: true,
       })
+
       await collectionsService.userMessages('mockUser').doc('0').set(message)
       await messageService.dismissMessage('mockUser', '0', true)
+
       const updatedMessage = await collectionsService
         .userMessages('mockUser')
         .doc('0')
@@ -58,11 +63,16 @@ describe('DefaultMessageService', () => {
         creationDate: new Date('2024-01-01'),
         dueDate: new Date('2024-01-01'),
         type: UserMessageType.preAppointment,
-        title: new LocalizedText('Upcoming appointment'),
-        description: new LocalizedText('You have an upcoming appointment!'),
+        title: new LocalizedText({
+          en: 'Upcoming appointment'
+        }),
+        description: new LocalizedText({
+          en: 'You have an upcoming appointment!'
+        }),
         action: 'healthSummary',
         isDismissible: false,
       })
+
       await collectionsService.userMessages('mockUser').doc('0').set(message)
       try {
         await messageService.dismissMessage('mockUser', '0', true)

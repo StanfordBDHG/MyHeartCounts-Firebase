@@ -16,9 +16,7 @@ import { optionalish } from '../helpers/optionalish.js'
 import { SchemaConverter } from '../helpers/schemaConverter.js'
 
 export enum UserMessageType {
-  medicationChange = 'MedicationChange',
   weightGain = 'WeightGain',
-  medicationUptitration = 'MedicationUptitration',
   welcome = 'Welcome',
   vitals = 'Vitals',
   symptomQuestionnaire = 'SymptomQuestionnaire',
@@ -102,67 +100,6 @@ export class UserMessage {
       type: UserMessageType.inactive,
       isDismissible: true,
       reference: input.reference,
-    })
-  }
-
-  static createMedicationChange(input: {
-    creationDate?: Date
-    reference: string
-    medicationName: string
-  }): UserMessage {
-    return new UserMessage({
-      creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
-        en: 'Medication Change',
-      }),
-      description: new LocalizedText({
-        en: `Your dose of ${input.medicationName} was changed. You can review medication information on the Education Page.`,
-      }),
-      type: UserMessageType.medicationChange,
-      isDismissible: true,
-      reference: input.reference,
-    })
-  }
-
-  static createMedicationUptitration(
-    input: {
-      creationDate?: Date
-      reference?: string
-    } = {},
-  ): UserMessage {
-    return new UserMessage({
-      creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
-        en: 'Eligible Medication Change',
-      }),
-      description: new LocalizedText({
-        en: 'You may be eligible for med changes that may help your heart. Your care team will be sent this information. You can review med information on the Education Page.',
-      }),
-      reference: input.reference,
-      action: 'medications',
-      type: UserMessageType.medicationUptitration,
-      isDismissible: true,
-    })
-  }
-
-  static createMedicationUptitrationForClinician(input: {
-    creationDate?: Date
-    userId: string
-    userName?: string
-    reference: string
-  }): UserMessage {
-    return new UserMessage({
-      creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
-        en: 'Eligible Medication Change',
-      }),
-      description: new LocalizedText({
-        en: `${input.userName ?? 'Patient'} may be eligible for med changes. You can review med information on the user detail page.`,
-      }),
-      reference: input.reference,
-      action: `users/${input.userId}/medications`,
-      type: UserMessageType.medicationUptitration,
-      isDismissible: true,
     })
   }
 
@@ -256,9 +193,9 @@ export class UserMessage {
         en: 'Weight increase since last week',
       }),
       description: new LocalizedText({
-        en: 'Your weight increased over 3 lbs. Your care team will be informed. Please follow any instructions about diuretic changes after weight increase on the Medication page.',
+        en: 'Your weight increased over 3 lbs. Your care team will be informed.',
       }),
-      action: 'medications',
+      action: 'observations',
       type: UserMessageType.weightGain,
       isDismissible: true,
     })
@@ -278,7 +215,7 @@ export class UserMessage {
       description: new LocalizedText({
         en: `Weight increase over 3 lbs for ${input.userName ?? 'patient'}.`,
       }),
-      action: `users/${input.userId}/medications`,
+      action: `users/${input.userId}/observations`,
       reference: input.reference,
       type: UserMessageType.weightGain,
       isDismissible: true,

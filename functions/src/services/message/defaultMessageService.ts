@@ -394,14 +394,18 @@ export class DefaultMessageService implements MessageService {
         }
         return true
       case UserMessageType.welcome:
-      case UserMessageType.medicationUptitration:
-      case UserMessageType.medicationChange:
       case UserMessageType.preAppointment:
       case UserMessageType.inactive:
         logger.debug(
           `DefaultMessageService.handleOldMessages(${newMessage.type}): Only creating new message, if there are no old messages with the same reference (count: ${oldMessages.length})`,
         )
         return oldMessages.length === 0
+      default:
+        // Default case to ensure all code paths return a value
+        logger.debug(
+          `DefaultMessageService.handleOldMessages(unknown type ${newMessage.type}): No specific handling, using default behavior`,
+        )
+        return true
     }
   }
 
@@ -417,9 +421,7 @@ export class DefaultMessageService implements MessageService {
     if (!user) return
 
     switch (input.message.content.type) {
-      case UserMessageType.medicationChange:
       case UserMessageType.weightGain:
-      case UserMessageType.medicationUptitration:
         if (!user.receivesRecommendationUpdates) return
         break
       case UserMessageType.welcome:
