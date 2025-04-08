@@ -14,6 +14,15 @@ import {
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const beforeUserCreatedFunction = beforeUserCreated(async (event) => {
+  // Ensure event.data exists
+  if (!event.data) {
+    logger.error('User data not available in event')
+    throw new https.HttpsError(
+      'invalid-argument',
+      'User data is required.',
+    )
+  }
+
   const userId = event.data.uid
   logger.info(`${userId}: Start.`)
 
@@ -56,6 +65,12 @@ export const beforeUserCreatedFunction = beforeUserCreated(async (event) => {
 
 export const beforeUserSignedInFunction = beforeUserSignedIn(async (event) => {
   try {
+    // Ensure event.data exists
+    if (!event.data) {
+      logger.error('User data not available in event')
+      return { customClaims: {} }
+    }
+    
     const userService = getServiceFactory().user()
     const user = await userService.getUser(event.data.uid)
     if (user !== undefined) {

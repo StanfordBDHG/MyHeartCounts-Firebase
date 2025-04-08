@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { logger, type Response } from 'firebase-functions'
+import { logger } from 'firebase-functions'
 import { https } from 'firebase-functions/v2'
 import {
   type CallableFunction,
@@ -16,6 +16,7 @@ import {
   onRequest,
   type Request,
 } from 'firebase-functions/v2/https'
+import type { Response } from 'express'
 import { z } from 'zod'
 
 export function validatedOnCall<Schema extends z.ZodTypeAny, Return>(
