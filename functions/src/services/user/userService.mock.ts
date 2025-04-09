@@ -8,36 +8,14 @@
 
 import {
   Invitation,
+  Organization,
   User,
   type UserAuth,
   UserRegistration,
   UserType,
 } from '@stanfordbdhg/engagehf-models'
-import { type UserService } from './userService.js'
+import { type EnrollUserOptions, type UserService } from './userService.js'
 import { type Document } from '../database/databaseService.js'
-
-// Define a placeholder Organization type
-class Organization {
-  name: string
-  contactName: string
-  phoneNumber: string
-  emailAddress: string
-  ssoProviderId: string
-
-  constructor(props: {
-    name: string
-    contactName: string
-    phoneNumber: string
-    emailAddress: string
-    ssoProviderId: string
-  }) {
-    this.name = props.name
-    this.contactName = props.contactName
-    this.phoneNumber = props.phoneNumber
-    this.emailAddress = props.emailAddress
-    this.ssoProviderId = props.ssoProviderId
-  }
-}
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -108,7 +86,7 @@ export class MockUserService implements UserService {
   async enrollUser(
     invitation: Document<Invitation>,
     userId: string,
-    options: any,
+    options: EnrollUserOptions,
   ): Promise<Document<User>> {
     return this.getUser(userId)
   }

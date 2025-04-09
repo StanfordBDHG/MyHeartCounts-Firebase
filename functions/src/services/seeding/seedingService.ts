@@ -67,7 +67,7 @@ export class SeedingService {
     transaction: FirebaseFirestore.Transaction,
   ) {
     // Helper function to clean data objects
-    const cleanObject = (obj: any) => {
+    const cleanObject = <T>(obj: T): T => {
       // Parse and stringify to remove undefined values
       return JSON.parse(JSON.stringify(obj))
     }

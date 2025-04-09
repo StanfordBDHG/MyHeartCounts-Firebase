@@ -6,8 +6,17 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type User, type UserAuth } from '@stanfordbdhg/engagehf-models'
+import {
+  type Invitation,
+  type Organization,
+  type User,
+  type UserAuth,
+} from '@stanfordbdhg/engagehf-models'
 import { type Document } from '../database/databaseService.js'
+
+export interface EnrollUserOptions {
+  isSingleSignOn: boolean
+}
 
 export interface UserService {
   // Auth
@@ -20,7 +29,7 @@ export interface UserService {
 
   enrollUserDirectly(
     userId: string,
-    options: { isSingleSignOn: boolean },
+    options: EnrollUserOptions,
   ): Promise<Document<User>>
   finishUserEnrollment(user: Document<User>): Promise<void>
   disableUser(userId: string): Promise<void>
@@ -33,13 +42,17 @@ export interface UserService {
 
   // Legacy methods (stubs for backward compatibility)
 
-  getInvitationByCode(code: string): Promise<Document<any> | undefined>
+  // TODO REMOVE PROTOCOLS
+
+  getInvitationByCode(code: string): Promise<Document<Invitation> | undefined>
   enrollUser(
-    invitation: Document<any>,
+    invitation: Document<Invitation>,
     userId: string,
-    options: any,
+    options: EnrollUserOptions,
   ): Promise<Document<User>>
-  deleteInvitation(invitation: Document<any>): Promise<void>
-  createInvitation(content: any): Promise<{ id: string }>
-  getOrganizationBySsoProviderId(providerId: string): Promise<any>
+  deleteInvitation(invitation: Document<Invitation>): Promise<void>
+  createInvitation(content: Invitation): Promise<{ id: string }>
+  getOrganizationBySsoProviderId(
+    providerId: string,
+  ): Promise<Document<Organization> | undefined>
 }

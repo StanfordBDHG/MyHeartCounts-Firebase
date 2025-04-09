@@ -10,6 +10,8 @@ import { setTimeout } from 'timers/promises'
 import {
   advanceDateByDays,
   dateConverter,
+  type Invitation,
+  type Organization,
   User,
   type UserAuth,
   UserType,
@@ -17,7 +19,7 @@ import {
 import { type Auth } from 'firebase-admin/auth'
 import { type UserRecord } from 'firebase-functions/v1/auth'
 import { https, logger } from 'firebase-functions/v2'
-import { type UserService } from './userService.js'
+import { type EnrollUserOptions, type UserService } from './userService.js'
 import {
   type Document,
   type DatabaseService,
@@ -78,7 +80,7 @@ export class DatabaseUserService implements UserService {
 
   async enrollUserDirectly(
     userId: string,
-    options: { isSingleSignOn: boolean },
+    options: EnrollUserOptions,
   ): Promise<Document<User>> {
     logger.info(`About to enroll user ${userId} directly.`)
 
@@ -155,8 +157,11 @@ export class DatabaseUserService implements UserService {
   }
 
   // Legacy methods (stubs for backward compatibility)
+  // TODO Feel free to delete
 
-  async getInvitationByCode(code: string): Promise<Document<any> | undefined> {
+  async getInvitationByCode(
+    code: string,
+  ): Promise<Document<Invitation> | undefined> {
     logger.warn(
       `getInvitationByCode is deprecated and always returns undefined: ${code}`,
     )
@@ -164,9 +169,9 @@ export class DatabaseUserService implements UserService {
   }
 
   async enrollUser(
-    invitation: Document<any>,
+    invitation: Document<Invitation>,
     userId: string,
-    options: any,
+    options: EnrollUserOptions,
   ): Promise<Document<User>> {
     logger.warn(
       `enrollUser called with invitation, using enrollUserDirectly instead: ${userId}`,
@@ -174,18 +179,20 @@ export class DatabaseUserService implements UserService {
     return this.enrollUserDirectly(userId, options)
   }
 
-  async deleteInvitation(invitation: Document<any>): Promise<void> {
+  async deleteInvitation(invitation: Document<Invitation>): Promise<void> {
     logger.warn(
       `deleteInvitation is deprecated and does nothing: ${invitation.id}`,
     )
   }
 
-  async createInvitation(content: any): Promise<{ id: string }> {
+  async createInvitation(content: Invitation): Promise<{ id: string }> {
     logger.warn('createInvitation is deprecated and does nothing')
     return { id: 'deprecated-method' }
   }
 
-  async getOrganizationBySsoProviderId(providerId: string): Promise<any> {
+  async getOrganizationBySsoProviderId(
+    providerId: string,
+  ): Promise<Document<Organization> | undefined> {
     logger.warn(
       `getOrganizationBySsoProviderId is deprecated and always returns undefined: ${providerId}`,
     )

@@ -78,20 +78,26 @@ class MockFirestoreBulkWriter {
 }
 
 class MockFirestoreTransaction {
-  get(reference: MockFirestoreRef) {
-    return (reference as any).get()
+  get<T = unknown>(reference: MockFirestoreRef) {
+    return (reference as MockFirestoreRef & { get(): T }).get()
   }
 
-  create(reference: MockFirestoreDocRef, data: any) {
+  create<T>(reference: MockFirestoreDocRef, data: T) {
     reference.create(data)
   }
 
-  set(reference: MockFirestoreDocRef, data: any) {
+  set<T>(reference: MockFirestoreDocRef, data: T) {
     reference.set(data)
   }
 
-  update(reference: MockFirestoreDocRef, data: any) {
-    reference.update(data)
+  update<T extends Record<string, unknown>>(
+    reference: MockFirestoreDocRef,
+    data: T,
+  ) {
+    const existingData =
+      (reference.get().data() as Record<string, unknown>) || {}
+    const mergedData = { ...existingData, ...data }
+    reference.set(mergedData)
   }
 
   delete(reference: MockFirestoreDocRef) {
@@ -121,31 +127,37 @@ class MockFirestoreRef {
 }
 
 class MockFirestoreCollectionRef extends MockFirestoreRef {
-  get() {
+  get<T = unknown>() {
     const result = this.firestore.collections.get(this.path) ?? new Map()
-    const docs: any[] = []
+    const docs: Array<{
+      id: string
+      exists: boolean
+      ref: MockFirestoreDocRef
+      updateTime: Timestamp
+      data: () => T
+    }> = []
     let size = 0
     result.forEach((value, key) => {
       size += 1
       docs.push({
-        id: key,
+        id: key as string,
         exists: true,
-        ref: this.doc(key as string) as any,
+        ref: this.doc(key as string) as unknown as MockFirestoreDocRef,
         updateTime: Timestamp.now(),
-        data: () => value,
+        data: () => value as T,
       })
     })
     return {
       docs: docs,
-      ref: this as any,
+      ref: this as unknown as MockFirestoreCollectionRef,
       size: size,
     }
   }
 
-  where(
+  where<T>(
     field: string,
     operator: string,
-    value: any,
+    value: T,
   ): MockFirestoreCollectionRef {
     return new MockFirestoreFilteredCollectionRef(this, field, operator, value)
   }
@@ -157,7 +169,10 @@ class MockFirestoreCollectionRef extends MockFirestoreRef {
   withConverter<T>(
     converter: FirestoreDataConverter<T>,
   ): MockFirestoreCollectionRef {
-    return new MockFirestoreConvertedCollectionRef(this, converter)
+    return new MockFirestoreConvertedCollectionRef(
+      this,
+      converter,
+    ) as unknown as MockFirestoreCollectionRef
   }
 }
 
@@ -176,9 +191,12 @@ class MockFirestoreConvertedCollectionRef<
     this.converter = converter
   }
 
+  // @ts-expect-error - Type incompatibility with base class due to generic constraints
   get() {
     const docs = this.ref.get().docs.map((doc) => {
-      const newData = this.converter.fromFirestore(doc as QueryDocumentSnapshot)
+      const newData = this.converter.fromFirestore(
+        doc as unknown as QueryDocumentSnapshot,
+      )
       return {
         exists: doc.exists,
         id: doc.id,
@@ -195,6 +213,7 @@ class MockFirestoreConvertedCollectionRef<
     }
   }
 
+  // @ts-expect-error - Return type mismatch between MockFirestoreConvertedDocRef<T> and MockFirestoreDocRef
   doc(path: string) {
     return new MockFirestoreConvertedDocRef(
       new MockFirestoreDocRef(this.firestore, `${this.path}/${path}`),
@@ -202,6 +221,7 @@ class MockFirestoreConvertedCollectionRef<
     )
   }
 
+  // @ts-expect-error - Return type signature conflict with parent class due to different generic types
   where(field: string, operator: string, value: any) {
     return new MockFirestoreConvertedCollectionRef(
       new MockFirestoreFilteredCollectionRef(this.ref, field, operator, value),
@@ -209,6 +229,7 @@ class MockFirestoreConvertedCollectionRef<
     )
   }
 
+  // @ts-expect-error - Incompatible return type with base class method due to generic parameter differences
   limit(limit: number) {
     return new MockFirestoreConvertedCollectionRef(
       new MockFirestoreLimitedCollectionRef(this.ref, limit),
@@ -221,13 +242,13 @@ class MockFirestoreFilteredCollectionRef extends MockFirestoreCollectionRef {
   readonly ref: MockFirestoreCollectionRef
   readonly field: string
   readonly operator: string
-  readonly value: any
+  readonly value: unknown
 
   constructor(
     ref: MockFirestoreCollectionRef,
     field: string,
     operator: string,
-    value: any,
+    value: unknown,
   ) {
     super(ref.firestore, ref.path)
     this.ref = ref
@@ -236,20 +257,28 @@ class MockFirestoreFilteredCollectionRef extends MockFirestoreCollectionRef {
     this.value = value
   }
 
-  get() {
-    const docs = this.ref.get().docs.filter((doc) => {
-      const value = doc.data()[this.field]
+  get<T = unknown>() {
+    const docs = this.ref.get<T>().docs.filter((doc) => {
+      const value = (doc.data() as Record<string, unknown>)[this.field]
       switch (this.operator) {
         case '==':
           return value === this.value
         case '<':
-          return value < this.value
+          return typeof value === 'number' && typeof this.value === 'number' ?
+              value < this.value
+            : false
         case '<=':
-          return value <= this.value
+          return typeof value === 'number' && typeof this.value === 'number' ?
+              value <= this.value
+            : false
         case '>':
-          return value > this.value
+          return typeof value === 'number' && typeof this.value === 'number' ?
+              value > this.value
+            : false
         case '>=':
-          return value >= this.value
+          return typeof value === 'number' && typeof this.value === 'number' ?
+              value >= this.value
+            : false
         default:
           throw new Error('Unsupported operator')
       }
@@ -257,7 +286,7 @@ class MockFirestoreFilteredCollectionRef extends MockFirestoreCollectionRef {
 
     return {
       docs: docs,
-      ref: this as any,
+      ref: this as unknown as MockFirestoreFilteredCollectionRef,
       size: docs.length,
     }
   }
@@ -273,19 +302,19 @@ class MockFirestoreLimitedCollectionRef extends MockFirestoreCollectionRef {
     this._limit = limit
   }
 
-  get() {
-    const docs = this.ref.get().docs.slice(0, this._limit)
+  get<T = unknown>() {
+    const docs = this.ref.get<T>().docs.slice(0, this._limit)
 
     return {
       docs: docs,
-      ref: this as any,
+      ref: this as unknown as MockFirestoreLimitedCollectionRef,
       size: docs.length,
     }
   }
 }
 
 class MockFirestoreDocRef extends MockFirestoreRef {
-  get() {
+  get<T = unknown>() {
     const pathComponents = this.path.split('/')
     const collectionPath = pathComponents.slice(0, -1).join('/')
     const result = this.firestore.collections
@@ -294,13 +323,13 @@ class MockFirestoreDocRef extends MockFirestoreRef {
     return {
       exists: result !== undefined,
       id: pathComponents[pathComponents.length - 1],
-      ref: this as any,
+      ref: this as unknown as MockFirestoreDocRef,
       updateTime: Timestamp.now(),
-      data: () => result as any,
+      data: () => result as T,
     }
   }
 
-  create(data: any) {
+  create<T>(data: T): void {
     const pathComponents = this.path.split('/')
     const collectionPath = pathComponents.slice(0, -1).join('/')
     if (this.firestore.collections.get(collectionPath) === undefined) {
@@ -318,7 +347,7 @@ class MockFirestoreDocRef extends MockFirestoreRef {
       ?.set(pathComponents[pathComponents.length - 1], data)
   }
 
-  listCollections() {
+  listCollections(): string[] {
     const prefix = this.path + '/'
     const result: string[] = []
     this.firestore.collections.forEach((_, key) => {
@@ -330,7 +359,7 @@ class MockFirestoreDocRef extends MockFirestoreRef {
     return result
   }
 
-  set(data: any) {
+  set<T>(data: T): void {
     const pathComponents = this.path.split('/')
     const collectionPath = pathComponents.slice(0, -1).join('/')
     if (this.firestore.collections.get(collectionPath) === undefined) {
@@ -341,9 +370,10 @@ class MockFirestoreDocRef extends MockFirestoreRef {
       ?.set(pathComponents[pathComponents.length - 1], data)
   }
 
-  update(data: any) {
-    const value = this.get().data()
-    this.set({ ...value, ...data })
+  update<T extends Record<string, unknown>>(data: T): void {
+    const value = (this.get().data() as Record<string, unknown>) || {}
+    const mergedData = { ...value, ...data }
+    this.set(mergedData)
   }
 
   delete() {
@@ -355,7 +385,10 @@ class MockFirestoreDocRef extends MockFirestoreRef {
   }
 
   withConverter<T>(converter: FirestoreDataConverter<T>) {
-    return new MockFirestoreConvertedDocRef(this, converter)
+    return new MockFirestoreConvertedDocRef(
+      this,
+      converter,
+    ) as unknown as MockFirestoreDocRef
   }
 }
 
@@ -369,6 +402,7 @@ class MockFirestoreConvertedDocRef<T> extends MockFirestoreDocRef {
     this.converter = converter
   }
 
+  // @ts-expect-error - Type incompatibility with base class due to generic constraints
   get() {
     const result = super.get()
     const data = result.data()
@@ -380,7 +414,7 @@ class MockFirestoreConvertedDocRef<T> extends MockFirestoreDocRef {
       data: () => data,
     }
     result.data = () =>
-      this.converter.fromFirestore(clone as QueryDocumentSnapshot)
+      this.converter.fromFirestore(clone as unknown as QueryDocumentSnapshot)
     return result
   }
 
@@ -392,8 +426,9 @@ class MockFirestoreConvertedDocRef<T> extends MockFirestoreDocRef {
     super.set(this.converter.toFirestore(data))
   }
 
-  update(data: any) {
-    const value = this.get().data()
-    this.set({ ...value, ...data })
+  update<T extends Record<string, unknown>>(data: T) {
+    const value = (this.get().data() as Record<string, unknown>) || {}
+    const mergedData = { ...value, ...data }
+    this.set(mergedData)
   }
 }
