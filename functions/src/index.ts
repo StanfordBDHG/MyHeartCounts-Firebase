@@ -38,7 +38,6 @@ export {
 export * from './functions/customSeed.js'
 export * from './functions/defaultSeed.js'
 export * from './functions/dismissMessage.js'
-export * from './functions/dismissMessages.js'
 export * from './functions/getUsersInformation.js'
 export * from './functions/onHistoryWritten.js'
 export * from './functions/onSchedule.js'
