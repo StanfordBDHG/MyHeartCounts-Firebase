@@ -7,11 +7,9 @@
 //
 
 import {
-  Invitation,
   Organization,
   User,
   type UserAuth,
-  UserRegistration,
   UserType,
 } from '@stanfordbdhg/engagehf-models'
 import { type EnrollUserOptions, type UserService } from './userService.js'
@@ -47,44 +45,7 @@ export class MockUserService implements UserService {
     return
   }
 
-  // Methods - Invitations
-
-  async createInvitation(content: Invitation): Promise<{ id: string }> {
-    return { id: 'OpEbLvZgsKwqVNnD8FzN' }
-  }
-
-  async getInvitationByCode(
-    invitationCode: string,
-  ): Promise<Document<Invitation>> {
-    return {
-      id: '1',
-      path: 'invitations/1',
-      lastUpdate: new Date(),
-      content: new Invitation({
-        user: new UserRegistration({
-          type: UserType.patient,
-          disabled: false,
-          dateOfBirth: new Date('1970-01-02'),
-          clinician: 'mockPatient',
-          receivesInactivityReminders: true,
-          receivesQuestionnaireReminders: true,
-          receivesRecommendationUpdates: true,
-          timeZone: 'America/Los_Angeles',
-        }),
-        code: invitationCode,
-      }),
-    }
-  }
-
   async enrollUserDirectly(
-    userId: string,
-    options: { isSingleSignOn: boolean },
-  ): Promise<Document<User>> {
-    return this.getUser(userId)
-  }
-
-  async enrollUser(
-    invitation: Document<Invitation>,
     userId: string,
     options: EnrollUserOptions,
   ): Promise<Document<User>> {
@@ -96,12 +57,6 @@ export class MockUserService implements UserService {
   }
 
   // Methods - Organizations
-
-  async getOrganizationBySsoProviderId(
-    providerId: string,
-  ): Promise<Document<Organization> | undefined> {
-    return undefined
-  }
 
   async getOrganizations(): Promise<Array<Document<Organization>>> {
     return []
@@ -122,10 +77,6 @@ export class MockUserService implements UserService {
         ssoProviderId: 'oidc.stanford',
       }),
     }
-  }
-
-  async deleteInvitation(invitation: Document<Invitation>): Promise<void> {
-    return
   }
 
   // Methods - User

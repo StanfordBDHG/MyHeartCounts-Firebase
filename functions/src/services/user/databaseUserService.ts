@@ -10,8 +10,6 @@ import { setTimeout } from 'timers/promises'
 import {
   advanceDateByDays,
   dateConverter,
-  type Invitation,
-  type Organization,
   User,
   type UserAuth,
   UserType,
@@ -154,49 +152,6 @@ export class DatabaseUserService implements UserService {
     )
 
     // Skip copying invitation data since we're not using invitations
-  }
-
-  // Legacy methods (stubs for backward compatibility)
-  // TODO Feel free to delete
-
-  async getInvitationByCode(
-    code: string,
-  ): Promise<Document<Invitation> | undefined> {
-    logger.warn(
-      `getInvitationByCode is deprecated and always returns undefined: ${code}`,
-    )
-    return undefined
-  }
-
-  async enrollUser(
-    invitation: Document<Invitation>,
-    userId: string,
-    options: EnrollUserOptions,
-  ): Promise<Document<User>> {
-    logger.warn(
-      `enrollUser called with invitation, using enrollUserDirectly instead: ${userId}`,
-    )
-    return this.enrollUserDirectly(userId, options)
-  }
-
-  async deleteInvitation(invitation: Document<Invitation>): Promise<void> {
-    logger.warn(
-      `deleteInvitation is deprecated and does nothing: ${invitation.id}`,
-    )
-  }
-
-  async createInvitation(content: Invitation): Promise<{ id: string }> {
-    logger.warn('createInvitation is deprecated and does nothing')
-    return { id: 'deprecated-method' }
-  }
-
-  async getOrganizationBySsoProviderId(
-    providerId: string,
-  ): Promise<Document<Organization> | undefined> {
-    logger.warn(
-      `getOrganizationBySsoProviderId is deprecated and always returns undefined: ${providerId}`,
-    )
-    return undefined
   }
 
   // Users
