@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import crypto from 'crypto'
 import { type ListUsersResult, type UserRecord } from 'firebase-admin/auth'
 
 /* eslint-disable @typescript-eslint/require-await */
@@ -90,7 +91,7 @@ export class MockAuth {
     password?: string
     displayName?: string
   }): Promise<UserRecord> {
-    const uid = 'user-' + Math.random().toString(36).substring(2, 9)
+    const uid = 'user-' + crypto.randomBytes(8).toString('hex')
     const user: UserRecord = {
       uid,
       email: props.email ?? 'user@example.com',
