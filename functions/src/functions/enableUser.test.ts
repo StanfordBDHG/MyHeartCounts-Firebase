@@ -13,13 +13,12 @@ import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
 describeWithEmulators('function: enableUser', (env) => {
   it('enables a disabled user', async () => {
-    const clinicianId = await env.createUser({
-      type: UserType.clinician,
+    const adminId = await env.createUser({
+      type: UserType.admin,
     })
 
     const userId = await env.createUser({
       type: UserType.patient,
-      clinician: clinicianId,
       disabled: true,
     })
 
@@ -34,9 +33,9 @@ describeWithEmulators('function: enableUser', (env) => {
       enableUser,
       { userId: userId },
       {
-        uid: clinicianId,
+        uid: adminId,
         token: {
-          type: UserType.clinician,
+          type: UserType.admin,
           disabled: false,
         },
       },
@@ -49,13 +48,12 @@ describeWithEmulators('function: enableUser', (env) => {
   })
 
   it('keeps enabled users enabled', async () => {
-    const clinicianId = await env.createUser({
-      type: UserType.clinician,
+    const adminId = await env.createUser({
+      type: UserType.admin,
     })
 
     const userId = await env.createUser({
       type: UserType.patient,
-      clinician: clinicianId,
     })
 
     const userService = env.factory.user()
@@ -69,9 +67,9 @@ describeWithEmulators('function: enableUser', (env) => {
       enableUser,
       { userId: userId },
       {
-        uid: clinicianId,
+        uid: adminId,
         token: {
-          type: UserType.clinician,
+          type: UserType.admin,
           disabled: false,
         },
       },

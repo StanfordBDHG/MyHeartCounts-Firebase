@@ -1,0 +1,23 @@
+{
+  "0": {
+    "id": "0",
+    "resourceType": "QuestionnaireResponse",
+    "meta": {
+      "profile": [
+        "http://spezi.health/fhir/StructureDefinition/sdf-QuestionnaireResponse"
+      ],
+      "tag": [
+        {
+          "code": "patientData"
+        }
+      ]
+    },
+    "status": "completed",
+    "subject": {
+      "reference": "users/0"
+    },
+    "authored": "2024-06-05T00:00:00.000Z",
+    "questionnaire": "kccq12",
+    "item": []
+  }
+}

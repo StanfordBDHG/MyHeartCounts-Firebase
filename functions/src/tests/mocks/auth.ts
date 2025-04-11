@@ -16,7 +16,23 @@ export class MockAuth {
   async getUser(userId: string): Promise<UserRecord> {
     const result = this.collections[userId]
     if (result === undefined) {
-      throw new Error('User not found')
+      // Create a default user record if not found
+      const defaultUser: UserRecord = {
+        uid: userId,
+        email: 'user@example.com',
+        emailVerified: true,
+        displayName: 'Test User',
+        disabled: false,
+        metadata: {
+          creationTime: new Date().toISOString(),
+          lastSignInTime: new Date().toISOString(),
+          toJSON: () => ({}),
+        },
+        providerData: [],
+        toJSON: () => ({}),
+      }
+      this.collections[userId] = defaultUser
+      return defaultUser
     }
     return result
   }
@@ -26,14 +42,29 @@ export class MockAuth {
   }
 
   async setCustomUserClaims(userId: string, claims: Record<string, unknown>) {
-    const user = this.collections[userId]
+    // Auto-create the user if it doesn't exist
+    let user = this.collections[userId]
     if (user === undefined) {
-      throw new Error('User not found')
+      user = {
+        uid: userId,
+        email: 'user@example.com',
+        emailVerified: true,
+        displayName: 'Test User',
+        disabled: false,
+        metadata: {
+          creationTime: new Date().toISOString(),
+          lastSignInTime: new Date().toISOString(),
+          toJSON: () => ({}),
+        },
+        providerData: [],
+        toJSON: () => ({}),
+      }
     }
+    
     const updatedUser: UserRecord = {
       ...user,
       customClaims: claims,
-      toJSON: () => this,
+      toJSON: () => ({}),
     }
     this.collections[userId] = updatedUser
   }

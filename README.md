@@ -46,3 +46,7 @@ docker-compose up
 ```
 
 This can be especially useful if you're using an operating system like Windows, as scripts contain OS-specific commands that may not work the same way across different platforms.
+
+## Testing
+
+We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`. To set the flag that you'll be testing with enabled emulators, run env `EMULATORS_ACTIVE=true TZ=UTC`.

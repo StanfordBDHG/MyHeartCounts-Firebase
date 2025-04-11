@@ -7,7 +7,6 @@
 //
 
 import {
-  Organization,
   User,
   type UserAuth,
   UserType,
@@ -56,29 +55,6 @@ export class MockUserService implements UserService {
     return
   }
 
-  // Methods - Organizations
-
-  async getOrganizations(): Promise<Array<Document<Organization>>> {
-    return []
-  }
-
-  async getOrganization(
-    organizationId: string,
-  ): Promise<Document<Organization> | undefined> {
-    return {
-      id: organizationId,
-      path: 'organizations/' + organizationId,
-      lastUpdate: new Date(),
-      content: new Organization({
-        name: 'Stanford University',
-        contactName: 'Alex Sandhu, MD',
-        phoneNumber: '+1 (650) 493-5000',
-        emailAddress: 'dothfteam@stanford.edu',
-        ssoProviderId: 'oidc.stanford',
-      }),
-    }
-  }
-
   // Methods - User
 
   async disableUser(userId: string): Promise<void> {
@@ -87,10 +63,6 @@ export class MockUserService implements UserService {
 
   async enableUser(userId: string): Promise<void> {
     return
-  }
-
-  async getAllOwners(organizationId: string): Promise<Array<Document<User>>> {
-    return []
   }
 
   async getAllPatients(): Promise<Array<Document<User>>> {
