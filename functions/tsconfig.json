@@ -11,12 +11,9 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "strictNullChecks": true,
     "incremental": true,
     "outDir": "lib",
-    "rootDir": "src",
-    "noImplicitAny": false,
-    "noEmitOnError": false
+    "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
   "exclude": []
