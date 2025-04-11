@@ -13,6 +13,16 @@ import { type Message } from 'firebase-admin/messaging'
 
 export class MockMessaging {
   async sendEach(messages: Message[], dryRun?: boolean) {
-    return
+    // Mock response with success for all messages
+    const responses = messages.map(message => ({
+      success: true,
+      messageId: 'mock-message-id-' + Math.random().toString(36).substr(2, 9)
+    }));
+    
+    return {
+      successCount: messages.length,
+      failureCount: 0,
+      responses: responses
+    };
   }
 }

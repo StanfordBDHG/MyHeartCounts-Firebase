@@ -175,7 +175,7 @@ export class DefaultMessageService implements MessageService {
       },
     )
 
-    if (newMessage !== undefined && options.notify) {
+    if (newMessage !== undefined && options?.notify) {
       logger.debug(
         `DatabaseMessageService.addMessage(user: ${userId}): System will notify user unless user settings prevent it`,
       )
@@ -353,15 +353,37 @@ export class DefaultMessageService implements MessageService {
         break
     }
 
-    await this.sendNotification(input.userId, input.message, {
-      language: user.language,
-    })
+    const messageData = input.message.content
+    
+    // Convert LocalizedText objects to Record<string, string>
+    const title: Record<string, string> = {}
+    if (messageData.title) {
+      Object.entries(messageData.title).forEach(([lang, text]) => {
+        title[lang] = text
+      })
+    }
+    
+    const body: Record<string, string> = {}
+    if (messageData.description) {
+      Object.entries(messageData.description).forEach(([lang, text]) => {
+        body[lang] = text
+      })
+    }
+    
+    await this.sendNotification(
+      input.userId, 
+      { title, body },
+      { language: user.language }
+    )
   }
 
-  private async sendNotification(
+  async sendNotification(
     userId: string,
-    message: Document<UserMessage>,
-    options: {
+    notification: {
+      title: Record<string, string>
+      body: Record<string, string>
+    },
+    options?: {
       language?: string
     },
   ): Promise<void> {
@@ -379,12 +401,27 @@ export class DefaultMessageService implements MessageService {
 
     if (devices.length === 0) return
 
-    const notifications: TokenMessage[] = devices.map((device) =>
-      this.tokenMessage(message, {
-        device: device.content,
-        languages: compact([device.content.language, options.language]),
-      }),
-    )
+    // Create notifications for each device
+    const notifications: TokenMessage[] = []
+    
+    for (const device of devices) {
+      const preferredLanguage = device.content.language || options?.language || 'en'
+      
+      // Get localized strings
+      const title = notification.title[preferredLanguage] || notification.title.en || 'Message'
+      const body = notification.body[preferredLanguage] || notification.body.en || ''
+      
+      // Create token message for this device
+      if (device.content.notificationToken) {
+        notifications.push({
+          token: device.content.notificationToken,
+          notification: {
+            title,
+            body
+          }
+        })
+      }
+    }
 
     logger.debug(
       `DatabaseMessageService.sendNotification(user: ${userId}): Sending out ${notifications.length} notifications`,

@@ -16,11 +16,15 @@ export const historyChangeItemConverter = new SchemaConverter({
     path: z.string(),
     date: dateConverter.schema,
     data: z.unknown(),
+    type: z.enum(['created', 'updated', 'deleted']).optional(),
+    before: z.unknown().optional(),
   }),
   encode: (object) => ({
     path: object.path,
     date: dateConverter.encode(object.date),
     data: object.data === undefined ? null : object.data,
+    type: object.type ?? null,
+    before: object.before === undefined ? null : object.before,
   }),
 })
 export type HistoryChangeItem = z.output<

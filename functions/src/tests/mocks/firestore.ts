@@ -32,6 +32,12 @@ export class MockFirestore {
   doc(path: string) {
     return new MockFirestoreDocRef(this, path)
   }
+  
+  collectionGroup(collectionId: string) {
+    // Implement collectionGroup to find all subcollections with the given ID
+    const result = new MockFirestoreCollectionGroupRef(this, collectionId)
+    return result
+  }
 
   replaceAll(record: Record<string, Record<string, unknown>>) {
     this.collections = new Map<string, Map<string, unknown>>()
@@ -389,6 +395,57 @@ class MockFirestoreDocRef extends MockFirestoreRef {
       this,
       converter,
     ) as unknown as MockFirestoreDocRef
+  }
+}
+
+class MockFirestoreCollectionGroupRef extends MockFirestoreCollectionRef {
+  private readonly collectionId: string
+  
+  constructor(firestore: MockFirestore, collectionId: string) {
+    super(firestore, collectionId)
+    this.collectionId = collectionId
+  }
+  
+  get<T = unknown>() {
+    const docs: Array<{
+      id: string
+      exists: boolean
+      ref: MockFirestoreDocRef
+      updateTime: Timestamp
+      data: () => T
+    }> = []
+    
+    // Find all collections that end with this collectionId
+    this.firestore.collections.forEach((docMap, collectionPath) => {
+      const pathSegments = collectionPath.split('/')
+      const lastSegment = pathSegments[pathSegments.length - 1]
+      
+      if (lastSegment === this.collectionId) {
+        // This is a matching collection
+        docMap.forEach((docData, docId) => {
+          docs.push({
+            id: docId as string,
+            exists: true,
+            ref: new MockFirestoreDocRef(this.firestore, `${collectionPath}/${docId}`) as unknown as MockFirestoreDocRef,
+            updateTime: Timestamp.now(),
+            data: () => docData as T,
+          })
+        })
+      }
+    })
+    
+    return {
+      docs: docs,
+      ref: this as unknown as MockFirestoreCollectionGroupRef,
+      size: docs.length,
+    }
+  }
+  
+  withConverter<T>(converter: FirestoreDataConverter<T>): MockFirestoreCollectionRef {
+    return new MockFirestoreConvertedCollectionRef(
+      this,
+      converter,
+    ) as unknown as MockFirestoreCollectionRef
   }
 }
 

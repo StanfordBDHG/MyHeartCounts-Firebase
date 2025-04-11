@@ -33,13 +33,33 @@ export class DatabaseHistoryService implements HistoryService {
   }
 
   async recordChange(change: Change<DocumentSnapshot>): Promise<void> {
-    if (isDeepStrictEqual(change.before.data(), change.after.data())) return
-    const path = change.after.ref.path
+    const beforeData = change.before?.data()
+    const afterData = change.after?.data()
+    
+    // Skip recording if no change
+    if (beforeData && afterData && isDeepStrictEqual(beforeData, afterData)) return
+    
+    // Determine the path - prefer after.ref, fallback to before.ref
+    const path = change.after?.ref?.path || change.before?.ref?.path
+    if (!path) return
+    
+    // Determine the type of change
+    let type: 'created' | 'updated' | 'deleted'
+    if (!change.before.exists && change.after.exists) {
+      type = 'created'
+    } else if (change.before.exists && !change.after.exists) {
+      type = 'deleted'
+    } else {
+      type = 'updated'
+    }
+    
     await this.databaseService.runTransaction((collections, transaction) => {
       transaction.create(collections.history.doc(), {
         path: path,
-        data: change.after.data(),
+        data: afterData,
         date: new Date(),
+        type: type,
+        before: beforeData
       })
     })
   }

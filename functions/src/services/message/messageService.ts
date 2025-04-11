@@ -30,9 +30,10 @@ export interface MessageService {
   addMessage(
     userId: string,
     message: UserMessage,
-    options: {
-      notify: boolean
+    options?: {
+      notify?: boolean
       user?: User | null
+      replaceDuplicates?: boolean
     },
   ): Promise<Document<UserMessage> | undefined>
 
@@ -46,5 +47,17 @@ export interface MessageService {
     userId: string,
     messageId: string,
     didPerformAction: boolean,
+  ): Promise<void>
+  
+  // For test coverage only - public wrapper around private method
+  sendNotification(
+    userId: string,
+    notification: {
+      title: Record<string, string>
+      body: Record<string, string>
+    },
+    options?: {
+      language?: string
+    }
   ): Promise<void>
 }

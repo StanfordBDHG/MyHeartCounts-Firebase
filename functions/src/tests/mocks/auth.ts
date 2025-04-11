@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type UserRecord } from 'firebase-admin/auth'
+import { type ListUsersResult, type UserRecord } from 'firebase-admin/auth'
 
 /* eslint-disable @typescript-eslint/require-await */
 
@@ -67,5 +67,45 @@ export class MockAuth {
       toJSON: () => ({}),
     }
     this.collections[userId] = updatedUser
+  }
+  
+  async listUsers(): Promise<ListUsersResult> {
+    const users: UserRecord[] = Object.values(this.collections).filter(
+      (user): user is UserRecord => user !== undefined
+    )
+    
+    return {
+      users,
+      pageToken: undefined,
+    }
+  }
+  
+  async deleteUser(uid: string): Promise<void> {
+    delete this.collections[uid]
+  }
+  
+  async createUser(props: {
+    email?: string;
+    password?: string;
+    displayName?: string;
+  }): Promise<UserRecord> {
+    const uid = 'user-' + Math.random().toString(36).substring(2, 9)
+    const user: UserRecord = {
+      uid,
+      email: props.email || 'user@example.com',
+      emailVerified: true,
+      displayName: props.displayName || 'Test User',
+      disabled: false,
+      metadata: {
+        creationTime: new Date().toISOString(),
+        lastSignInTime: new Date().toISOString(),
+        toJSON: () => ({}),
+      },
+      providerData: [],
+      toJSON: () => ({}),
+    }
+    
+    this.collections[uid] = user
+    return user
   }
 }
