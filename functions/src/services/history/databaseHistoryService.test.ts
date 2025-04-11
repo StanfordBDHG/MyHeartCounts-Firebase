@@ -129,4 +129,63 @@ describeWithEmulators('DatabaseHistoryService', (env) => {
       userDeviceConverter.value.encode(oldDevice)
     )
   })
+  
+  it('should not record when there is no change in data', async () => {
+    const service = env.factory.history()
+    
+    // Create identical before and after states
+    const device = new UserDevice({
+      notificationToken: 'same-token',
+      platform: UserDevicePlatform.iOS,
+    })
+    
+    const encodedDevice = userDeviceConverter.value.encode(device)
+    
+    // Create change with identical before and after
+    const noChangeChange = env.createChange(
+      'users/555/devices/5',
+      encodedDevice,
+      encodedDevice
+    )
+    
+    // Initial count of history items
+    const historyBefore = await env.collections.history.get()
+    const countBefore = historyBefore.docs.length
+    
+    // Record the "no change" change
+    await service.recordChange(noChangeChange)
+    
+    // Get count after - should be the same
+    const historyAfter = await env.collections.history.get()
+    expect(historyAfter.docs.length).to.equal(countBefore, 'History should not record identical documents')
+    
+    // Verify no new document with this path exists
+    const specificHistoryItems = await env.collections.history
+      .where('path', '==', 'users/555/devices/5')
+      .get()
+      
+    expect(specificHistoryItems.docs).to.have.length(0, 'No history item should be created for path')
+  })
+  
+  it('should handle missing path in change object', async () => {
+    const service = env.factory.history()
+    
+    // Create a corrupted change object with no path
+    // We need to use any to bypass type checking for this test
+    const corruptedChange = {
+      before: { exists: false, data: () => null, ref: { path: null } },
+      after: { exists: false, data: () => null, ref: { path: null } }
+    } as any
+    
+    // Initial count of history items
+    const historyBefore = await env.collections.history.get()
+    const countBefore = historyBefore.docs.length
+    
+    // This should not throw, but also not create any history items
+    await service.recordChange(corruptedChange)
+    
+    // Get count after - should be the same
+    const historyAfter = await env.collections.history.get()
+    expect(historyAfter.docs.length).to.equal(countBefore, 'No history items should be created for missing path')
+  })
 })

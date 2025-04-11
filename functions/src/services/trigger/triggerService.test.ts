@@ -295,8 +295,50 @@ describeWithEmulators('TriggerService', (env) => {
         }
       )
     })
+    
+    it('should handle questionnaireResponseWritten with both before and after values', async () => {
+      const triggerService = env.factory.trigger()
+      
+      // Create a questionnaire response
+      const questionnaireResponse = new FHIRQuestionnaireResponse({
+        questionnaire: QuestionnaireReference.enUS,
+        authored: new Date(),
+        item: []
+      })
+      
+      // Create the document
+      const responseRef = env.collections.userQuestionnaireResponses(patientId).doc()
+      await responseRef.set(questionnaireResponse)
+      
+      // Get the document
+      const responseDoc = await responseRef.get()
+      const document = {
+        id: responseRef.id,
+        path: responseRef.path,
+        lastUpdate: new Date(),
+        content: responseDoc.data() as FHIRQuestionnaireResponse
+      }
+      
+      // Create an updated version with a small change
+      const updatedResponse = new FHIRQuestionnaireResponse({
+        ...questionnaireResponse,
+        authored: new Date(Date.now() + 1000) // 1 second later
+      })
+      
+      // Call questionnaireResponseWritten with both before and after
+      await triggerService.questionnaireResponseWritten(
+        patientId,
+        responseRef.id,
+        document, // Before
+        {
+          ...document,
+          content: updatedResponse
+        } // After
+      )
+      
+      // Success is just not throwing an exception
+    })
 
-    // Additional tests to improve coverage
     it('should handle error in userCreated', async () => {
       // Get the trigger service
       const triggerService = env.factory.trigger() as any

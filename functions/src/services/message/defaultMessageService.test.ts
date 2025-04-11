@@ -310,6 +310,26 @@ describe('DefaultMessageService', () => {
       // Test passes if no error is thrown
     })
     
+    it('should handle device with empty token', async () => {
+      const userId = 'testEmptyTokenUser'
+      const platform = 'iOS' as any
+      
+      // Register a device with empty token
+      await messageService.registerDevice(userId, {
+        platform,
+        notificationToken: '', // Empty string instead of undefined
+        language: 'en'
+      } as any)
+      
+      // Send notification - should skip this device and not error
+      await messageService.sendNotification(userId, {
+        title: { en: 'Test Title' },
+        body: { en: 'Test Body' }
+      })
+      
+      // Test passes if no error is thrown
+    })
+    
     it('should handle notification failures gracefully', async () => {
       const userId = 'testFailureUser'
       const platform = 'iOS' as any
