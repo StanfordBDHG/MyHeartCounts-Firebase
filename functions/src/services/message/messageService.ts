@@ -48,7 +48,7 @@ export interface MessageService {
     messageId: string,
     didPerformAction: boolean,
   ): Promise<void>
-  
+
   // For test coverage only - public wrapper around private method
   sendNotification(
     userId: string,
@@ -58,6 +58,6 @@ export interface MessageService {
     },
     options?: {
       language?: string
-    }
+    },
   ): Promise<void>
 }

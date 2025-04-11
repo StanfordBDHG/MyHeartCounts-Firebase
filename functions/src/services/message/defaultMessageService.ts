@@ -354,7 +354,7 @@ export class DefaultMessageService implements MessageService {
     }
 
     const messageData = input.message.content
-    
+
     // Convert LocalizedText objects to Record<string, string>
     const title: Record<string, string> = {}
     if (messageData.title) {
@@ -362,18 +362,18 @@ export class DefaultMessageService implements MessageService {
         title[lang] = text
       })
     }
-    
+
     const body: Record<string, string> = {}
     if (messageData.description) {
       Object.entries(messageData.description).forEach(([lang, text]) => {
         body[lang] = text
       })
     }
-    
+
     await this.sendNotification(
-      input.userId, 
+      input.userId,
       { title, body },
-      { language: user.language }
+      { language: user.language },
     )
   }
 
@@ -403,22 +403,27 @@ export class DefaultMessageService implements MessageService {
 
     // Create notifications for each device
     const notifications: TokenMessage[] = []
-    
+
     for (const device of devices) {
-      const preferredLanguage = device.content.language || options?.language || 'en'
-      
+      const preferredLanguage =
+        device.content.language ?? options?.language ?? 'en'
+
       // Get localized strings
-      const title = notification.title[preferredLanguage] || notification.title.en || 'Message'
-      const body = notification.body[preferredLanguage] || notification.body.en || ''
-      
+      const title =
+        notification.title[preferredLanguage] ||
+        notification.title.en ||
+        'Message'
+      const body =
+        notification.body[preferredLanguage] || notification.body.en || ''
+
       // Create token message for this device
       if (device.content.notificationToken) {
         notifications.push({
           token: device.content.notificationToken,
           notification: {
             title,
-            body
-          }
+            body,
+          },
         })
       }
     }

@@ -60,7 +60,7 @@ export class MockAuth {
         toJSON: () => ({}),
       }
     }
-    
+
     const updatedUser: UserRecord = {
       ...user,
       customClaims: claims,
@@ -68,33 +68,34 @@ export class MockAuth {
     }
     this.collections[userId] = updatedUser
   }
-  
+
   async listUsers(): Promise<ListUsersResult> {
     const users: UserRecord[] = Object.values(this.collections).filter(
-      (user): user is UserRecord => user !== undefined
+      (user): user is UserRecord => user !== undefined,
     )
-    
+
     return {
       users,
       pageToken: undefined,
     }
   }
-  
+
   async deleteUser(uid: string): Promise<void> {
-    delete this.collections[uid]
+    // Use property access with computed key instead of delete operator
+    this.collections[uid] = undefined
   }
-  
+
   async createUser(props: {
-    email?: string;
-    password?: string;
-    displayName?: string;
+    email?: string
+    password?: string
+    displayName?: string
   }): Promise<UserRecord> {
     const uid = 'user-' + Math.random().toString(36).substring(2, 9)
     const user: UserRecord = {
       uid,
-      email: props.email || 'user@example.com',
+      email: props.email ?? 'user@example.com',
       emailVerified: true,
-      displayName: props.displayName || 'Test User',
+      displayName: props.displayName ?? 'Test User',
       disabled: false,
       metadata: {
         creationTime: new Date().toISOString(),
@@ -104,7 +105,7 @@ export class MockAuth {
       providerData: [],
       toJSON: () => ({}),
     }
-    
+
     this.collections[uid] = user
     return user
   }

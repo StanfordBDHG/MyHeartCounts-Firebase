@@ -66,9 +66,9 @@ describe('firestore.rules: users/{userId}/{collectionName}/{documentId}', () => 
       await firestore
         .doc(`users/${clinicianId}`)
         .set({ type: UserType.clinician })
-      await firestore.doc(`users/${patientId}`).set({ 
+      await firestore.doc(`users/${patientId}`).set({
         type: UserType.patient,
-        clinician: clinicianId // Set clinician reference to make tests pass
+        clinician: clinicianId, // Set clinician reference to make tests pass
       })
       await firestore.doc(`users/${userId}`).set({})
     })

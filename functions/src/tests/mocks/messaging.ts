@@ -14,28 +14,34 @@ import { type Message } from 'firebase-admin/messaging'
 export class MockMessaging {
   async sendEach(messages: Message[], dryRun?: boolean) {
     // Process each message and determine success/failure
-    const responses = messages.map(message => {
+    const responses = messages.map((message) => {
       // Check for token format to simulate failures
-      const tokenMessage = message as { token?: string };
-      
+      const tokenMessage = message as { token?: string }
+
       // Tokens with 'fail' in them will simulate a failure response
-      const isFailure = tokenMessage.token?.includes('fail') ?? false;
-      
+      const isFailure = tokenMessage.token?.includes('fail') ?? false
+
       return {
         success: !isFailure,
-        messageId: isFailure ? undefined : 'mock-message-id-' + Math.random().toString(36).substr(2, 9),
-        error: isFailure ? { code: 'messaging/invalid-argument', message: 'Invalid token' } : undefined
-      };
-    });
-    
+        messageId:
+          isFailure ? undefined : (
+            'mock-message-id-' + Math.random().toString(36).substr(2, 9)
+          ),
+        error:
+          isFailure ?
+            { code: 'messaging/invalid-argument', message: 'Invalid token' }
+          : undefined,
+      }
+    })
+
     // Count successes and failures
-    const successCount = responses.filter(r => r.success).length;
-    const failureCount = responses.length - successCount;
-    
+    const successCount = responses.filter((r) => r.success).length
+    const failureCount = responses.length - successCount
+
     return {
       successCount,
       failureCount,
-      responses
-    };
+      responses,
+    }
   }
 }

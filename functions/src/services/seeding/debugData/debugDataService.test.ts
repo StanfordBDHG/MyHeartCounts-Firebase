@@ -59,7 +59,9 @@ describe('DebugDataService', () => {
   it('can seed heart rate observations', async () => {
     // Skip regenerating collection for now
     await service.seedUserHeartRateObservations('0', date)
-    const heartRateCol = mockFirestore.collections.get('users/0/heartRateObservations')
+    const heartRateCol = mockFirestore.collections.get(
+      'users/0/heartRateObservations',
+    )
     expect(heartRateCol).to.exist
     expect(heartRateCol?.size).to.be.greaterThan(0)
   })
@@ -75,7 +77,9 @@ describe('DebugDataService', () => {
   it('can seed questionnaire responses', async () => {
     // Skip regenerating collection for now
     await service.seedUserQuestionnaireResponses('0', date)
-    const responsesCol = mockFirestore.collections.get('users/0/questionnaireResponses')
+    const responsesCol = mockFirestore.collections.get(
+      'users/0/questionnaireResponses',
+    )
     expect(responsesCol).to.exist
     expect(responsesCol?.size).to.be.greaterThan(0)
   })

@@ -77,15 +77,15 @@ describe('firestore.rules: users/{userId}', () => {
       await firestore
         .doc(`users/${clinicianId}`)
         .set({ type: UserType.clinician })
-      await firestore.doc(`users/${patientId}`).set({ 
+      await firestore.doc(`users/${patientId}`).set({
         type: UserType.patient,
-        clinician: clinicianId // Set clinician reference to make tests pass
+        clinician: clinicianId, // Set clinician reference to make tests pass
       })
       await firestore.doc(`users/${userId}`).set({})
       await firestore.doc(`users/${disabledUserId}`).set({
         type: UserType.patient,
         disabled: true,
-        clinician: clinicianId // Set clinician reference to make tests pass
+        clinician: clinicianId, // Set clinician reference to make tests pass
       })
     })
   })
@@ -144,27 +144,29 @@ describe('firestore.rules: users/{userId}', () => {
   })
 
   it('creates users/{userId}', async () => {
-    const newUserId = randomUUID();
+    const newUserId = randomUUID()
     await assertSucceeds(adminFirestore.doc(`users/${newUserId}`).set({}))
     await assertFails(clinicianFirestore.doc(`users/${randomUUID()}`).set({}))
     await assertFails(patientFirestore.doc(`users/${randomUUID()}`).set({}))
-    
+
     // A user should be able to create their own user document
-    const authenticatedUserId = randomUUID();
+    const authenticatedUserId = randomUUID()
     const authenticatedUserFirestore = testEnvironment
       .authenticatedContext(authenticatedUserId, {})
-      .firestore();
-      
-    await assertSucceeds(authenticatedUserFirestore.doc(`users/${authenticatedUserId}`).set({}))
+      .firestore()
+
+    await assertSucceeds(
+      authenticatedUserFirestore.doc(`users/${authenticatedUserId}`).set({}),
+    )
     await assertFails(userFirestore.doc(`users/${randomUUID()}`).set({}))
 
     await testEnvironment.withSecurityRulesDisabled(async (environment) => {
       await environment.firestore().doc(`users/${userId}`).delete()
     })
-    
+
     // User can create their own document if it doesn't exist
     await assertSucceeds(userFirestore.doc(`users/${userId}`).set({}))
-    
+
     // Disabled users cannot create documents
     await assertFails(
       disabledUserFirestore.doc(`users/${disabledUserId}`).set({}),
@@ -184,7 +186,7 @@ describe('firestore.rules: users/{userId}', () => {
 
   it('updates users/{userId} as clinician', async () => {
     await assertFails(clinicianFirestore.doc(`users/${adminId}`).set({}))
-    
+
     // Clinician can update their own document with merge=true
     await assertSucceeds(
       clinicianFirestore
@@ -194,14 +196,14 @@ describe('firestore.rules: users/{userId}', () => {
           { merge: true },
         ),
     )
-    
+
     // Clinician cannot completely overwrite their own document
     await assertFails(
       clinicianFirestore
         .doc(`users/${clinicianId}`)
         .set({ dateOfBirth: new Date('2011-01-01').toISOString() }),
     )
-    
+
     // Clinician cannot change user type with merge=false
     await assertFails(
       clinicianFirestore.doc(`users/${clinicianId}`).set(
@@ -212,21 +214,19 @@ describe('firestore.rules: users/{userId}', () => {
         { merge: false },
       ),
     )
-    
+
     // Clinician can update the patient they are assigned to
     await assertSucceeds(
-      clinicianFirestore
-        .doc(`users/${patientId}`)
-        .set(
-          { 
-            dateOfBirth: new Date('2011-01-01').toISOString(),
-            // Ensure clinician property is preserved during updates
-            clinician: clinicianId
-          },
-          { merge: true },
-        ),
+      clinicianFirestore.doc(`users/${patientId}`).set(
+        {
+          dateOfBirth: new Date('2011-01-01').toISOString(),
+          // Ensure clinician property is preserved during updates
+          clinician: clinicianId,
+        },
+        { merge: true },
+      ),
     )
-    
+
     // Clinician cannot update a user without a clinician relationship
     await assertFails(
       clinicianFirestore

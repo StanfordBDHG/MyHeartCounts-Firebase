@@ -72,7 +72,8 @@ describeWithEmulators('function: getUsersInformation', (env) => {
     expect(Object.keys(clinicianResult)).to.have.length(4)
     expect(clinicianResult[adminId], 'clinician: admin object').to.exist
     // Since permissions have changed, we don't check if data is undefined anymore
-    expect(clinicianResult[adminId].error, 'clinician: admin error').to.not.exist
+    expect(clinicianResult[adminId].error, 'clinician: admin error').to.not
+      .exist
     expect(clinicianResult[clinicianId1], 'clinician: clinician1 object').to
       .exist
     expect(clinicianResult[clinicianId1].data, 'clinician: clinician1 data').to

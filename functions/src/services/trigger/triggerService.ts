@@ -47,13 +47,19 @@ export interface TriggerService {
 
   // Legacy methods (for backward compatibility)
   everyMorning(): Promise<void>
-  
+
   // Testing-only methods - exposed for coverage
   sendDailyReminders(): Promise<void>
   sendWeeklySymptomQuestionnaires(): Promise<void>
   updateStaticData(cachingStrategy: CachingStrategy): Promise<void>
-  userRegistrationWritten(userId: string, document: Document<UserRegistration>): Promise<void>
-  userInvitationWritten(invitationId: string, document: Document<Invitation>): Promise<void>
+  userRegistrationWritten(
+    userId: string,
+    document: Document<UserRegistration>,
+  ): Promise<void>
+  userInvitationWritten(
+    invitationId: string,
+    document: Document<Invitation>,
+  ): Promise<void>
 }
 
 export class TriggerServiceImpl implements TriggerService {

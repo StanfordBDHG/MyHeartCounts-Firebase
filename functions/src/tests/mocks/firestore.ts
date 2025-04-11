@@ -32,7 +32,7 @@ export class MockFirestore {
   doc(path: string) {
     return new MockFirestoreDocRef(this, path)
   }
-  
+
   collectionGroup(collectionId: string) {
     // Implement collectionGroup to find all subcollections with the given ID
     const result = new MockFirestoreCollectionGroupRef(this, collectionId)
@@ -400,12 +400,12 @@ class MockFirestoreDocRef extends MockFirestoreRef {
 
 class MockFirestoreCollectionGroupRef extends MockFirestoreCollectionRef {
   private readonly collectionId: string
-  
+
   constructor(firestore: MockFirestore, collectionId: string) {
     super(firestore, collectionId)
     this.collectionId = collectionId
   }
-  
+
   get<T = unknown>() {
     const docs: Array<{
       id: string
@@ -414,34 +414,39 @@ class MockFirestoreCollectionGroupRef extends MockFirestoreCollectionRef {
       updateTime: Timestamp
       data: () => T
     }> = []
-    
+
     // Find all collections that end with this collectionId
     this.firestore.collections.forEach((docMap, collectionPath) => {
       const pathSegments = collectionPath.split('/')
       const lastSegment = pathSegments[pathSegments.length - 1]
-      
+
       if (lastSegment === this.collectionId) {
         // This is a matching collection
         docMap.forEach((docData, docId) => {
           docs.push({
-            id: docId as string,
+            id: docId,
             exists: true,
-            ref: new MockFirestoreDocRef(this.firestore, `${collectionPath}/${docId}`) as unknown as MockFirestoreDocRef,
+            ref: new MockFirestoreDocRef(
+              this.firestore,
+              `${collectionPath}/${docId}`,
+            ) as unknown as MockFirestoreDocRef,
             updateTime: Timestamp.now(),
             data: () => docData as T,
           })
         })
       }
     })
-    
+
     return {
       docs: docs,
       ref: this as unknown as MockFirestoreCollectionGroupRef,
       size: docs.length,
     }
   }
-  
-  withConverter<T>(converter: FirestoreDataConverter<T>): MockFirestoreCollectionRef {
+
+  withConverter<T>(
+    converter: FirestoreDataConverter<T>,
+  ): MockFirestoreCollectionRef {
     return new MockFirestoreConvertedCollectionRef(
       this,
       converter,

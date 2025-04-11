@@ -29,7 +29,7 @@ describeWithEmulators('function: updateStaticData', (env) => {
 
     const questionnaires = await env.collections.questionnaires.get()
     expect(questionnaires.docs).to.have.length(1)
-    
+
     // Verify questionnaires are created with basic structure
     for (const questionnaire of questionnaires.docs) {
       const data = questionnaire.data()
