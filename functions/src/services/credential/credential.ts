@@ -14,7 +14,7 @@ import {
 import { https, logger } from 'firebase-functions/v2'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 
-enum UserRoleType {
+export enum UserRoleType {
   admin = 'admin',
   clinician = 'clinician',
   patient = 'patient',

@@ -280,5 +280,58 @@ describe('DefaultMessageService', () => {
       
       // Test passes if no error is thrown
     })
+    
+    it('should handle notifications with multiple languages', async () => {
+      const userId = 'testMultiLangUser'
+      const platform = 'iOS' as any
+      const token = 'test-notification-token-2'
+      
+      // Register a device with language preference
+      await messageService.registerDevice(userId, {
+        platform,
+        notificationToken: token,
+        language: 'fr'
+      } as any)
+      
+      // Send notification with multiple languages
+      await messageService.sendNotification(userId, {
+        title: { 
+          en: 'Test Title', 
+          fr: 'Titre de Test',
+          de: 'Test Titel'
+        },
+        body: { 
+          en: 'Test Body',
+          fr: 'Corps de Test',
+          de: 'Test Körper'
+        }
+      })
+      
+      // Test passes if no error is thrown
+    })
+    
+    it('should handle notification failures gracefully', async () => {
+      const userId = 'testFailureUser'
+      const platform = 'iOS' as any
+      const token = 'test-notification-token-fail'
+      
+      // Register a device
+      await messageService.registerDevice(userId, {
+        platform,
+        notificationToken: token
+      } as any)
+      
+      // Setup mock to return failure for this particular test
+      // This is done by modifying the device token to a special value
+      // that our mock will recognize as a failure case
+      
+      // Send notification that will "fail" in the mock
+      await messageService.sendNotification(userId, {
+        title: { en: 'Test Title' },
+        body: { en: 'Test Body' }
+      })
+      
+      // Test passes if no error is thrown (showing it handles failures gracefully)
+    })
   })
 })

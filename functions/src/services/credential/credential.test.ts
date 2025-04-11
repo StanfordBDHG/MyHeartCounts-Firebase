@@ -12,7 +12,7 @@ import { type DecodedIdToken } from 'firebase-admin/auth'
 import { https } from 'firebase-functions/v2'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 import { describe } from 'mocha'
-import { Credential, UserRole } from './credential.js'
+import { Credential, UserRole, UserRoleType } from './credential.js'
 
 describe('Credential', () => {
   function createAuthData(userId: string, type: UserType, disabled = false): AuthData {
@@ -205,6 +205,68 @@ describe('Credential', () => {
     
     // User type should default to patient if not specified
     expect(credential.userType).to.equal(UserType.patient)
+  })
+  
+  it('correctly handles check with multiple roles', async () => {
+    const credential = new Credential(patientAuth)
+    
+    // Multiple role check should return the first matching role
+    const result = credential.check(
+      UserRole.admin,
+      UserRole.clinician,
+      UserRole.patient,
+      UserRole.user('someone-else')
+    )
+    
+    // Should match the patient role
+    expect(result.type).to.equal(UserRoleType.patient)
+  })
+  
+  it('rejects users with disabled flag', async () => {
+    // Create a credential for a disabled user
+    const credential = new Credential(disabledAuth)
+    
+    // Any role check should throw a disabled error
+    await expectToThrow(
+      () => credential.check(UserRole.patient),
+      credential.disabledError()
+    )
+    
+    // Even checking own user should throw disabled error
+    await expectToThrow(
+      () => credential.check(UserRole.user(disabledAuth.uid)),
+      credential.disabledError()
+    )
+  })
+  
+  it('handles checkAsync method correctly', async () => {
+    const credential = new Credential(patientAuth)
+    
+    // Test the checkAsync method with simple promise
+    const asyncResult = await credential.checkAsync(
+      async () => [UserRole.patient]
+    )
+    
+    // Should match the patient role
+    expect(asyncResult.type).to.equal(UserRoleType.patient)
+    
+    // Test with multiple role providers
+    const multiResult = await credential.checkAsync(
+      async () => [UserRole.admin], // This will not match
+      async () => [UserRole.patient, UserRole.user(patientAuth.uid)] // This will match
+    )
+    
+    // Should match the patient role from the second provider
+    expect(multiResult.type).to.equal(UserRoleType.patient)
+    
+    // Test with no matching roles - should throw
+    await expectToThrow(
+      () => credential.checkAsync(
+        async () => [UserRole.admin],
+        async () => [UserRole.clinician]
+      ),
+      credential.permissionDeniedError()
+    )
   })
 })
 
