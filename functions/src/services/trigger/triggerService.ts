@@ -13,7 +13,6 @@ import {
   type User,
   type CachingStrategy,
   StaticDataComponent,
-  type Invitation,
   type UserRegistration,
 } from '@stanfordbdhg/engagehf-models'
 import { logger } from 'firebase-functions'
@@ -55,10 +54,6 @@ export interface TriggerService {
   userRegistrationWritten(
     userId: string,
     document: Document<UserRegistration>,
-  ): Promise<void>
-  userInvitationWritten(
-    invitationId: string,
-    document: Document<Invitation>,
   ): Promise<void>
 }
 
@@ -167,13 +162,6 @@ export class TriggerServiceImpl implements TriggerService {
     document: Document<UserRegistration>,
   ) {
     logger.debug(`TriggerService.userRegistrationWritten(${userId})`)
-  }
-
-  async userInvitationWritten(
-    invitationId: string,
-    document: Document<Invitation>,
-  ) {
-    // ...
   }
 
   async userQuestionnaireResponseWritten(

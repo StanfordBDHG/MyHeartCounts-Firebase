@@ -281,27 +281,6 @@ describeWithEmulators('TriggerService', (env) => {
       })
     })
 
-    it('should handle userInvitationWritten', async () => {
-      const triggerService = env.factory.trigger()
-
-      // Create an invitation document
-      const inviteRef = env.firestore.collection('invitations').doc()
-      const inviteData = {
-        email: 'test@example.com',
-        role: 'patient',
-        created: new Date(),
-      }
-      await inviteRef.set(inviteData)
-
-      // This shouldn't throw an error - use type assertion for test
-      await triggerService.userInvitationWritten(inviteRef.id, {
-        id: inviteRef.id,
-        path: inviteRef.path,
-        lastUpdate: new Date(),
-        content: inviteData as any,
-      })
-    })
-
     it('should handle questionnaireResponseWritten with both before and after values', async () => {
       const triggerService = env.factory.trigger()
 
