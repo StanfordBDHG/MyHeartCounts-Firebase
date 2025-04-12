@@ -13,7 +13,6 @@ import {
 } from '@stanfordbdhg/engagehf-models'
 import { type z } from 'zod'
 import { validatedOnCall, validatedOnRequest } from './helpers.js'
-import { Flags } from '../flags.js'
 import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { type ServiceFactory } from '../services/factory/serviceFactory.js'
@@ -31,7 +30,7 @@ export async function _updateStaticData(
 }
 
 export const updateStaticData =
-  Flags.isEmulator ?
+  process.env.FUNCTIONS_EMULATOR === 'true' ?
     validatedOnRequest(
       'updateStaticData',
       updateStaticDataInputSchema,

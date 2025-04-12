@@ -17,7 +17,6 @@ import { logger } from 'firebase-functions'
 import { type z } from 'zod'
 import { validatedOnCall, validatedOnRequest } from './helpers.js'
 import { _updateStaticData } from './updateStaticData.js'
-import { Flags } from '../flags.js'
 import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { type ServiceFactory } from '../services/factory/serviceFactory.js'
@@ -145,7 +144,7 @@ export async function _defaultSeed(
 }
 
 export const defaultSeed =
-  Flags.isEmulator ?
+  process.env.FUNCTIONS_EMULATOR === 'true' ?
     validatedOnRequest(
       'defaultSeed',
       defaultSeedInputSchema,

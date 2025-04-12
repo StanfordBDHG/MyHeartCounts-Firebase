@@ -8,7 +8,6 @@
 
 import { customSeedingOptionsSchema } from '@stanfordbdhg/engagehf-models'
 import { validatedOnRequest } from './helpers.js'
-import { Flags } from '../flags.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const customSeed = validatedOnRequest(
@@ -17,7 +16,7 @@ export const customSeed = validatedOnRequest(
   async (_, data, response) => {
     const factory = getServiceFactory()
 
-    if (!Flags.isEmulator) {
+    if (process.env.FUNCTIONS_EMULATOR !== 'true') {
       throw factory.credential(undefined).permissionDeniedError()
     }
 
