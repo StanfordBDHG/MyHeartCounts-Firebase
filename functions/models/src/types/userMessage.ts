@@ -1,5 +1,5 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the MyHeartCounts project based on the Stanford Spezi Template Application project
 //
 // SPDX-FileCopyrightText: 2023 Stanford University
 //
@@ -70,10 +70,10 @@ export class UserMessage {
   ): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Inactive',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: 'You have been inactive for 7 days. Please log in to continue your care.',
       }),
       action: undefined,
@@ -90,10 +90,10 @@ export class UserMessage {
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Inactive',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: `${input.userName ?? 'Patient'} has been inactive for 7 days.`,
       }),
       action: `users/${input.userId}`,
@@ -109,10 +109,10 @@ export class UserMessage {
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Appointment Reminder',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: 'Your appointment is coming up. Review your Health Summary before your visit.',
       }),
       action: 'healthSummary',
@@ -130,10 +130,10 @@ export class UserMessage {
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Appointment Reminder',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: `Appointment with ${input.userName ?? 'patient'} is coming up.`,
       }),
       action: `users/${input.userId}/appointments`,
@@ -149,10 +149,10 @@ export class UserMessage {
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Symptom Questionnaire',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: 'Complete your Symptom Survey for your care team.',
       }),
       action: input.questionnaireReference,
@@ -170,10 +170,10 @@ export class UserMessage {
     return new UserMessage({
       creationDate: creationDate,
       dueDate: advanceDateByDays(creationDate, 1),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Vitals',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: 'Check your blood pressure and weight daily.',
       }),
       action: 'observations',
@@ -189,10 +189,10 @@ export class UserMessage {
   ): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Weight increase since last week',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: 'Your weight increased over 3 lbs. Your care team will be informed.',
       }),
       action: 'observations',
@@ -209,10 +209,10 @@ export class UserMessage {
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Weight increase since last week',
       }),
-      description: new LocalizedText({
+      description: LocalizedText.raw({
         en: `Weight increase over 3 lbs for ${input.userName ?? 'patient'}.`,
       }),
       action: `users/${input.userId}/observations`,
@@ -225,7 +225,7 @@ export class UserMessage {
   static createWelcome(input: { creationDate?: Date }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
-      title: new LocalizedText({
+      title: LocalizedText.raw({
         en: 'Welcome',
       }),
       type: UserMessageType.welcome,
