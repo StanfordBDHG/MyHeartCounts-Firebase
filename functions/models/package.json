@@ -1,0 +1,39 @@
+{
+  "name": "@stanfordbdhg/engagehf-models",
+  "description": "Model types for ENGAGE-HF",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StanfordBDHG/ENGAGE-HF-Firebase.git"
+  },
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src",
+    "lint:fix": "npm run lint -- --fix",
+    "lint:strict": "npm run lint -- --max-warnings=0",
+    "build": "tsc --noEmitOnError false",
+    "clean": "if [ -f 'tsconfig.tsbuildinfo' ]; then rm tsconfig.tsbuildinfo; fi && if [ -d 'lib' ]; then rm -r lib; fi"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "main": "lib/index.js",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@typescript-eslint/eslint-plugin": "^7",
+    "@typescript-eslint/parser": "^7",
+    "eslint": "^8.57",
+    "eslint-config-google": "^0.14",
+    "eslint-config-prettier": "^9",
+    "eslint-plugin-import": "^2",
+    "eslint-plugin-prettier": "^5",
+    "prettier": "^3",
+    "typescript": "^5"
+  }
+}

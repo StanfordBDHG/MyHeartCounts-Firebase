@@ -1,0 +1,63 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "lint:strict": "eslint src --max-warnings=0",
+    "build": "tsc --noEmitOnError false || true",
+    "clean": "if [ -f tsconfig.tsbuildinfo ]; then rm tsconfig.tsbuildinfo; fi && if [ -d lib ]; then rm -r lib; fi",
+    "test": "env TZ=UTC c8 mocha --reporter-option maxDiffSize=0",
+    "test:ci": "c8 npm run test",
+    "test:emulators": "env EMULATORS_ACTIVE=true FUNCTIONS_EMULATOR=true npm run test",
+    "test:regenerate": "env REGENERATE_VALUES=true npm run test",
+    "serve": "firebase emulators:start --only auth,firestore,functions,storage",
+    "serve:watch": "npm run build -- --watch | npm run serve",
+    "serve:seed": "curl -s -X PUT localhost:4400/functions/disableBackgroundTriggers 1>/dev/null && npm run serve:seed:withoutDisablingTriggers && curl -s -X PUT localhost:4400/functions/enableBackgroundTriggers 1>/dev/null",
+    "serve:seed:withoutDisablingTriggers": "curl --location \"http://localhost:5001/myheart-counts-development/us-central1/defaultSeed\" --header \"Content-Type: application/json\" --data \"{\\\"staticData\\\": {}}\"",
+    "serve:seeded": "firebase emulators:exec --only auth,firestore,functions,storage --ui \"npm run serve:seed && if [ -z $IN_DOCKER_CONTAINER ]; then read -rd \\\"\\\"; else sleep infinity; fi\"",
+    "shell": "firebase functions:shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@stanfordbdhg/engagehf-models": "file:models",
+    "d3": "^7.9.0",
+    "firebase-admin": "^12.0",
+    "firebase-functions": "^6.3.2",
+    "jsdom": "^24.1.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.3",
+    "@types/chai": "^4.3.16",
+    "@types/d3": "^7.4.3",
+    "@types/jsdom": "^21.1.7",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20",
+    "@types/sinon": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^7",
+    "@typescript-eslint/parser": "^7",
+    "c8": "^10.1.2",
+    "chai": "^5.1.1",
+    "eslint": "^8.57",
+    "eslint-config-google": "^0.14",
+    "eslint-config-prettier": "^9",
+    "eslint-plugin-import": "^2",
+    "eslint-plugin-prettier": "^5",
+    "firebase-functions-test": "^3.3.0",
+    "mocha": "^10.6.0",
+    "prettier": "^3",
+    "sinon": "^18.0.0",
+    "typescript": "^5"
+  },
+  "private": true
+}

@@ -1,0 +1,16 @@
+{
+  "all": true,
+  "check-coverage": true,
+  "extension": [".js", ".cjs", ".mjs"],
+  "include": ["lib"],
+  "exclude": [
+    "lib/tests",
+    "**/*.test.js",
+    "**/*.no-coverage.js",
+    "**/*.mock.js"
+  ],
+  "branches": 70,
+  "lines": 70,
+  "functions": 70,
+  "statements": 70
+}

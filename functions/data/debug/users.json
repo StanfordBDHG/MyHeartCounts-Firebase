@@ -1,0 +1,50 @@
+[
+  {
+    "auth": {
+      "uid": "myheartcounts-participant0-stanford.edu",
+      "displayName": "Stanford participant",
+      "email": "myheartcounts-participant0@stanford.edu",
+      "password": "password"
+    },
+    "user": {
+      "type": "patient",
+      "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
+      "lastActiveDate": "1970-01-01T00:00:00.000Z",
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
+    }
+  },
+  {
+    "auth": {
+      "uid": "myheartcounts-participant1-stanford.edu",
+      "displayName": "Stanford participant",
+      "email": "myheartcounts-participant1@stanford.edu",
+      "password": "password"
+    },
+    "user": {
+      "type": "patient",
+      "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
+      "lastActiveDate": "1970-01-01T00:00:00.000Z",
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
+    }
+  },
+  {
+    "auth": {
+      "uid": "myheartcounts-participant2-stanford.edu",
+      "displayName": "Stanford participant",
+      "email": "myheartcounts-participant2@stanford.edu",
+      "password": "password"
+    },
+    "user": {
+      "type": "patient",
+      "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
+      "lastActiveDate": "1970-01-01T00:00:00.000Z",
+      "receivesInactivityReminders": true,
+      "receivesQuestionnaireReminders": true,
+      "receivesRecommendationUpdates": true
+    }
+  }
+]

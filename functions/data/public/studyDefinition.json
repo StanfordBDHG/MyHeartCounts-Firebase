@@ -1,0 +1,169 @@
+{
+  "id": "MyHeartCounts2025",
+  "title": "MyHeartCounts 2025 Study",
+  "description": "A research study to better understand heart health through mobile health data collection.",
+  "version": "1.0.0",
+  "publishedAt": "2025-03-13T00:00:00Z",
+  "featuredImageURL": "https://storage.googleapis.com/myheartcounts-firebase.appspot.com/public/study_banner.jpg",
+  "consent": {
+    "title": "Study Consent",
+    "description": "Participation in this study requires your informed consent.",
+    "documentName": "MyHeartCounts Study Consent",
+    "documentURL": "https://storage.googleapis.com/myheartcounts-firebase.appspot.com/public/consent.pdf"
+  },
+  "contacts": [
+    {
+      "name": "Research Team",
+      "role": "Principal Investigator",
+      "email": "research@myheartcounts.org",
+      "phone": "+1-000-000-0000"
+    }
+  ],
+  "schedule": {
+    "duration": {
+      "value": 365,
+      "unit": "day"
+    },
+    "tasks": [
+      {
+        "id": "onboardingTask",
+        "title": "Welcome Survey",
+        "description": "Please complete this initial survey to join the study.",
+        "schedule": {
+          "startEvent": "enrollment",
+          "interval": {
+            "value": 1,
+            "unit": "day"
+          },
+          "count": 1
+        }
+      },
+      {
+        "id": "symptomQuestionnaire",
+        "title": "Symptom Questionnaire",
+        "description": "Help us understand how you're feeling.",
+        "schedule": {
+          "startEvent": "enrollment",
+          "interval": {
+            "value": 7,
+            "unit": "day"
+          }
+        }
+      },
+      {
+        "id": "bloodPressureTask",
+        "title": "Blood Pressure Measurement",
+        "description": "Record your blood pressure readings.",
+        "schedule": {
+          "startEvent": "enrollment",
+          "interval": {
+            "value": 3,
+            "unit": "day"
+          }
+        }
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "healthKit",
+      "type": "healthKit",
+      "title": "Health Data",
+      "description": "Collection of health data from your device",
+      "dataTypes": [
+        {
+          "type": "heartRate",
+          "minimumAllowedAge": {
+            "value": 1,
+            "unit": "hour"
+          }
+        },
+        {
+          "type": "stepCount",
+          "minimumAllowedAge": {
+            "value": 1,
+            "unit": "day"
+          }
+        },
+        {
+          "type": "bodyWeight",
+          "minimumAllowedAge": {
+            "value": 1,
+            "unit": "day"
+          }
+        },
+        {
+          "type": "bloodPressure",
+          "minimumAllowedAge": {
+            "value": 1,
+            "unit": "day"
+          }
+        }
+      ]
+    },
+    {
+      "id": "symptomQuestionnaire",
+      "type": "questionnaire",
+      "title": "Symptom Assessment",
+      "description": "Please answer the following questions about any symptoms you may be experiencing",
+      "questions": [
+        {
+          "id": "shortness_of_breath",
+          "text": "In the last 7 days, have you had shortness of breath?",
+          "type": "choice",
+          "options": [
+            {"id": "1", "text": "Not at all"},
+            {"id": "2", "text": "Very little"},
+            {"id": "3", "text": "Somewhat"},
+            {"id": "4", "text": "Quite a bit"},
+            {"id": "5", "text": "Very much"}
+          ]
+        },
+        {
+          "id": "fatigue",
+          "text": "In the last 7 days, have you felt fatigued?",
+          "type": "choice",
+          "options": [
+            {"id": "1", "text": "Not at all"},
+            {"id": "2", "text": "Very little"},
+            {"id": "3", "text": "Somewhat"},
+            {"id": "4", "text": "Quite a bit"},
+            {"id": "5", "text": "Very much"}
+          ]
+        },
+        {
+          "id": "swelling",
+          "text": "In the last 7 days, have you noticed swelling in your feet, ankles, legs, or abdomen?",
+          "type": "choice",
+          "options": [
+            {"id": "1", "text": "Not at all"},
+            {"id": "2", "text": "Very little"},
+            {"id": "3", "text": "Somewhat"},
+            {"id": "4", "text": "Quite a bit"},
+            {"id": "5", "text": "Very much"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "educationalContent",
+      "type": "informational",
+      "title": "Heart Health Education",
+      "description": "Learn about your heart health",
+      "sections": [
+        {
+          "id": "welcome",
+          "title": "Welcome to MyHeartCounts",
+          "description": "Thank you for joining this study!",
+          "contentURL": "https://storage.googleapis.com/myheartcounts-firebase.appspot.com/public/welcome_video.mp4"
+        },
+        {
+          "id": "bloodPressure",
+          "title": "Understanding Blood Pressure",
+          "description": "Learn what your blood pressure numbers mean",
+          "contentURL": "https://storage.googleapis.com/myheartcounts-firebase.appspot.com/public/blood_pressure_guide.pdf"
+        }
+      ]
+    }
+  ]
+}
