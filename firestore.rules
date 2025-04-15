@@ -39,9 +39,6 @@ service cloud.firestore {
       return get(/databases/$(databaseId)/documents/users/$(userId));
     }
 
-    match /invitations/{documentId} {
-      allow read, write: if false;
-    }
 
     match /questionnaires/{questionnaireId} {
       allow read: if isAuthenticated();
@@ -99,8 +96,7 @@ service cloud.firestore {
       }
 
       function isClinicianWritableCollectionName() {
-        return isPatientWritableCollectionName()
-          || collectionName in ['allergyIntolerances', 'appointments'];
+        return isPatientWritableCollectionName();
       }
 
       allow read: if isAdmin()
