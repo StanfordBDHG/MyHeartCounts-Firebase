@@ -92,15 +92,15 @@ export class DebugDataService extends SeedingService {
     // Create an empty file to ensure the directory structure exists in Firebase Storage
     const tempFilePath = path.join(os.tmpdir(), '.keep')
     fs.writeFileSync(tempFilePath, '')
-    
+
     const keepFilePath = `users/${userId}/bulkHealthKitUploads/.keep`
-    
+
     // Upload the .keep file to create the directory structure
     await this.storage.bucket().upload(tempFilePath, {
       destination: keepFilePath,
       contentType: 'text/plain',
     })
-    
+
     // Clean up the temporary local file;
     fs.unlinkSync(tempFilePath)
   }
