@@ -26,6 +26,7 @@ export interface ServiceFactory {
   debugData(): DebugDataService
   staticData(): StaticDataService
   history(): HistoryService
+  storage(): any
 
   // Trigger
 
