@@ -36,7 +36,7 @@ export class DefaultServiceFactory implements ServiceFactory {
   private readonly auth = new Lazy(() => admin.auth())
   private readonly firestore = new Lazy(() => admin.firestore())
   private readonly messaging = new Lazy(() => admin.messaging())
-  private readonly storage = new Lazy(() => admin.storage())
+  private readonly storageService = new Lazy(() => admin.storage())
 
   // Properties - Database Layer
 
@@ -51,7 +51,7 @@ export class DefaultServiceFactory implements ServiceFactory {
       new DebugDataService(
         this.auth.value,
         this.databaseService.value,
-        this.storage.value,
+        this.storageService.value,
       ),
   )
 
@@ -112,8 +112,8 @@ export class DefaultServiceFactory implements ServiceFactory {
     return this.historyService.value
   }
 
-  storage(): any {
-    return this.storage.value
+  storage(): admin.storage.Storage {
+    return this.storageService.value
   }
 
   // Methods - Trigger

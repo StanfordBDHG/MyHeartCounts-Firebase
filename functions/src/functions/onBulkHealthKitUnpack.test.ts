@@ -11,6 +11,8 @@ import * as os from 'os'
 import * as path from 'path'
 import * as zlib from 'zlib'
 import { expect } from 'chai'
+import type * as admin from 'firebase-admin'
+import { type CloudEvent } from 'firebase-functions/v2'
 import { describe, it, beforeEach, afterEach } from 'mocha'
 import * as sinon from 'sinon'
 import { onBulkHealthKitUploaded } from './onBulkHealthKitUnpack.js'
@@ -77,7 +79,7 @@ describeWithEmulators('onBulkHealthKitUnpack', () => {
     // Setup bucket.getFiles result for onBulkHealthKitUploaded
     sandbox.stub(getServiceFactory(), 'storage').returns({
       bucket: bucketStub,
-    })
+    } as unknown as admin.storage.Storage)
 
     // Setup mock for zlib.inflateSync
     const mockBuffer = Buffer.from(mockData)
@@ -94,11 +96,17 @@ describeWithEmulators('onBulkHealthKitUnpack', () => {
   it('should process a single zlib file when uploaded', async () => {
     // Create mock data for the storage event
     const event = {
+      id: '123456',
+      specversion: '1.0',
+      type: 'google.cloud.storage.object.v1.finalized',
+      source:
+        'projects/myheartcounts-firebase/storage/myheartcounts-firebase.appspot.com',
+      time: '2023-04-17T12:00:00Z',
       data: {
         name: 'users/test-user-id/bulkHealthKitUploads/testfile.zlib',
         contentType: 'application/octet-stream',
       },
-    }
+    } as CloudEvent<unknown>
 
     // Call the function
     await onBulkHealthKitUploaded(event)
@@ -132,11 +140,17 @@ describeWithEmulators('onBulkHealthKitUnpack', () => {
   it('should ignore non-zlib files', async () => {
     // Create mock data for a non-zlib file
     const event = {
+      id: '123457',
+      specversion: '1.0',
+      type: 'google.cloud.storage.object.v1.finalized',
+      source:
+        'projects/myheartcounts-firebase/storage/myheartcounts-firebase.appspot.com',
+      time: '2023-04-17T12:00:00Z',
       data: {
         name: 'users/test-user-id/bulkHealthKitUploads/testfile.json',
         contentType: 'application/json',
       },
-    }
+    } as CloudEvent<unknown>
 
     // Call the function
     await onBulkHealthKitUploaded(event)
