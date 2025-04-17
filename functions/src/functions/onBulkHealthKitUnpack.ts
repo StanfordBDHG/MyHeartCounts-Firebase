@@ -9,6 +9,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { promisify } from 'util'
 import * as zlib from 'zlib'
 import admin from 'firebase-admin'
 import type * as adminTypes from 'firebase-admin'
@@ -63,38 +64,149 @@ async function processZlibFile(
     // Create a temp file path for download
     const tempFilePath = path.join(os.tmpdir(), path.basename(filePath))
 
-    // Download the zlib file
-    await file.download({ destination: tempFilePath })
+    // Track file download time
+    const downloadStartTime = Date.now()
 
-    // Read the downloaded file
-    const compressedData = fs.readFileSync(tempFilePath)
+    // Download the zlib file directly to memory for better performance
+    const [fileBuffer] = await file.download()
+    const compressedData = fileBuffer
+
+    logger.info(
+      `Downloaded file (${compressedData.length} bytes) in ${Date.now() - downloadStartTime}ms`,
+    )
+
+    // Write to temp file as backup (useful if processing very large files)
+    const writeStartTime = Date.now()
+    await fs.promises.writeFile(tempFilePath, compressedData)
+    logger.info(`Wrote backup file in ${Date.now() - writeStartTime}ms`)
 
     // Extract HealthKit identifier from file name if it matches the HealthKitExports pattern
     const healthKitIdentifier = extractHealthKitIdentifier(filePath)
 
-    // Decompress the data
+    // Decompress the data using async methods for better performance
+    const decompressStartTime = Date.now()
     let decompressedData: Buffer
     try {
-      // Try standard inflate
-      decompressedData = zlib.inflateSync(compressedData)
+      // Try standard inflate with async version for better performance
+      decompressedData = await new Promise<Buffer>((resolve, reject) => {
+        zlib.inflate(compressedData, (err, result) => {
+          if (err) reject(err)
+          else resolve(result)
+        })
+      })
+      logger.info(
+        `Decompressed with inflate in ${Date.now() - decompressStartTime}ms`,
+      )
     } catch (inflateError) {
-      logger.warn(`Standard inflate failed, trying gunzip`)
+      logger.warn(
+        `Standard inflate failed after ${Date.now() - decompressStartTime}ms, trying gunzip`,
+      )
+      const gunzipStartTime = Date.now()
       try {
-        // If inflate fails, try gunzip
-        decompressedData = zlib.gunzipSync(compressedData)
+        // If inflate fails, try gunzip with async version
+        decompressedData = await new Promise<Buffer>((resolve, reject) => {
+          zlib.gunzip(compressedData, (err, result) => {
+            if (err) reject(err)
+            else resolve(result)
+          })
+        })
+        logger.info(
+          `Decompressed with gunzip in ${Date.now() - gunzipStartTime}ms`,
+        )
       } catch (gunzipError) {
-        logger.warn(`Gunzip also failed, trying deflate`)
-        // If both fail, try deflate as a last resort
-        decompressedData = zlib.deflateSync(compressedData)
+        logger.warn(
+          `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying deflate`,
+        )
+        const deflateStartTime = Date.now()
+        // If both fail, try deflate as a last resort with async version
+        decompressedData = await new Promise<Buffer>((resolve, reject) => {
+          zlib.deflate(compressedData, (err, result) => {
+            if (err) reject(err)
+            else resolve(result)
+          })
+        })
+        logger.info(
+          `Decompressed with deflate in ${Date.now() - deflateStartTime}ms`,
+        )
       }
     }
 
     // Parse the JSON content
+    const parseStartTime = Date.now()
     const jsonContent = JSON.parse(decompressedData.toString())
     const keys = Object.keys(jsonContent)
+    logger.info(
+      `Parsed JSON content (${decompressedData.length} bytes, ${keys.length} items) in ${Date.now() - parseStartTime}ms`,
+    )
     logger.info(`Processing ${keys.length} items from ${filePath}`)
 
-    // For each decompressed item, write it to the appropriate Firestore collection
+    // Configuration for chunking
+    const maxChunksPerRun = 10
+    const chunkSize = 2000 // Chunk size for documents
+
+    // Create a unique execution ID to track this run
+    const executionId = `exec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+
+    // Check if we have a progress marker file from a previous run
+    let startChunkIndex = 0
+    try {
+      const progressFilePath = `${filePath}.progress.json`
+      const progressFile = bucket.file(progressFilePath)
+      const [progressExists] = await progressFile.exists()
+
+      if (progressExists) {
+        const [progressBuffer] = await progressFile.download()
+        const progressData = JSON.parse(progressBuffer.toString())
+
+        if (
+          progressData?.processedChunks &&
+          typeof progressData.processedChunks === 'number'
+        ) {
+          startChunkIndex = Number(progressData.processedChunks)
+          logger.info(
+            `Found progress marker: already processed ${startChunkIndex} chunks of data in previous runs`,
+          )
+        }
+      }
+    } catch (progressError) {
+      // If we can't read the progress file, start from the beginning
+      logger.warn(
+        `Could not read progress file (will start from beginning): ${String(progressError)}`,
+      )
+    }
+
+    // Get a reference to the database service through our service factory
+    const db = getServiceFactory().databaseService()
+    const collections = db.collections
+
+    // Initialize BulkWriter with more conservative settings to avoid timeouts
+    const bulkWriter = db.firestore.bulkWriter({
+      throttling: {
+        maxOpsPerSecond: 200, // More conservative rate to avoid hitting limits
+      },
+    })
+
+    // Add error handling for the bulk writer
+    bulkWriter.onWriteError((error) => {
+      if (error.failedAttempts < 5) {
+        logger.warn(
+          `Retrying write to ${error.documentRef.path}, attempt ${error.failedAttempts}`,
+        )
+        return true // Retry the write
+      } else {
+        logger.error(
+          `Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts`,
+        )
+        return false // Don't retry anymore
+      }
+    })
+
+    const documentRefs: Array<{
+      ref: adminTypes.firestore.DocumentReference
+      data: Record<string, any>
+    }> = []
+
+    // For each decompressed item, prepare it for the appropriate Firestore collection
     for (const [key, value] of Object.entries(jsonContent)) {
       let collectionName: string
       let documentId: string
@@ -136,12 +248,10 @@ async function processZlibFile(
           uuidFromValue ?? admin.firestore.Timestamp.now().toMillis().toString()
       }
 
-      // Get a reference to the database service through our service factory
-      const db = getServiceFactory().databaseService()
-      const collections = db.collections
+      // Collection reference is set globally
 
       try {
-        // Convert to proper firestore document data
+        // Convert to proper firestore document data - optimize data before storing
         const documentData = value as Record<string, any>
 
         // For any collection, we use the raw firestore reference
@@ -151,19 +261,204 @@ async function processZlibFile(
           .doc(userId)
           .collection(collectionName)
 
-        // Write the document
-        await collectionRef.doc(documentId).set(documentData)
+        // Store document reference and data for bulk writing
+        documentRefs.push({
+          ref: collectionRef.doc(documentId),
+          data: documentData,
+        })
       } catch (writeError) {
         logger.error(`Error writing to Firestore: ${String(writeError)}`)
         throw writeError
       }
     }
 
-    // Delete the original compressed file
-    await file.delete()
+    // Execute all writes using BulkWriter with chunking for better performance
+    if (documentRefs.length > 0) {
+      logger.info(`Bulk writing ${documentRefs.length} documents to Firestore`)
 
-    // Clean up temp file
-    fs.unlinkSync(tempFilePath)
+      // Using the chunk size defined earlier in the function
+
+      // Add performance tracking
+      const startTime = Date.now()
+
+      // Log the start of execution using the ID defined earlier
+      logger.info(
+        `Starting execution ${executionId} for ${documentRefs.length} documents`,
+      )
+
+      // Skip already processed chunks based on progress marker
+      let skipCount = 0
+      if (startChunkIndex > 0) {
+        skipCount = startChunkIndex * chunkSize
+        logger.info(
+          `Skipping ${skipCount} already processed documents (${startChunkIndex} chunks)`,
+        )
+      }
+
+      // Process in chunks to reduce memory usage and improve performance
+      // Start from the chunk index indicated by our progress marker
+      for (
+        let i = startChunkIndex * chunkSize;
+        i < documentRefs.length;
+        i += chunkSize
+      ) {
+        const chunkStartTime = Date.now()
+        const chunk = documentRefs.slice(i, i + chunkSize)
+        const chunkNumber = Math.floor(i / chunkSize) + 1
+        const totalChunks = Math.ceil(documentRefs.length / chunkSize)
+
+        logger.info(
+          `[${executionId}] Writing chunk ${chunkNumber}/${totalChunks} (${chunk.length} docs)`,
+        )
+
+        // We'll use the maxChunksPerRun defined at the end of the function
+        const processedChunksThisRun = chunkNumber - startChunkIndex
+
+        if (processedChunksThisRun >= maxChunksPerRun) {
+          logger.info(
+            `[${executionId}] Reached maximum chunks per run (${maxChunksPerRun}). Processed chunks ${Number(startChunkIndex) + 1}-${chunkNumber} of ${totalChunks}. Remaining chunks will need a separate execution.`,
+          )
+          break
+        }
+
+        // Set each document with the bulkWriter
+        const queueStartTime = Date.now()
+        for (const doc of chunk) {
+          // Use void to explicitly mark as ignored since we're handling errors with onWriteError
+          void bulkWriter.set(doc.ref, doc.data)
+        }
+        logger.info(
+          `[${executionId}] Queued ${chunk.length} documents in ${Date.now() - queueStartTime}ms`,
+        )
+
+        // Insert a slightly longer delay between chunks to avoid rate limits
+        if (
+          i + chunkSize < documentRefs.length &&
+          chunkNumber < maxChunksPerRun
+        ) {
+          const delayTime = 50 // Slightly longer delay
+          logger.info(
+            `[${executionId}] Delaying ${delayTime}ms before next chunk`,
+          )
+          await new Promise((resolve) => setTimeout(resolve, delayTime))
+        }
+
+        logger.info(
+          `[${executionId}] Finished processing chunk ${chunkNumber} in ${Date.now() - chunkStartTime}ms`,
+        )
+      }
+
+      // Wait for all writes to complete with timing
+      const commitStartTime = Date.now()
+      logger.info(
+        `[${executionId}] Starting bulkWriter.close() at ${new Date().toISOString()}`,
+      )
+
+      try {
+        // Set a longer timeout for large uploads to complete
+        const timeoutPromise = new Promise((_, reject) => {
+          const timeoutMs = 300000 // 5 minutes timeout
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `[${executionId}] BulkWriter close timed out after ${timeoutMs}ms`,
+                ),
+              ),
+            timeoutMs,
+          )
+        })
+
+        // Race the bulkWriter close with the timeout
+        await Promise.race([bulkWriter.close(), timeoutPromise])
+
+        logger.info(
+          `[${executionId}] BulkWriter.close() completed in ${Date.now() - commitStartTime}ms`,
+        )
+
+        // Log overall performance
+        logger.info(
+          `[${executionId}] Total bulk write operation took ${Date.now() - startTime}ms`,
+        )
+        logger.info(
+          `[${executionId}] Successfully processed batch of documents`,
+        )
+      } catch (closeError) {
+        logger.error(
+          `[${executionId}] Error during bulkWriter.close(): ${String(closeError)}`,
+        )
+        // Continue with cleanup even if bulkWriter.close() fails
+      }
+    }
+
+    // Only delete the original file if we've processed all chunks
+    const totalChunks = Math.ceil(documentRefs.length / chunkSize)
+    const allChunksProcessed = totalChunks <= maxChunksPerRun
+
+    if (allChunksProcessed) {
+      // Delete the original compressed file with error handling
+      try {
+        await file.delete()
+        logger.info(
+          `Deleted original file from storage: ${filePath} (all data processed)`,
+        )
+      } catch (deleteError) {
+        // Log but continue execution
+        logger.warn(
+          `Error deleting original file ${filePath}: ${String(deleteError)}`,
+        )
+      }
+    } else {
+      // Create a progress marker file to indicate processing progress
+      try {
+        // Remove this line since we're now using startChunkIndex to track progress
+        const nextChunkToProcess = Math.min(
+          Number(startChunkIndex) + maxChunksPerRun,
+          totalChunks,
+        )
+        const progressMarker = {
+          totalDocuments: documentRefs.length,
+          processedChunks: nextChunkToProcess,
+          totalChunks: totalChunks,
+          lastProcessed: Date.now(),
+          executionId: executionId,
+        }
+
+        // Store progress marker alongside the original file
+        const progressFilePath = `${filePath}.progress.json`
+        const progressFile = bucket.file(progressFilePath)
+        await progressFile.save(JSON.stringify(progressMarker), {
+          contentType: 'application/json',
+        })
+
+        const documentsProcessed = progressMarker.processedChunks * chunkSize
+        const documentsRemaining = documentRefs.length - documentsProcessed
+
+        logger.info(
+          `Saved progress marker for ${filePath}: processed ${progressMarker.processedChunks}/${progressMarker.totalChunks} chunks (${documentsProcessed}/${documentRefs.length} documents)`,
+        )
+        logger.info(
+          `File will be processed further in future runs (${documentsRemaining} documents remaining)`,
+        )
+      } catch (progressError) {
+        logger.error(`Failed to save progress marker: ${String(progressError)}`)
+      }
+    }
+
+    // Clean up temp file with error handling
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath)
+        logger.info(`Cleaned up temporary file ${tempFilePath}`)
+      } else {
+        logger.warn(
+          `Temporary file ${tempFilePath} doesn't exist, skipping cleanup`,
+        )
+      }
+    } catch (cleanupError) {
+      // Just log cleanup errors but don't halt execution
+      logger.warn(`Error cleaning up temp file: ${String(cleanupError)}`)
+    }
 
     logger.info(`Successfully processed ${keys.length} items from ${filePath}`)
   } catch (error) {
@@ -201,53 +496,82 @@ async function processAllZlibFiles() {
     const totalUsers = userIdArray.length
     logger.info(`Found ${totalUsers} users with files to process`)
 
-    // For each user ID
-    for (const userId of userIdArray) {
-      // Get all zlib files in the bulkHealthKitUploads directory
-      const [files] = await bucket.getFiles({
-        prefix: `users/${userId}/bulkHealthKitUploads/`,
-      })
+    // Process users in parallel with a concurrency limit
+    const userConcurrencyLimit = 3 // Adjust based on your environment
 
-      // Check for files that might be zlib but don't have the correct extension
-      for (const file of files) {
-        const isZlib = file.name.endsWith('.zlib')
+    // Process users in batches
+    for (let i = 0; i < userIdArray.length; i += userConcurrencyLimit) {
+      const userBatch = userIdArray.slice(i, i + userConcurrencyLimit)
+      logger.info(
+        `Processing batch of ${userBatch.length} users (${i + 1}-${Math.min(i + userConcurrencyLimit, userIdArray.length)} of ${userIdArray.length})`,
+      )
 
-        // Check for files that might be zlib but don't have the extension
-        if (
-          !isZlib &&
-          (file.name.includes('.json.zlib') || file.name.endsWith('.zlib.json'))
-        ) {
-          logger.warn(
-            `${file.name} appears to be a zlib file with incorrect extension`,
-          )
+      // Process this batch of users in parallel
+      await Promise.all(
+        userBatch.map(async (userId) => {
+          // Get all zlib files in the bulkHealthKitUploads directory
+          const [files] = await bucket.getFiles({
+            prefix: `users/${userId}/bulkHealthKitUploads/`,
+          })
 
-          // Try to process it anyway - just strip the .json if present
-          const correctedPath = file.name
-            .replace('.json.zlib', '.zlib')
-            .replace('.zlib.json', '.zlib')
+          // Check for files that might be zlib but don't have the correct extension
+          for (const file of files) {
+            const isZlib = file.name.endsWith('.zlib')
 
-          try {
-            // Copy to a path with correct extension so our filter will catch it
-            await bucket.file(file.name).copy(bucket.file(correctedPath))
-            logger.info(`Copied to ${correctedPath} for processing`)
-          } catch (copyErr) {
-            logger.error(`Failed to copy file: ${String(copyErr)}`)
+            // Check for files that might be zlib but don't have the extension
+            if (
+              !isZlib &&
+              (file.name.includes('.json.zlib') ||
+                file.name.endsWith('.zlib.json'))
+            ) {
+              logger.warn(
+                `${file.name} appears to be a zlib file with incorrect extension`,
+              )
+
+              // Try to process it anyway - just strip the .json if present
+              const correctedPath = file.name
+                .replace('.json.zlib', '.zlib')
+                .replace('.zlib.json', '.zlib')
+
+              try {
+                // Copy to a path with correct extension so our filter will catch it
+                await bucket.file(file.name).copy(bucket.file(correctedPath))
+                logger.info(`Copied to ${correctedPath} for processing`)
+              } catch (copyErr) {
+                logger.error(`Failed to copy file: ${String(copyErr)}`)
+              }
+            }
           }
-        }
-      }
 
-      // Process each zlib file
-      const zlibFiles = files.filter((f) => f.name.endsWith('.zlib'))
+          // Process each zlib file in parallel
+          const zlibFiles = files.filter((f) => f.name.endsWith('.zlib'))
 
-      if (zlibFiles.length > 0) {
-        logger.info(
-          `Processing ${zlibFiles.length} .zlib files for user ${userId}`,
-        )
+          if (zlibFiles.length > 0) {
+            logger.info(
+              `Processing ${zlibFiles.length} .zlib files for user ${userId}`,
+            )
 
-        for (const file of zlibFiles) {
-          await processZlibFile(userId, file.name, storage)
-        }
-      }
+            // Process files in parallel with a concurrency limit
+            const concurrencyLimit = 5 // Adjust based on your environment
+
+            // Process files in batches
+            for (let j = 0; j < zlibFiles.length; j += concurrencyLimit) {
+              const batch = zlibFiles.slice(j, j + concurrencyLimit)
+
+              // Process this batch in parallel
+              await Promise.all(
+                batch.map((file) =>
+                  processZlibFile(userId, file.name, storage),
+                ),
+              )
+
+              logger.info(
+                `Completed batch ${j / concurrencyLimit + 1} of ${Math.ceil(zlibFiles.length / concurrencyLimit)}`,
+              )
+            }
+          }
+        }),
+      )
     }
 
     logger.info('Successfully processed all zlib files')
@@ -257,43 +581,15 @@ async function processAllZlibFiles() {
   }
 }
 
-/**
- * Process a specific zlib file that was just uploaded
- */
-export const onBulkHealthKitUploaded = onObjectFinalized(
-  { bucket: 'myheartcounts-firebase.appspot.com' },
-  async (event) => {
-    const filePath = event.data.name
-
-    // Only process zlib files in bulkHealthKitUploads directories
-    if (
-      !filePath.includes('/bulkHealthKitUploads/') ||
-      !filePath.endsWith('.zlib')
-    ) {
-      return
-    }
-
-    // Extract userId from path (users/{userId}/bulkHealthKitUploads/file.zlib)
-    const match = filePath.match(/^users\/([^/]+)\/bulkHealthKitUploads\//)
-    if (!match) {
-      logger.error(`Invalid file path: ${filePath}`)
-      return
-    }
-
-    const userId = match[1]
-    const storage = getServiceFactory().storage()
-
-    // Process the zlib file
-    await processZlibFile(userId, filePath, storage)
-  },
-)
+// onBulkHealthKitUploaded function has been removed in favor of using only the scheduled processor
 
 /**
- * Scheduled function that runs hourly to process any zlib files
+ * Scheduled function that runs regularly to process any zlib files
  */
-export const onScheduleHourlyZlibProcessor = onSchedule(
+export const onScheduleZlibProcessor = onSchedule(
   {
-    schedule: 'every 60 minutes',
+    schedule: 'every 5 minutes',
+    timeoutSeconds: 300, // Extend timeout to 5 minutes, should be enough
   },
   async () => {
     await processAllZlibFiles()
@@ -304,7 +600,10 @@ export const onScheduleHourlyZlibProcessor = onSchedule(
  * HTTP endpoint to manually trigger the bulk health kit processing
  */
 export const processBulkHealthKit = onRequest(
-  { cors: true },
+  {
+    cors: true,
+    timeoutSeconds: 540, // Extend timeout to 9 minutes for HTTP function
+  },
   async (req, res) => {
     try {
       // Check if the request includes a specific file path
