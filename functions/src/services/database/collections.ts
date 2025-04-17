@@ -17,7 +17,6 @@ import {
 } from '@stanfordbdhg/engagehf-models'
 import { type Firestore } from 'firebase-admin/firestore'
 import { DatabaseConverter } from './databaseConverter.js'
-import { historyChangeItemConverter } from '../history/historyService.js'
 
 export class CollectionsService {
   // Properties
@@ -38,11 +37,6 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(userDeviceConverter.value))
   }
 
-  get history() {
-    return this.firestore
-      .collection('history')
-      .withConverter(new DatabaseConverter(historyChangeItemConverter))
-  }
 
   get questionnaires() {
     return this.firestore

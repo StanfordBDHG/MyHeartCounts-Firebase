@@ -9,7 +9,7 @@
 import type * as admin from 'firebase-admin'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type Credential } from '../credential/credential.js'
-import { type HistoryService } from '../history/historyService.js'
+import { type DatabaseService } from '../database/databaseService.js'
 import { type MessageService } from '../message/messageService.js'
 import { type DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { type StaticDataService } from '../seeding/staticData/staticDataService.js'
@@ -26,8 +26,8 @@ export interface ServiceFactory {
 
   debugData(): DebugDataService
   staticData(): StaticDataService
-  history(): HistoryService
   storage(): admin.storage.Storage
+  databaseService(): DatabaseService
 
   // Trigger
 

@@ -12,9 +12,8 @@ import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type ServiceFactoryOptions } from './getServiceFactory.js'
 import { type ServiceFactory } from './serviceFactory.js'
 import { Credential } from '../credential/credential.js'
+import { type DatabaseService } from '../database/databaseService.js'
 import { FirestoreService } from '../database/firestoreService.js'
-import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
-import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
@@ -40,7 +39,7 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   // Properties - Database Layer
 
-  private readonly databaseService = new Lazy(
+  private readonly dbService = new Lazy(
     () => new FirestoreService(this.firestore.value),
   )
 
@@ -50,28 +49,25 @@ export class DefaultServiceFactory implements ServiceFactory {
     () =>
       new DebugDataService(
         this.auth.value,
-        this.databaseService.value,
+        this.dbService.value,
         this.storageService.value,
       ),
   )
 
   // HealthSummary service removed
 
-  private readonly historyService = new Lazy(
-    () => new DatabaseHistoryService(this.databaseService.value),
-  )
 
   private readonly messageService = new Lazy(
     () =>
       new DefaultMessageService(
         this.messaging.value,
-        this.databaseService.value,
+        this.dbService.value,
         this.userService.value,
       ),
   )
 
   private readonly staticDataService = new Lazy(
-    () => new StaticDataService(this.databaseService.value),
+    () => new StaticDataService(this.dbService.value),
   )
 
   // SymptomScore calculator removed
@@ -79,7 +75,7 @@ export class DefaultServiceFactory implements ServiceFactory {
   private readonly triggerService = new Lazy(() => new TriggerServiceImpl(this))
 
   private readonly userService = new Lazy(
-    () => new DatabaseUserService(this.auth.value, this.databaseService.value),
+    () => new DatabaseUserService(this.auth.value, this.dbService.value),
   )
 
   // Constructor
@@ -108,12 +104,13 @@ export class DefaultServiceFactory implements ServiceFactory {
     return this.staticDataService.value
   }
 
-  history(): HistoryService {
-    return this.historyService.value
-  }
 
   storage(): admin.storage.Storage {
     return this.storageService.value
+  }
+
+  databaseService(): DatabaseService {
+    return this.dbService.value
   }
 
   // Methods - Trigger

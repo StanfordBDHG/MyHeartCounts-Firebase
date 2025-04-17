@@ -19,15 +19,25 @@ import { type Document, type DatabaseService } from './databaseService.js'
 export class FirestoreService implements DatabaseService {
   // Properties
 
-  private readonly collectionsService = new Lazy(
-    () => new CollectionsService(this.firestore),
+  private readonly _collectionsService = new Lazy(
+    () => new CollectionsService(this._firestore),
   )
-  private readonly firestore: Firestore
+  private readonly _firestore: Firestore
+
+  // Public accessors
+
+  get collections(): CollectionsService {
+    return this._collectionsService.value
+  }
+
+  get firestore(): Firestore {
+    return this._firestore
+  }
 
   // Constructor
 
   constructor(firestore: Firestore) {
-    this.firestore = firestore
+    this._firestore = firestore
     // Settings are already applied globally in index.js
   }
 
@@ -38,7 +48,7 @@ export class FirestoreService implements DatabaseService {
       collectionsService: CollectionsService,
     ) => FirebaseFirestore.Query<T>,
   ): Promise<Array<Document<T>>> {
-    const collection = await query(this.collectionsService.value).get()
+    const collection = await query(this.collections).get()
     return collection.docs.map((doc) => ({
       id: doc.id,
       path: doc.ref.path,
@@ -52,7 +62,7 @@ export class FirestoreService implements DatabaseService {
       collectionsService: CollectionsService,
     ) => FirebaseFirestore.DocumentReference<T>,
   ): Promise<Document<T> | undefined> {
-    const ref = reference(this.collectionsService.value)
+    const ref = reference(this.collections)
     const doc = await ref.get()
     const data = doc.exists ? doc.data() : undefined
     return doc.exists && data !== undefined ?
@@ -73,8 +83,8 @@ export class FirestoreService implements DatabaseService {
     ) => Promise<void>,
     options?: BulkWriterOptions,
   ): Promise<void> {
-    const writer = this.firestore.bulkWriter(options)
-    await write(this.collectionsService.value, writer)
+    const writer = this._firestore.bulkWriter(options)
+    await write(this.collections, writer)
     await writer.close()
   }
 
@@ -83,7 +93,7 @@ export class FirestoreService implements DatabaseService {
       collections: CollectionsService,
     ) => FirebaseFirestore.DocumentReference<T>,
   ): Promise<FirebaseFirestore.CollectionReference[]> {
-    return docReference(this.collectionsService.value).listCollections()
+    return docReference(this.collections).listCollections()
   }
 
   async runTransaction<T>(
@@ -92,8 +102,8 @@ export class FirestoreService implements DatabaseService {
       transaction: Transaction,
     ) => Promise<T> | T,
   ): Promise<T> {
-    return this.firestore.runTransaction(async (transaction) =>
-      run(this.collectionsService.value, transaction),
+    return this._firestore.runTransaction(async (transaction) =>
+      run(this.collections, transaction),
     )
   }
 }

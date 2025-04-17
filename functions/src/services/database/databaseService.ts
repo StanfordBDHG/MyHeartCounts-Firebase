@@ -21,6 +21,10 @@ export interface Document<Content> {
 }
 
 export interface DatabaseService {
+  // Collection and Firestore access
+  readonly collections: CollectionsService
+  readonly firestore: FirebaseFirestore.Firestore
+
   getQuery<T>(
     query: (
       collectionsService: CollectionsService,
