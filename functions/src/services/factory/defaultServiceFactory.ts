@@ -111,7 +111,7 @@ export class DefaultServiceFactory implements ServiceFactory {
   history(): HistoryService {
     return this.historyService.value
   }
-  
+
   storage(): any {
     return this.storage.value
   }

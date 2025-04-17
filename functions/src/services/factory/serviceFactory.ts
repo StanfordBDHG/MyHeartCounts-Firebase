@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import type * as admin from 'firebase-admin'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type Credential } from '../credential/credential.js'
 import { type HistoryService } from '../history/historyService.js'
@@ -26,7 +27,7 @@ export interface ServiceFactory {
   debugData(): DebugDataService
   staticData(): StaticDataService
   history(): HistoryService
-  storage(): any
+  storage(): admin.storage.Storage
 
   // Trigger
 
