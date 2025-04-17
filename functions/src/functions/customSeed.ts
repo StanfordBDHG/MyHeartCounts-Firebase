@@ -7,6 +7,7 @@
 //
 
 import { customSeedingOptionsSchema } from '@stanfordbdhg/engagehf-models'
+import { logger } from 'firebase-functions'
 import { validatedOnRequest } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
@@ -20,7 +21,20 @@ export const customSeed = validatedOnRequest(
       throw factory.credential(undefined).permissionDeniedError()
     }
 
-    await factory.debugData().seedCustom(data)
+    const debugDataService = factory.debugData()
+    const userIds = await debugDataService.seedCustom(data)
+
+    // Create bulkHealthKitUploads folder for each user
+    for (const userId of userIds) {
+      try {
+        await debugDataService.seedBulkHealthKitUploadsFolder(userId)
+      } catch (error) {
+        // Log error but continue with other users
+        logger.error(
+          `Failed to create bulkHealthKitUploads folder for ${userId}: ${String(error)}`,
+        )
+      }
+    }
     response.write('Success', 'utf8')
     response.end()
   },

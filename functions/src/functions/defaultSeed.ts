@@ -51,6 +51,9 @@ async function _seedPatientCollections(input: {
 }): Promise<void> {
   const promises: Array<Promise<void>> = []
 
+  // Always create the bulkHealthKitUploads folder for each patient
+  promises.push(input.debugData.seedBulkHealthKitUploadsFolder(input.userId))
+
   if (input.components.includes(UserDebugDataComponent.heartRateObservations)) {
     promises.push(
       input.debugData.seedUserHeartRateObservations(input.userId, input.date),

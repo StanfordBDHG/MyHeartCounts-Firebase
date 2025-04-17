@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
 import {
   advanceDateByDays,
   chunks,
@@ -83,6 +86,23 @@ export class DebugDataService extends SeedingService {
       destination: `users/${userId}/consent/consent.pdf`,
       contentType: 'application/pdf',
     })
+  }
+
+  async seedBulkHealthKitUploadsFolder(userId: string) {
+    // Create an empty file to ensure the directory structure exists in Firebase Storage
+    const tempFilePath = path.join(os.tmpdir(), '.keep')
+    fs.writeFileSync(tempFilePath, '')
+    
+    const keepFilePath = `users/${userId}/bulkHealthKitUploads/.keep`
+    
+    // Upload the .keep file to create the directory structure
+    await this.storage.bucket().upload(tempFilePath, {
+      destination: keepFilePath,
+      contentType: 'text/plain',
+    })
+    
+    // Clean up the temporary local file;
+    fs.unlinkSync(tempFilePath)
   }
 
   async seedPublicFiles() {
