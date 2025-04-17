@@ -37,7 +37,6 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(userDeviceConverter.value))
   }
 
-
   get questionnaires() {
     return this.firestore
       .collection('questionnaires')

@@ -56,7 +56,6 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   // HealthSummary service removed
 
-
   private readonly messageService = new Lazy(
     () =>
       new DefaultMessageService(
@@ -103,7 +102,6 @@ export class DefaultServiceFactory implements ServiceFactory {
   staticData(): StaticDataService {
     return this.staticDataService.value
   }
-
 
   storage(): admin.storage.Storage {
     return this.storageService.value

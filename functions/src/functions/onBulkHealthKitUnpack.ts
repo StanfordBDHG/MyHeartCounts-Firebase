@@ -10,12 +10,32 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as zlib from 'zlib'
-import type * as admin from 'firebase-admin'
+import admin from 'firebase-admin'
+import type * as adminTypes from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onRequest } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onObjectFinalized } from 'firebase-functions/v2/storage'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+
+/**
+ * Extracts the HealthKit identifier from a filename
+ *
+ * @param filePath The file path to extract from
+ * @returns The HealthKit identifier or null if not found
+ */
+function extractHealthKitIdentifier(filePath: string): string | null {
+  // Extract the filename from the path
+  const filename = path.basename(filePath)
+
+  // Check if the filename matches the HealthKitExports pattern
+  const match = filename.match(/^HealthKitExports_(.+)\.json\.zlib$/)
+  if (match?.[1]) {
+    return match[1]
+  }
+
+  return null
+}
 
 /**
  * Process a single zlib file from Firebase Storage
@@ -27,9 +47,10 @@ import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 async function processZlibFile(
   userId: string,
   filePath: string,
-  storage: admin.storage.Storage,
+  storage: adminTypes.storage.Storage,
 ) {
   try {
+    logger.info(`Processing zlib file for user ${userId}: ${filePath}`)
     const bucket = storage.bucket()
     const file = bucket.file(filePath)
 
@@ -39,7 +60,6 @@ async function processZlibFile(
       logger.info(`File ${filePath} does not exist, skipping`)
       return
     }
-
     // Create a temp file path for download
     const tempFilePath = path.join(os.tmpdir(), path.basename(filePath))
 
@@ -49,42 +69,106 @@ async function processZlibFile(
     // Read the downloaded file
     const compressedData = fs.readFileSync(tempFilePath)
 
+    // Extract HealthKit identifier from file name if it matches the HealthKitExports pattern
+    const healthKitIdentifier = extractHealthKitIdentifier(filePath)
+
     // Decompress the data
-    const decompressedData = zlib.inflateSync(compressedData)
+    let decompressedData: Buffer
+    try {
+      // Try standard inflate
+      decompressedData = zlib.inflateSync(compressedData)
+    } catch (inflateError) {
+      logger.warn(`Standard inflate failed, trying gunzip`)
+      try {
+        // If inflate fails, try gunzip
+        decompressedData = zlib.gunzipSync(compressedData)
+      } catch (gunzipError) {
+        logger.warn(`Gunzip also failed, trying deflate`)
+        // If both fail, try deflate as a last resort
+        decompressedData = zlib.deflateSync(compressedData)
+      }
+    }
 
     // Parse the JSON content
     const jsonContent = JSON.parse(decompressedData.toString())
+    const keys = Object.keys(jsonContent)
+    logger.info(`Processing ${keys.length} items from ${filePath}`)
 
-    // For each decompressed item, write it to its own file in the user's directory
+    // For each decompressed item, write it to the appropriate Firestore collection
     for (const [key, value] of Object.entries(jsonContent)) {
-      const destinationPath = `users/${userId}/${key}`
-      const tempJsonPath = path.join(os.tmpdir(), `${key}.json`)
+      let collectionName: string
+      let documentId: string
 
-      // Create a temporary JSON file
-      fs.writeFileSync(tempJsonPath, JSON.stringify(value))
+      // Try to extract UUID from the value data if it's an object to use as document ID
+      const documentData = value as Record<string, any>
+      let uuidFromValue: string | null = null
 
-      // Upload to Firebase Storage
-      await bucket.upload(tempJsonPath, {
-        destination: destinationPath,
-        contentType: 'application/json',
-      })
+      // Check if the value has an identifier field with UUID
+      if (
+        Array.isArray(documentData?.identifier) &&
+        documentData?.identifier?.[0]?.id
+      ) {
+        uuidFromValue = documentData.identifier[0].id
+      }
 
-      // Clean up temp JSON file
-      fs.unlinkSync(tempJsonPath)
+      // Parse the key to get collection name and document ID as fallback
+      const keyParts = key.split('/')
+      const fileNameParts = keyParts[keyParts.length - 1].split('.')
 
-      logger.info(
-        `Successfully decompressed and uploaded ${key} from ${filePath}`,
-      )
+      // Set collection name based on HealthKit identifier from filename
+      if (healthKitIdentifier) {
+        collectionName = `HealthKitObservations_${healthKitIdentifier}`
+
+        // Use UUID from JSON if available, otherwise generate a timestamp ID
+        if (uuidFromValue) {
+          documentId = uuidFromValue
+        } else {
+          documentId = admin.firestore.Timestamp.now().toMillis().toString()
+        }
+      } else if (keyParts.length > 1) {
+        // Fallback for standard collection/document structure
+        collectionName = keyParts[0]
+        documentId = fileNameParts[0] // Remove .json extension
+      } else {
+        // Final fallback
+        collectionName = fileNameParts[0]
+        documentId =
+          uuidFromValue ?? admin.firestore.Timestamp.now().toMillis().toString()
+      }
+
+      // Get a reference to the database service through our service factory
+      const db = getServiceFactory().databaseService()
+      const collections = db.collections
+
+      try {
+        // Convert to proper firestore document data
+        const documentData = value as Record<string, any>
+
+        // For any collection, we use the raw firestore reference
+        // to avoid type issues with the converters
+        const collectionRef = db.firestore
+          .collection('users')
+          .doc(userId)
+          .collection(collectionName)
+
+        // Write the document
+        await collectionRef.doc(documentId).set(documentData)
+      } catch (writeError) {
+        logger.error(`Error writing to Firestore: ${String(writeError)}`)
+        throw writeError
+      }
     }
 
     // Delete the original compressed file
     await file.delete()
-    logger.info(`Deleted original compressed file ${filePath}`)
 
     // Clean up temp file
     fs.unlinkSync(tempFilePath)
+
+    logger.info(`Successfully processed ${keys.length} items from ${filePath}`)
   } catch (error) {
     logger.error(`Error processing zlib file ${filePath}: ${String(error)}`)
+    logger.error(`Stack trace: ${(error as Error).stack ?? 'No stack trace'}`)
     throw error
   }
 }
@@ -97,29 +181,72 @@ async function processAllZlibFiles() {
     const storage = getServiceFactory().storage()
     const bucket = storage.bucket()
 
-    // Get all user directories
-    const [userDirs] = await bucket.getFiles({
+    // Get all files to extract user IDs
+    const [allUserFiles] = await bucket.getFiles({
       prefix: 'users/',
-      delimiter: '/',
     })
 
-    // For each user directory
-    for (const dir of userDirs) {
-      // Extract userId from path (users/{userId}/)
-      const match = dir.name.match(/^users\/([^/]+)\/$/)
-      if (!match) continue
+    // Extract unique user IDs from file paths
+    const userIds = new Set<string>()
 
-      const userId = match[1]
+    for (const file of allUserFiles) {
+      // Extract userId from path (users/{userId}/...)
+      const match = file.name.match(/^users\/([^/]+)\//)
+      if (match?.[1]) {
+        userIds.add(match[1])
+      }
+    }
 
+    const userIdArray = Array.from(userIds)
+    const totalUsers = userIdArray.length
+    logger.info(`Found ${totalUsers} users with files to process`)
+
+    // For each user ID
+    for (const userId of userIdArray) {
       // Get all zlib files in the bulkHealthKitUploads directory
       const [files] = await bucket.getFiles({
         prefix: `users/${userId}/bulkHealthKitUploads/`,
-        delimiter: '/',
       })
 
+      // Check for files that might be zlib but don't have the correct extension
+      for (const file of files) {
+        const isZlib = file.name.endsWith('.zlib')
+
+        // Check for files that might be zlib but don't have the extension
+        if (
+          !isZlib &&
+          (file.name.includes('.json.zlib') || file.name.endsWith('.zlib.json'))
+        ) {
+          logger.warn(
+            `${file.name} appears to be a zlib file with incorrect extension`,
+          )
+
+          // Try to process it anyway - just strip the .json if present
+          const correctedPath = file.name
+            .replace('.json.zlib', '.zlib')
+            .replace('.zlib.json', '.zlib')
+
+          try {
+            // Copy to a path with correct extension so our filter will catch it
+            await bucket.file(file.name).copy(bucket.file(correctedPath))
+            logger.info(`Copied to ${correctedPath} for processing`)
+          } catch (copyErr) {
+            logger.error(`Failed to copy file: ${String(copyErr)}`)
+          }
+        }
+      }
+
       // Process each zlib file
-      for (const file of files.filter((f) => f.name.endsWith('.zlib'))) {
-        await processZlibFile(userId, file.name, storage)
+      const zlibFiles = files.filter((f) => f.name.endsWith('.zlib'))
+
+      if (zlibFiles.length > 0) {
+        logger.info(
+          `Processing ${zlibFiles.length} .zlib files for user ${userId}`,
+        )
+
+        for (const file of zlibFiles) {
+          await processZlibFile(userId, file.name, storage)
+        }
       }
     }
 
@@ -156,7 +283,7 @@ export const onBulkHealthKitUploaded = onObjectFinalized(
     const userId = match[1]
     const storage = getServiceFactory().storage()
 
-    // Process the specific file
+    // Process the zlib file
     await processZlibFile(userId, filePath, storage)
   },
 )
@@ -180,11 +307,27 @@ export const processBulkHealthKit = onRequest(
   { cors: true },
   async (req, res) => {
     try {
-      await processAllZlibFiles()
-      res.status(200).send({
-        success: true,
-        message: 'Processed all zlib files successfully',
-      })
+      // Check if the request includes a specific file path
+      const specificPath = req.query.path as string | undefined
+      const specificUserId = req.query.userId as string | undefined
+
+      if (specificPath && specificUserId) {
+        // Process the specific file
+        const storage = getServiceFactory().storage()
+        await processZlibFile(specificUserId, specificPath, storage)
+
+        res.status(200).send({
+          success: true,
+          message: `Processed file ${specificPath} for user ${specificUserId}`,
+        })
+      } else {
+        // Process all files
+        await processAllZlibFiles()
+        res.status(200).send({
+          success: true,
+          message: 'Processed all zlib files successfully',
+        })
+      }
     } catch (error) {
       logger.error(`Error in HTTP trigger: ${String(error)}`)
       res.status(500).send({ success: false, error: String(error) })
