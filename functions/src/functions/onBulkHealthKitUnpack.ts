@@ -12,6 +12,7 @@ import * as path from 'path'
 import * as zlib from 'zlib'
 import type * as admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
+import { onRequest } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onObjectFinalized } from 'firebase-functions/v2/storage'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
@@ -169,5 +170,24 @@ export const onScheduleHourlyZlibProcessor = onSchedule(
   },
   async () => {
     await processAllZlibFiles()
+  },
+)
+
+/**
+ * HTTP endpoint to manually trigger the bulk health kit processing
+ */
+export const processBulkHealthKit = onRequest(
+  { cors: true },
+  async (req, res) => {
+    try {
+      await processAllZlibFiles()
+      res.status(200).send({
+        success: true,
+        message: 'Processed all zlib files successfully',
+      })
+    } catch (error) {
+      logger.error(`Error in HTTP trigger: ${String(error)}`)
+      res.status(500).send({ success: false, error: String(error) })
+    }
   },
 )
