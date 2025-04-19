@@ -25,7 +25,7 @@ import { getServiceFactory } from '../services/factory/getServiceFactory.js'
  * @param filePath The file path to extract from
  * @returns The HealthKit identifier or null if not found
  */
-function extractHealthKitIdentifier(filePath: string): string | null {
+export function extractHealthKitIdentifier(filePath: string): string | null {
   // Extract the filename from the path
   const filename = path.basename(filePath)
 
@@ -45,7 +45,7 @@ function extractHealthKitIdentifier(filePath: string): string | null {
  * @param filePath The file path
  * @param storage The Firebase Storage instance
  */
-async function processZlibFile(
+export async function processZlibFile(
   userId: string,
   filePath: string,
   storage: adminTypes.storage.Storage,
