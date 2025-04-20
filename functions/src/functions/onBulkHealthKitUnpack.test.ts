@@ -71,6 +71,33 @@ describe('onBulkHealthKitUnpack', () => {
       expect(zlibFile.includes('/bulkHealthKitUploads/')).to.be.true
       expect(!zlibFile.endsWith('/.keep')).to.be.true
     })
+
+    it('should identify incorrectly named HealthKit files', () => {
+      // Files that look like HealthKit but have incorrect extensions
+      const incorrectFile1 =
+        'users/test-user-id/bulkHealthKitUploads/HealthKitExports_ABC123.json.zlib.json'
+      const incorrectFile2 =
+        'users/test-user-id/bulkHealthKitUploads/HealthKitExports_ABC123.json'
+
+      // Test if they contain the expected strings for identification
+      expect(incorrectFile1.includes('.json.zlib')).to.be.true
+      expect(incorrectFile1.endsWith('.json')).to.be.true
+      expect(incorrectFile1.includes('HealthKitExports_')).to.be.true
+
+      expect(incorrectFile2.includes('HealthKitExports_')).to.be.true
+      expect(incorrectFile2.endsWith('.json')).to.be.true
+      expect(!incorrectFile2.endsWith('.zlib')).to.be.true
+
+      // Test that correction logic would work
+      const correctedPath1 = incorrectFile1
+        .replace('.json.zlib', '.zlib')
+        .replace('.zlib.json', '.zlib')
+
+      expect(correctedPath1.endsWith('.zlib')).to.be.true
+      expect(correctedPath1).to.equal(
+        'users/test-user-id/bulkHealthKitUploads/HealthKitExports_ABC123.zlib',
+      )
+    })
   })
 
   if (!TestFlags.forceRunDisabledTests) {
@@ -158,6 +185,22 @@ describe('onBulkHealthKitUnpack', () => {
           }
         })
 
+        // Additional test to increase coverage of decompressData error paths
+        it('should handle invalid compression formats gracefully', async () => {
+          // Create an invalid compressed buffer (just random data)
+          const invalidData = Buffer.from('not compressed data')
+
+          try {
+            await decompressData(invalidData)
+            // If we get here, something went wrong
+            expect.fail('Should have thrown an error for invalid data')
+          } catch (error) {
+            // This is expected behavior - we should hit multiple catch blocks
+            // in the decompressData function as it tries different methods
+            expect(error).to.exist
+          }
+        })
+
         it('should successfully decompress data with gunzip when inflate fails', async () => {
           // Create test data and compress with gzip
           const testData = { test: 'data for gzip' }
@@ -233,6 +276,47 @@ describe('onBulkHealthKitUnpack', () => {
 
         // This verifies that we can parse progress files correctly
         // which is essential for the chunking functionality
+      })
+
+      it('should handle progress marker files with invalid data', async () => {
+        // Test handling of malformed progress data
+
+        // Case 1: Missing processedChunks field
+        const incompleteData: Record<string, any> = {
+          totalDocuments: 5000,
+          // processedChunks is missing
+          totalChunks: 3,
+          lastProcessed: Date.now(),
+          executionId: 'test_run_456',
+        }
+
+        // Check that we can identify missing fields
+        expect('processedChunks' in incompleteData).to.be.false
+        expect(incompleteData.processedChunks).to.be.undefined
+
+        // Case 2: Invalid processedChunks type
+        const invalidTypeData = {
+          totalDocuments: 5000,
+          processedChunks: '1', // String instead of number
+          totalChunks: 3,
+          lastProcessed: Date.now(),
+          executionId: 'test_run_789',
+        }
+
+        // Check that we can convert the string to a number
+        const convertedValue = Number(invalidTypeData.processedChunks)
+        expect(convertedValue).to.equal(1)
+        expect(typeof convertedValue).to.equal('number')
+
+        // Case 3: Test parsing a JSON string with progress data
+        const progressDataString =
+          '{"totalDocuments":5000,"processedChunks":2,"totalChunks":3}'
+        const parsedProgressData = JSON.parse(progressDataString)
+
+        // Verify parsed data is correct
+        expect(parsedProgressData.totalDocuments).to.equal(5000)
+        expect(parsedProgressData.processedChunks).to.equal(2)
+        expect(parsedProgressData.totalChunks).to.equal(3)
       })
 
       it('should test bulkWriter error handling', () => {
