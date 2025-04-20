@@ -581,8 +581,6 @@ async function processAllZlibFiles() {
   }
 }
 
-// onBulkHealthKitUploaded function has been removed in favor of using only the scheduled processor
-
 /**
  * Scheduled function that runs regularly to process any zlib files
  */
