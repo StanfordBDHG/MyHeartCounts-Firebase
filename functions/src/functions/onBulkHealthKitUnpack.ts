@@ -78,18 +78,18 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
       return decompressedData
     } catch (gunzipError) {
       logger.warn(
-        `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying deflate`,
+        `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying inflateRaw`,
       )
-      const deflateStartTime = Date.now()
-      // If both fail, try deflate as a last resort with async version
+      const inflateRawStartTime = Date.now()
+      // If both fail, try inflateRaw as a last resort with async version
       decompressedData = await new Promise<Buffer>((resolve, reject) => {
-        zlib.deflate(compressedData, (err, result) => {
+        zlib.inflateRaw(compressedData, (err, result) => {
           if (err) reject(err)
           else resolve(result)
         })
       })
       logger.info(
-        `Decompressed with deflate in ${Date.now() - deflateStartTime}ms`,
+        `Decompressed with inflateRaw in ${Date.now() - inflateRawStartTime}ms`,
       )
       return decompressedData
     }
@@ -615,20 +615,59 @@ async function processAllZlibFiles() {
 }
 
 /**
- * Scheduled function that runs regularly to process any zlib files
+ * Storage trigger that processes .zlib files as soon as they are uploaded
  */
-export const onScheduleZlibProcessor = onSchedule(
+export const onZlibFileUploaded = onObjectFinalized(
   {
-    schedule: 'every 5 minutes',
-    timeoutSeconds: 300, // Extend timeout to 5 minutes, should be enough
+    // Use a more generic bucket option to avoid initialization errors during testing
+    bucket: undefined, // This will match any bucket in the project
+    timeoutSeconds: 300, // Extend timeout to 5 minutes
+    region: 'us-central1',
+    memory: '1GiB',
   },
-  async () => {
-    await processAllZlibFiles()
+  async (event) => {
+    try {
+      // Extract file information from the event
+      const filePath = event.data.name
+      logger.info(`File uploaded: ${filePath}`)
+
+      // Only process .zlib files in the bulkHealthKitUploads directory
+      if (
+        !filePath.endsWith('.zlib') ||
+        !filePath.includes('/bulkHealthKitUploads/')
+      ) {
+        logger.info(
+          `Skipping file: ${filePath} - Not a .zlib file or not in bulkHealthKitUploads directory`,
+        )
+        return
+      }
+
+      // Extract user ID from the file path (users/{userId}/...)
+      const userIdMatch = filePath.match(/^users\/([^/]+)\//)
+      if (!userIdMatch?.[1]) {
+        logger.error(`Could not extract user ID from file path: ${filePath}`)
+        return
+      }
+
+      const userId = userIdMatch[1]
+      logger.info(`Processing file for user ${userId}: ${filePath}`)
+
+      // Process the specific file
+      const storage = getServiceFactory().storage()
+      await processZlibFile(userId, filePath, storage)
+
+      logger.info(`Successfully processed file: ${filePath}`)
+    } catch (error) {
+      logger.error(`Error processing uploaded file: ${String(error)}`)
+      logger.error(`Stack trace: ${(error as Error).stack ?? 'No stack trace'}`)
+      throw error
+    }
   },
 )
 
 /**
  * HTTP endpoint to manually trigger the bulk health kit processing
+ * This is kept for backward compatibility and administrative purposes
  */
 export const processBulkHealthKit = onRequest(
   {

@@ -227,27 +227,53 @@ describe('onBulkHealthKitUnpack', () => {
           }
         })
 
-        it('should use deflate for compression and decompression', async () => {
-          // Create test data and compress with deflate
-          const testData = { test: 'data for deflate test' }
+        it('should use raw deflate/inflate for compression and decompression', async () => {
+          // Create test data and compress with deflateRaw
+          const testData = { test: 'data for raw inflate test' }
           const jsonData = JSON.stringify(testData)
 
-          // Use deflate for compression
-          const deflateBuffer = promisify(zlib.deflate)
-          const compressedData = await deflateBuffer(Buffer.from(jsonData))
+          // Use deflateRaw for compression (should be decompressed with inflateRaw)
+          const deflateRawBuffer = promisify(zlib.deflateRaw)
+          const compressedData = await deflateRawBuffer(Buffer.from(jsonData))
 
-          try {
-            // Test decompression with our function
-            const decompressedData = await decompressData(compressedData)
+          // Test decompression with our function
+          const decompressedData = await decompressData(compressedData)
 
-            // Verify the decompressed data
-            const parsedData = JSON.parse(decompressedData.toString())
-            expect(parsedData).to.deep.equal(testData)
-          } catch (error) {
-            console.error('Error in deflate test:', error)
-            // For coverage purposes
-            expect(true).to.be.true
-          }
+          // Verify the decompressed data
+          const parsedData = JSON.parse(decompressedData.toString())
+          expect(parsedData).to.deep.equal(testData)
+        })
+
+        it('should handle all decompression methods correctly', async () => {
+          // Test with standard inflate data
+          const inflateData = await promisify(zlib.deflate)(
+            Buffer.from(JSON.stringify({ inflate: 'test' })),
+          )
+
+          // Test with gzip data
+          const gzipData = await promisify(zlib.gzip)(
+            Buffer.from(JSON.stringify({ gzip: 'test' })),
+          )
+
+          // Test with raw inflate data (for the third path)
+          const rawData = await promisify(zlib.deflateRaw)(
+            Buffer.from(JSON.stringify({ raw: 'test' })),
+          )
+
+          // Test all paths
+          const inflateResult = await decompressData(inflateData)
+          const gzipResult = await decompressData(gzipData)
+          const rawResult = await decompressData(rawData)
+
+          expect(JSON.parse(inflateResult.toString())).to.deep.equal({
+            inflate: 'test',
+          })
+          expect(JSON.parse(gzipResult.toString())).to.deep.equal({
+            gzip: 'test',
+          })
+          expect(JSON.parse(rawResult.toString())).to.deep.equal({
+            raw: 'test',
+          })
         })
       })
 
@@ -276,6 +302,53 @@ describe('onBulkHealthKitUnpack', () => {
 
         // This verifies that we can parse progress files correctly
         // which is essential for the chunking functionality
+      })
+
+      it('should simulate processing with progress marker handling without ES Module stubbing', () => {
+        // Instead of stubbing ES modules, we'll test the logic directly
+
+        // Create a test progress marker
+        const progressData = {
+          totalDocuments: 5000,
+          processedChunks: 2,
+          totalChunks: 5,
+          lastProcessed: Date.now() - 60000,
+          executionId: 'prev-execution',
+        }
+
+        // Test progress marker parsing
+        const progressString = JSON.stringify(progressData)
+        const parsedProgress = JSON.parse(progressString)
+
+        // Verify correct parsing
+        expect(parsedProgress.processedChunks).to.equal(2)
+        expect(parsedProgress.totalChunks).to.equal(5)
+
+        // Test chunk calculations
+        const chunkSize = 2000
+        const docCount = 2 // Small number of docs
+        const totalChunks = Math.ceil(docCount / chunkSize)
+        expect(totalChunks).to.equal(1)
+
+        // Test remaining docs calculation
+        const startChunkIndex = parsedProgress.processedChunks
+        const processedCount = startChunkIndex * chunkSize
+        const remainingCount = Math.max(0, docCount - processedCount)
+
+        // With our test data (2 documents), already processed 2 chunks (4000 docs)
+        // There should be no remaining docs
+        expect(remainingCount).to.equal(0)
+
+        // Test next chunk calculation
+        const maxChunksPerRun = 10
+        const nextChunkToProcess = Math.min(
+          Number(startChunkIndex) + maxChunksPerRun,
+          totalChunks,
+        )
+
+        // Since we've already processed 2 chunks and total is 1,
+        // next chunk should equal total chunks (1)
+        expect(nextChunkToProcess).to.equal(1)
       })
 
       it('should handle progress marker files with invalid data', async () => {
@@ -434,7 +507,7 @@ describe('onBulkHealthKitUnpack', () => {
       })
 
       // Test for better coverage of processZlibFile
-      it('should test key aspects of processZlibFile functionality', async () => {
+      it('should test key aspects of processZlibFile functionality without ES Module stubbing', () => {
         // This test is designed to test individual parts of the functionality
         // without relying on ES module stubbing which causes errors
 
@@ -442,67 +515,6 @@ describe('onBulkHealthKitUnpack', () => {
         const userId = 'test-user-id'
         const filePath =
           'users/test-user-id/bulkHealthKitUploads/HealthKitExports_TestID.json.zlib'
-
-        // Create a simple mock storage
-        const mockBucket = {
-          file: () => ({
-            exists: async () => [true],
-            download: async () => [Buffer.from('test-data')],
-            delete: async () => true,
-          }),
-        }
-
-        const mockStorage = {
-          bucket: () => mockBucket,
-        }
-
-        // Mock for the database service and bulk writer
-        const mockBulkWriter = {
-          set: () => {
-            return true
-          },
-          close: async () => {
-            return true
-          },
-          onWriteError: (callback: any) => {
-            // Test the callback with different error scenarios
-            const error1 = {
-              failedAttempts: 3,
-              documentRef: { path: 'test-path' },
-            }
-            const error2 = {
-              failedAttempts: 6,
-              documentRef: { path: 'test-path' },
-            }
-
-            // Call the callback to execute its code
-            const shouldRetry1 = callback(error1)
-            const shouldRetry2 = callback(error2)
-
-            // Verify the callback behaves as expected
-            expect(shouldRetry1).to.be.true // Should retry if < 5 attempts
-            expect(shouldRetry2).to.be.false // Should not retry if >= 5 attempts
-          },
-        }
-
-        const mockFirestore = {
-          bulkWriter: () => mockBulkWriter,
-          collection: () => ({
-            doc: () => ({
-              collection: () => ({
-                doc: () => ({ id: 'doc-id' }),
-              }),
-            }),
-          }),
-        }
-
-        const mockDbService = {
-          firestore: mockFirestore,
-          collections: {},
-        }
-
-        // Instead of stubbing ES modules, test individual exported functions
-        // This is more reliable than trying to stub ES modules
 
         // Test 1: Extract and verify HealthKit identifier from the path
         const healthKitId = extractHealthKitIdentifier(filePath)
@@ -557,11 +569,61 @@ describe('onBulkHealthKitUnpack', () => {
 
         const chunkSize = 2000
         const totalChunks = Math.ceil(testDocRefs.length / chunkSize)
-
         expect(totalChunks).to.equal(3) // 5000 / 2000 rounded up = 3
 
-        // We've tested key aspects of the function without ES module stubbing
-        expect(true).to.be.true
+        // Test 5: Test all chunks processed check
+        const maxChunksPerRun = 10
+        const allChunksProcessed = totalChunks <= maxChunksPerRun
+        expect(allChunksProcessed).to.be.true
+
+        // Test 6: Test progress marker logic
+        const currentChunk = 1
+        const nextChunkToProcess = Math.min(
+          Number(currentChunk) + maxChunksPerRun,
+          totalChunks,
+        )
+        expect(nextChunkToProcess).to.equal(3) // Should process all remaining chunks
+
+        // Test 7: Verify chunk slicing logic
+        const firstChunk = testDocRefs.slice(0, chunkSize)
+        const secondChunk = testDocRefs.slice(chunkSize, 2 * chunkSize)
+        const thirdChunk = testDocRefs.slice(2 * chunkSize)
+
+        expect(firstChunk.length).to.equal(2000)
+        expect(secondChunk.length).to.equal(2000)
+        expect(thirdChunk.length).to.equal(1000)
+      })
+
+      it('should simulate error during file processing', async () => {
+        // Setup mocks for error case
+        const userId = 'test-user-id'
+        const filePath = 'users/test-user-id/bulkHealthKitUploads/error.zlib'
+
+        // Mock storage with error
+        const mockErrorStorage = {
+          bucket: () => ({
+            file: () => ({
+              exists: async () => [true],
+              download: async () => {
+                throw new Error('Download failed')
+              },
+            }),
+          }),
+        }
+
+        // Create a mock fs stub that doesn't throw errors
+        const fsWriteFileStub = sinon.stub(fs.promises, 'writeFile').resolves()
+
+        try {
+          // This should throw the download error
+          await processZlibFile(userId, filePath, mockErrorStorage as any)
+          expect.fail('Should have thrown an error')
+        } catch (error) {
+          expect(error).to.exist
+          expect((error as Error).message).to.include('Download failed')
+        } finally {
+          fsWriteFileStub.restore()
+        }
       })
 
       // Test JSON parsing for HealthKit data
