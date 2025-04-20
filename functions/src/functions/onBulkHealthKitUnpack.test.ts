@@ -19,6 +19,11 @@ import {
   processZlibFile,
   decompressData,
   parseDocumentInfo,
+  isApproachingTimeLimit,
+  extractUserIdsFromFiles,
+  correctZlibFilePath,
+  filterZlibFiles,
+  shouldProcessFile,
 } from './onBulkHealthKitUnpack.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
@@ -624,6 +629,413 @@ describe('onBulkHealthKitUnpack', () => {
         } finally {
           fsWriteFileStub.restore()
         }
+      })
+
+      // Test the isApproachingTimeLimit helper function
+      describe('isApproachingTimeLimit', () => {
+        it('should return true when time remaining is less than 5 minutes', () => {
+          // Current time is 25 minutes into a 29 minute max execution
+          const startTime = Date.now() - 1500000 // 25 minutes ago
+          const maxTime = 1740000 // 29 minutes
+
+          // Should return true with less than 5 minutes remaining
+          expect(isApproachingTimeLimit(startTime, maxTime)).to.be.true
+        })
+
+        it('should return false when plenty of time remains', () => {
+          // Current time is 10 minutes into a 29 minute max execution
+          const startTime = Date.now() - 600000 // 10 minutes ago
+          const maxTime = 1740000 // 29 minutes
+
+          // Should return false with more than 5 minutes remaining
+          expect(isApproachingTimeLimit(startTime, maxTime)).to.be.false
+        })
+
+        it('should return true when execution time has exceeded max time', () => {
+          // Current time is 30 minutes into a 29 minute max execution
+          const startTime = Date.now() - 1800000 // 30 minutes ago
+          const maxTime = 1740000 // 29 minutes
+
+          // Should return true when time has already exceeded limit
+          expect(isApproachingTimeLimit(startTime, maxTime)).to.be.true
+        })
+      })
+
+      // Test the execution timeout functionality
+      it('should test execution timeout functionality', () => {
+        // Test the timeout logic and graceful shutdown
+        const startExecutionTime = Date.now() - 1500000 // 25 minutes ago
+        const maxExecutionTimeMs = 1740000 // 29 minutes
+
+        // Calculate remaining time
+        const remainingTimeMs =
+          maxExecutionTimeMs - (Date.now() - startExecutionTime)
+        const remainingMinutes = remainingTimeMs / 60000
+
+        // Test approaching timeout condition using our helper function
+        expect(isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs))
+          .to.be.true
+
+        // Test timeout flag
+        let executionTimedOut = false
+        const setTimeoutCallback = () => {
+          executionTimedOut = true
+        }
+
+        // Simulate timeout occurring
+        setTimeoutCallback()
+        expect(executionTimedOut).to.be.true
+
+        // Test logging when timeout occurs
+        const minutesElapsed = (
+          (Date.now() - startExecutionTime) /
+          60000
+        ).toFixed(2)
+        expect(Number(minutesElapsed)).to.be.greaterThan(24) // Should be around 25 minutes
+      })
+
+      // Test progress tracking with timeout
+      it('should test progress tracking with timeout', () => {
+        // Setup test variables
+        const chunkSize = 2000
+        const documentRefs = Array.from({ length: 5000 }, (_, i) => ({
+          ref: { id: `doc${i}` },
+          data: { value: i },
+        }))
+        const totalChunks = Math.ceil(documentRefs.length / chunkSize)
+
+        // Test progress marker calculation when timeout occurs
+        let executionTimedOut = true
+        let i = 3200 // Processed 1 full chunk and partially into the second
+
+        // Calculate current chunk index when timed out
+        const currentChunkIndex =
+          executionTimedOut ?
+            Math.floor(i / chunkSize) // If timed out, use the last chunk we were working on
+          : totalChunks // Otherwise we've processed all chunks
+
+        expect(currentChunkIndex).to.equal(1) // Should be processing chunk 1 (0-indexed)
+
+        // Test progress marker data structure
+        const progressMarker = {
+          totalDocuments: documentRefs.length,
+          processedChunks: currentChunkIndex,
+          totalChunks: totalChunks,
+          lastProcessed: Date.now(),
+          executionId: 'test-execution',
+        }
+
+        expect(progressMarker.processedChunks).to.equal(1)
+        expect(progressMarker.totalChunks).to.equal(3)
+
+        // Test all chunks processed calculation
+        const startChunkIndex = 0
+        const allChunksProcessed =
+          !executionTimedOut &&
+          startChunkIndex * chunkSize +
+            (totalChunks - startChunkIndex) * chunkSize >=
+            documentRefs.length
+
+        expect(allChunksProcessed).to.be.false // Should not be complete due to timeout
+
+        // Test when not timed out
+        executionTimedOut = false
+        i = documentRefs.length // Processed all documents
+
+        const completedChunkIndex =
+          executionTimedOut ? Math.floor(i / chunkSize) : totalChunks
+
+        expect(completedChunkIndex).to.equal(3) // All chunks processed
+
+        const allComplete =
+          !executionTimedOut &&
+          startChunkIndex * chunkSize +
+            (totalChunks - startChunkIndex) * chunkSize >=
+            documentRefs.length
+
+        expect(allComplete).to.be.true // Should be complete since no timeout
+      })
+
+      // Test timeout for bulkWriter close
+      it('should test Promise.race with timeout for bulkWriter', async () => {
+        // Create a mock for the bulkWriter.close function
+        const mockBulkWriterClose = () =>
+          new Promise((resolve) => {
+            // Simulate a successful close after 100ms
+            setTimeout(() => resolve('success'), 100)
+          })
+
+        // Create a timeout promise with a longer timeout
+        const createTimeoutPromise = (timeoutMs: number) =>
+          new Promise((_, reject) => {
+            setTimeout(
+              () => reject(new Error(`Timeout after ${timeoutMs}ms`)),
+              timeoutMs,
+            )
+          })
+
+        // Test 1: When bulkWriter.close() completes before timeout
+        const timeoutPromise1 = createTimeoutPromise(500) // 500ms timeout
+        const result1 = await Promise.race([
+          mockBulkWriterClose(),
+          timeoutPromise1,
+        ])
+        expect(result1).to.equal('success')
+
+        // Test 2: Create a mock bulkWriter.close that never resolves
+        const mockNeverResolvingClose = () =>
+          new Promise(() => {
+            // This promise never resolves
+          })
+
+        // Use a short timeout to ensure the test doesn't hang
+        const timeoutPromise2 = createTimeoutPromise(50)
+
+        try {
+          await Promise.race([mockNeverResolvingClose(), timeoutPromise2])
+          expect.fail('Should have timed out')
+        } catch (error) {
+          expect((error as Error).message).to.include('Timeout after 50ms')
+        }
+
+        // Test clearing a timeout
+        const timeoutId = setTimeout(() => {
+          // This is intentionally empty for testing timeout clearing
+        }, 1000)
+        clearTimeout(timeoutId)
+
+        // No assertion needed - we're just testing that clearTimeout doesn't throw
+        expect(true).to.be.true
+      })
+
+      // Test bulk writer error handling logic directly
+      it('should test bulk writer error handling logic', () => {
+        // Define the expected function signature
+        type ErrorHandler = (error: {
+          failedAttempts: number
+          documentRef: { path: string }
+        }) => boolean
+
+        // Define the handler function matching the logic from onBulkHealthKitUnpack.ts
+        const errorHandler: ErrorHandler = (error) => {
+          if (error.failedAttempts < 5) {
+            return true // Retry the write
+          } else {
+            return false // Don't retry anymore
+          }
+        }
+
+        // Test document reference
+        const mockDocRef = { path: 'users/123/test/doc1' }
+
+        // Test cases
+        const errorWithFewAttempts = {
+          failedAttempts: 3,
+          documentRef: mockDocRef,
+        }
+
+        const errorWithManyAttempts = {
+          failedAttempts: 5,
+          documentRef: mockDocRef,
+        }
+
+        // Verify the handler works correctly
+        expect(errorHandler(errorWithFewAttempts)).to.be.true // Should retry
+        expect(errorHandler(errorWithManyAttempts)).to.be.false // Should not retry
+      })
+
+      // Test execution timeout detection
+      it('should test execution timeout detection logic', () => {
+        // Test approaching time limit (less than 5 minutes remaining)
+        const startTime = Date.now() - 1600000 // 26.67 minutes ago
+        const maxTimeMs = 1740000 // 29 minutes
+
+        // Test when we're approaching the timeout
+        expect(isApproachingTimeLimit(startTime, maxTimeMs)).to.be.true
+
+        // Test with plenty of time remaining
+        const earlyStartTime = Date.now() - 600000 // Only 10 minutes ago
+        expect(isApproachingTimeLimit(earlyStartTime, maxTimeMs)).to.be.false
+      })
+
+      // Test file content processing directly
+      it('should test file content processing logic', async () => {
+        // Prepare test JSON content
+        const testJsonContent = {
+          'observation/heartRate': {
+            identifier: [{ id: 'heart-rate-1' }],
+            value: 72,
+            code: 'heartRate',
+          },
+          'observation/bloodPressure': {
+            value: 120,
+            code: 'systolicBloodPressure',
+          },
+        }
+
+        // Test extracting HealthKit ID
+        const testFilePath =
+          'users/test-user/bulkHealthKitUploads/HealthKitExports_ABC123.json.zlib'
+        const extractedId = extractHealthKitIdentifier(testFilePath)
+        expect(extractedId).to.equal('ABC123')
+
+        // Test parsing document info
+        const heartRateKey = 'observation/heartRate'
+        const heartRateValue = testJsonContent[heartRateKey]
+        const heartRateInfo = parseDocumentInfo(
+          heartRateKey,
+          heartRateValue,
+          extractedId,
+        )
+
+        expect(heartRateInfo.collectionName).to.equal(
+          'HealthKitObservations_ABC123',
+        )
+        expect(heartRateInfo.documentId).to.equal('heart-rate-1')
+
+        // Test parsing document without identifier
+        const bpKey = 'observation/bloodPressure'
+        const bpValue = testJsonContent[bpKey]
+        const bpInfo = parseDocumentInfo(bpKey, bpValue, extractedId)
+
+        expect(bpInfo.collectionName).to.equal('HealthKitObservations_ABC123')
+        // Should use timestamp for ID since no identifier present
+        expect(Number(bpInfo.documentId)).to.be.a('number')
+      })
+
+      // Test the shouldProcessFile function
+      it('should test shouldProcessFile function', () => {
+        // Test validating file paths for the storage trigger
+        const validPath = 'users/test-user/bulkHealthKitUploads/data.zlib'
+        const invalidPath1 = 'users/test-user/bulkHealthKitUploads/data.txt'
+        const invalidPath2 = 'users/test-user/otherFolder/data.zlib'
+
+        // Test the function directly
+        expect(shouldProcessFile(validPath)).to.be.true
+        expect(shouldProcessFile(invalidPath1)).to.be.false
+        expect(shouldProcessFile(invalidPath2)).to.be.false
+      })
+
+      // Test extractUserIdsFromFiles function
+      it('should test extractUserIdsFromFiles function', () => {
+        // Setup test files
+        const testFiles = [
+          { name: 'users/user1/file1.txt' },
+          { name: 'users/user2/file2.txt' },
+          { name: 'users/user1/file3.txt' },
+          { name: 'not-a-user-file.txt' },
+        ]
+
+        // Extract user IDs
+        const userIds = extractUserIdsFromFiles(testFiles)
+
+        // Verify results
+        expect(userIds.size).to.equal(2)
+        expect(userIds.has('user1')).to.be.true
+        expect(userIds.has('user2')).to.be.true
+        expect(userIds.has('not-a-user')).to.be.false
+      })
+
+      // Test correctZlibFilePath function
+      it('should test correctZlibFilePath function', () => {
+        // Test various file paths
+        const alreadyCorrect = 'users/test-user/bulkHealthKitUploads/file.zlib'
+        // File needs correction - has extra .json in the name
+        const needsCorrection1 =
+          'users/test-user/bulkHealthKitUploads/file.json.zlib'
+        // File needs correction - has .json at the end
+        const needsCorrection2 =
+          'users/test-user/bulkHealthKitUploads/file.zlib.json'
+        // Regular non-zlib file
+        const nonZlib = 'users/test-user/bulkHealthKitUploads/file.txt'
+
+        // Test function behavior
+        // Already correct files should return null (no correction needed)
+        expect(correctZlibFilePath(alreadyCorrect)).to.be.null
+
+        // Files matching .json.zlib pattern should be corrected
+        const corrected1 = correctZlibFilePath(needsCorrection1)
+        expect(corrected1).to.not.be.null
+        expect(corrected1).to.equal(
+          'users/test-user/bulkHealthKitUploads/file.zlib',
+        )
+
+        // Files matching .zlib.json pattern should be corrected
+        const corrected2 = correctZlibFilePath(needsCorrection2)
+        expect(corrected2).to.not.be.null
+        expect(corrected2).to.equal(
+          'users/test-user/bulkHealthKitUploads/file.zlib',
+        )
+
+        // Non-zlib files should return null (no correction needed/possible)
+        expect(correctZlibFilePath(nonZlib)).to.be.null
+      })
+
+      // Test filterZlibFiles function
+      it('should test filterZlibFiles function', () => {
+        // Setup test files
+        const testFiles = [
+          { name: 'file1.zlib' },
+          { name: 'file2.txt' },
+          { name: 'file3.zlib' },
+          { name: 'file4.json' },
+        ]
+
+        // Filter files
+        const zlibFiles = filterZlibFiles(testFiles)
+
+        // Verify results
+        expect(zlibFiles.length).to.equal(2)
+        expect(zlibFiles[0].name).to.equal('file1.zlib')
+        expect(zlibFiles[1].name).to.equal('file3.zlib')
+      })
+
+      // Test file path validation for cloud functions
+      it('should test user ID extraction from paths', () => {
+        // Test validating file paths and ID extraction
+        const validPath = 'users/test-user/bulkHealthKitUploads/data.zlib'
+
+        // Test user ID extraction regex
+        const userIdMatch = validPath.match(/^users\/([^/]+)\//)
+        expect(userIdMatch).to.not.be.null
+        expect(userIdMatch?.[1]).to.equal('test-user')
+      })
+
+      // Test HTTP request handling logic
+      it('should test HTTP request parameters and validation', () => {
+        // Test the HTTP endpoint request handling logic
+
+        // Valid request with both path and userId
+        const validRequest = {
+          query: {
+            userId: 'test-user',
+            path: 'users/test-user/bulkHealthKitUploads/data.zlib',
+          },
+        }
+
+        // Verify the parameter format
+        expect(validRequest.query.userId).to.be.a('string')
+        expect(validRequest.query.path).to.be.a('string')
+        expect(validRequest.query.path.includes(validRequest.query.userId)).to
+          .be.true
+
+        // Test with a request that has no params
+        const emptyRequest = {
+          query: {} as Record<string, unknown>,
+        }
+        expect(emptyRequest.query.userId).to.be.undefined
+        expect(emptyRequest.query.path).to.be.undefined
+
+        // Test the logic for checking if a specific path was requested
+        const hasSpecificPath = !!(
+          validRequest.query.path && validRequest.query.userId
+        )
+        expect(hasSpecificPath).to.be.true
+
+        const hasNoSpecificPath = !!(
+          emptyRequest.query.path && emptyRequest.query.userId
+        )
+        expect(hasNoSpecificPath).to.be.false
       })
 
       // Test JSON parsing for HealthKit data

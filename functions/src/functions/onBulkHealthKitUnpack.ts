@@ -97,6 +97,23 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
 }
 
 /**
+ * Helper function to check if execution time limit is approaching
+ * Extracted for better testability
+ *
+ * @param startTime The time when execution started
+ * @param maxTimeMs The maximum execution time in milliseconds
+ * @returns True if approaching time limit
+ */
+export function isApproachingTimeLimit(
+  startTime: number,
+  maxTimeMs: number,
+): boolean {
+  const elapsedMs = Date.now() - startTime
+  const remainingMs = maxTimeMs - elapsedMs
+  return remainingMs < 300000 // less than 5 minutes remaining
+}
+
+/**
  * Parse document information from a key-value pair
  *
  * @param key The key from the JSON content
@@ -166,6 +183,8 @@ export async function processZlibFile(
   filePath: string,
   storage: adminTypes.storage.Storage,
 ) {
+  // Define i at function scope to track the last processed index
+  let i = 0
   try {
     logger.info(`Processing zlib file for user ${userId}: ${filePath}`)
     const bucket = storage.bucket()
@@ -212,11 +231,23 @@ export async function processZlibFile(
     logger.info(`Processing ${keys.length} items from ${filePath}`)
 
     // Configuration for chunking
-    const maxChunksPerRun = 10
     const chunkSize = 2000 // Chunk size for documents
 
     // Create a unique execution ID to track this run
     const executionId = `exec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+
+    // Set up a timer to track execution time (29 minutes = 1740000ms)
+    const maxExecutionTimeMs = 1740000 // 29 minutes
+    const startExecutionTime = Date.now()
+    let executionTimedOut = false
+
+    // Set up timeout to log warning and set flag after 29 minutes
+    const executionTimeout = setTimeout(() => {
+      executionTimedOut = true
+      logger.error(
+        `[${executionId}] Execution time approaching 30 minute limit, starting graceful shutdown.`,
+      )
+    }, maxExecutionTimeMs)
 
     // Check if we have a progress marker file from a previous run
     let startChunkIndex = 0
@@ -328,13 +359,32 @@ export async function processZlibFile(
         )
       }
 
+      // Define this variable at function scope so it's accessible everywhere in the function
+      // including the progress marker section outside the for loop
+      // Keep track of the last index we processed
+      const lastProcessedIndex = startChunkIndex * chunkSize
+
       // Process in chunks to reduce memory usage and improve performance
       // Start from the chunk index indicated by our progress marker
-      for (
-        let i = startChunkIndex * chunkSize;
-        i < documentRefs.length;
-        i += chunkSize
-      ) {
+      // Update i (defined at function scope) to track our progress
+      i = lastProcessedIndex
+      for (; i < documentRefs.length; i += chunkSize) {
+        // Check if we're approaching the execution time limit
+        if (
+          executionTimedOut ||
+          isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)
+        ) {
+          const minutesElapsed = (
+            (Date.now() - startExecutionTime) /
+            60000
+          ).toFixed(2)
+          executionTimedOut = true // Set flag if we detected timeout here
+          logger.info(
+            `[${executionId}] Execution time limit approaching (${minutesElapsed} minutes). Saving progress and stopping gracefully.`,
+          )
+          break
+        }
+
         const chunkStartTime = Date.now()
         const chunk = documentRefs.slice(i, i + chunkSize)
         const chunkNumber = Math.floor(i / chunkSize) + 1
@@ -343,16 +393,6 @@ export async function processZlibFile(
         logger.info(
           `[${executionId}] Writing chunk ${chunkNumber}/${totalChunks} (${chunk.length} docs)`,
         )
-
-        // We'll use the maxChunksPerRun defined at the end of the function
-        const processedChunksThisRun = chunkNumber - startChunkIndex
-
-        if (processedChunksThisRun >= maxChunksPerRun) {
-          logger.info(
-            `[${executionId}] Reached maximum chunks per run (${maxChunksPerRun}). Processed chunks ${Number(startChunkIndex) + 1}-${chunkNumber} of ${totalChunks}. Remaining chunks will need a separate execution.`,
-          )
-          break
-        }
 
         // Set each document with the bulkWriter
         const queueStartTime = Date.now()
@@ -365,10 +405,7 @@ export async function processZlibFile(
         )
 
         // Insert a slightly longer delay between chunks to avoid rate limits
-        if (
-          i + chunkSize < documentRefs.length &&
-          chunkNumber < maxChunksPerRun
-        ) {
+        if (i + chunkSize < documentRefs.length) {
           const delayTime = 50 // Slightly longer delay
           logger.info(
             `[${executionId}] Delaying ${delayTime}ms before next chunk`,
@@ -390,7 +427,7 @@ export async function processZlibFile(
       try {
         // Set a longer timeout for large uploads to complete
         const timeoutPromise = new Promise((_, reject) => {
-          const timeoutMs = 300000 // 5 minutes timeout
+          const timeoutMs = 1740000 // 29 minutes timeout (matches our maxExecutionTimeMs)
           setTimeout(
             () =>
               reject(
@@ -424,9 +461,16 @@ export async function processZlibFile(
       }
     }
 
+    // Clean up the execution timeout
+    clearTimeout(executionTimeout)
+
     // Only delete the original file if we've processed all chunks
     const totalChunks = Math.ceil(documentRefs.length / chunkSize)
-    const allChunksProcessed = totalChunks <= maxChunksPerRun
+    const allChunksProcessed =
+      !executionTimedOut &&
+      startChunkIndex * chunkSize +
+        (totalChunks - startChunkIndex) * chunkSize >=
+        documentRefs.length
 
     if (allChunksProcessed) {
       // Delete the original compressed file with error handling
@@ -444,14 +488,15 @@ export async function processZlibFile(
     } else {
       // Create a progress marker file to indicate processing progress
       try {
-        // Remove this line since we're now using startChunkIndex to track progress
-        const nextChunkToProcess = Math.min(
-          Number(startChunkIndex) + maxChunksPerRun,
-          totalChunks,
-        )
+        // At this point, i will contain the last index we processed (or started to process)
+        // and lastProcessedIndex is also available at function scope
+        const currentChunkIndex =
+          executionTimedOut ?
+            Math.floor(i / chunkSize) // Use last chunk we were working on when timed out
+          : totalChunks // Otherwise we've processed all chunks
         const progressMarker = {
           totalDocuments: documentRefs.length,
-          processedChunks: nextChunkToProcess,
+          processedChunks: currentChunkIndex,
           totalChunks: totalChunks,
           lastProcessed: Date.now(),
           executionId: executionId,
@@ -502,6 +547,75 @@ export async function processZlibFile(
 }
 
 /**
+ * Extract user IDs from file paths
+ * Extracted for better testability
+ *
+ * @param files Array of file objects with name property
+ * @returns Set of unique user IDs
+ */
+export function extractUserIdsFromFiles(
+  files: Array<{ name: string }>,
+): Set<string> {
+  const userIds = new Set<string>()
+
+  for (const file of files) {
+    // Extract userId from path (users/{userId}/...)
+    const match = file.name.match(/^users\/([^/]+)\//)
+    if (match?.[1]) {
+      userIds.add(match[1])
+    }
+  }
+
+  return userIds
+}
+
+/**
+ * Correct file extension if needed
+ * Extracted for better testability
+ *
+ * @param filePath Original file path
+ * @returns Corrected file path or null if no correction needed
+ */
+export function correctZlibFilePath(filePath: string): string | null {
+  // Check if the file has incorrect extensions that need to be fixed
+  if (filePath.includes('.json.zlib') || filePath.endsWith('.zlib.json')) {
+    // Fix the path - strip the .json if present
+    const correctedPath = filePath
+      .replace('.json.zlib', '.zlib')
+      .replace('.zlib.json', '.zlib')
+
+    // Return the corrected path even if it's already a .zlib file
+    return correctedPath
+  }
+
+  return null // No correction needed
+}
+
+/**
+ * Filter files to find only zlib files
+ *
+ * @param files Array of file objects
+ * @returns Array of files that have .zlib extension
+ */
+export function filterZlibFiles(
+  files: Array<{ name: string }>,
+): Array<{ name: string }> {
+  return files.filter((f) => f.name.endsWith('.zlib'))
+}
+
+/**
+ * Validates if a file should be processed by the Cloud Function
+ *
+ * @param filePath The file path to validate
+ * @returns True if the file should be processed
+ */
+export function shouldProcessFile(filePath: string): boolean {
+  return (
+    filePath.endsWith('.zlib') && filePath.includes('/bulkHealthKitUploads/')
+  )
+}
+
+/**
  * Process all zlib files for all users
  */
 async function processAllZlibFiles() {
@@ -515,15 +629,7 @@ async function processAllZlibFiles() {
     })
 
     // Extract unique user IDs from file paths
-    const userIds = new Set<string>()
-
-    for (const file of allUserFiles) {
-      // Extract userId from path (users/{userId}/...)
-      const match = file.name.match(/^users\/([^/]+)\//)
-      if (match?.[1]) {
-        userIds.add(match[1])
-      }
-    }
+    const userIds = extractUserIdsFromFiles(allUserFiles)
 
     const userIdArray = Array.from(userIds)
     const totalUsers = userIdArray.length
@@ -549,22 +655,12 @@ async function processAllZlibFiles() {
 
           // Check for files that might be zlib but don't have the correct extension
           for (const file of files) {
-            const isZlib = file.name.endsWith('.zlib')
+            const correctedPath = correctZlibFilePath(file.name)
 
-            // Check for files that might be zlib but don't have the extension
-            if (
-              !isZlib &&
-              (file.name.includes('.json.zlib') ||
-                file.name.endsWith('.zlib.json'))
-            ) {
+            if (correctedPath) {
               logger.warn(
                 `${file.name} appears to be a zlib file with incorrect extension`,
               )
-
-              // Try to process it anyway - just strip the .json if present
-              const correctedPath = file.name
-                .replace('.json.zlib', '.zlib')
-                .replace('.zlib.json', '.zlib')
 
               try {
                 // Copy to a path with correct extension so our filter will catch it
@@ -577,7 +673,7 @@ async function processAllZlibFiles() {
           }
 
           // Process each zlib file in parallel
-          const zlibFiles = files.filter((f) => f.name.endsWith('.zlib'))
+          const zlibFiles = filterZlibFiles(files)
 
           if (zlibFiles.length > 0) {
             logger.info(
@@ -621,9 +717,9 @@ export const onZlibFileUploaded = onObjectFinalized(
   {
     // Use a more generic bucket option to avoid initialization errors during testing
     bucket: undefined, // This will match any bucket in the project
-    timeoutSeconds: 300, // Extend timeout to 5 minutes
+    timeoutSeconds: 1800, // Extend timeout to 30 minutes
     region: 'us-central1',
-    memory: '1GiB',
+    memory: '4GiB',
   },
   async (event) => {
     try {
@@ -632,10 +728,7 @@ export const onZlibFileUploaded = onObjectFinalized(
       logger.info(`File uploaded: ${filePath}`)
 
       // Only process .zlib files in the bulkHealthKitUploads directory
-      if (
-        !filePath.endsWith('.zlib') ||
-        !filePath.includes('/bulkHealthKitUploads/')
-      ) {
+      if (!shouldProcessFile(filePath)) {
         logger.info(
           `Skipping file: ${filePath} - Not a .zlib file or not in bulkHealthKitUploads directory`,
         )
@@ -672,7 +765,7 @@ export const onZlibFileUploaded = onObjectFinalized(
 export const processBulkHealthKit = onRequest(
   {
     cors: true,
-    timeoutSeconds: 540, // Extend timeout to 9 minutes for HTTP function
+    timeoutSeconds: 1800, // Extend timeout to 30 minutes for HTTP function
   },
   async (req, res) => {
     try {
