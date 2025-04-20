@@ -39,6 +39,122 @@ export function extractHealthKitIdentifier(filePath: string): string | null {
 }
 
 /**
+ * Decompress data using various decompression methods
+ *
+ * @param compressedData The compressed data buffer
+ * @returns The decompressed data buffer
+ */
+export async function decompressData(compressedData: Buffer): Promise<Buffer> {
+  const decompressStartTime = Date.now()
+  let decompressedData: Buffer
+  try {
+    // Try standard inflate with async version for better performance
+    decompressedData = await new Promise<Buffer>((resolve, reject) => {
+      zlib.inflate(compressedData, (err, result) => {
+        if (err) reject(err)
+        else resolve(result)
+      })
+    })
+    logger.info(
+      `Decompressed with inflate in ${Date.now() - decompressStartTime}ms`,
+    )
+    return decompressedData
+  } catch (inflateError) {
+    logger.warn(
+      `Standard inflate failed after ${Date.now() - decompressStartTime}ms, trying gunzip`,
+    )
+    const gunzipStartTime = Date.now()
+    try {
+      // If inflate fails, try gunzip with async version
+      decompressedData = await new Promise<Buffer>((resolve, reject) => {
+        zlib.gunzip(compressedData, (err, result) => {
+          if (err) reject(err)
+          else resolve(result)
+        })
+      })
+      logger.info(
+        `Decompressed with gunzip in ${Date.now() - gunzipStartTime}ms`,
+      )
+      return decompressedData
+    } catch (gunzipError) {
+      logger.warn(
+        `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying deflate`,
+      )
+      const deflateStartTime = Date.now()
+      // If both fail, try deflate as a last resort with async version
+      decompressedData = await new Promise<Buffer>((resolve, reject) => {
+        zlib.deflate(compressedData, (err, result) => {
+          if (err) reject(err)
+          else resolve(result)
+        })
+      })
+      logger.info(
+        `Decompressed with deflate in ${Date.now() - deflateStartTime}ms`,
+      )
+      return decompressedData
+    }
+  }
+}
+
+/**
+ * Parse document information from a key-value pair
+ *
+ * @param key The key from the JSON content
+ * @param value The value from the JSON content
+ * @param healthKitIdentifier Optional healthkit identifier
+ * @returns Collection name and document ID
+ */
+export function parseDocumentInfo(
+  key: string,
+  value: any,
+  healthKitIdentifier: string | null,
+): { collectionName: string; documentId: string } {
+  // Try to extract UUID from the value data if it's an object to use as document ID
+  const documentData = value as Record<string, any>
+  let uuidFromValue: string | null = null
+
+  // Check if the value has an identifier field with UUID
+  if (
+    Array.isArray(documentData?.identifier) &&
+    documentData?.identifier?.[0]?.id
+  ) {
+    uuidFromValue = documentData.identifier[0].id
+  }
+
+  // Parse the key to get collection name and document ID as fallback
+  const keyParts = key.split('/')
+  const fileNameParts = keyParts[keyParts.length - 1].split('.')
+
+  let collectionName: string
+  let documentId: string
+
+  // Generate a timestamp for IDs if needed
+  const timestampId = Date.now().toString()
+
+  // Set collection name based on HealthKit identifier from filename
+  if (healthKitIdentifier) {
+    collectionName = `HealthKitObservations_${healthKitIdentifier}`
+
+    // Use UUID from JSON if available, otherwise generate a timestamp ID
+    if (uuidFromValue) {
+      documentId = uuidFromValue
+    } else {
+      documentId = timestampId
+    }
+  } else if (keyParts.length > 1) {
+    // Fallback for standard collection/document structure
+    collectionName = keyParts[0]
+    documentId = fileNameParts[0] // Remove .json extension
+  } else {
+    // Final fallback
+    collectionName = fileNameParts[0]
+    documentId = uuidFromValue ?? timestampId
+  }
+
+  return { collectionName, documentId }
+}
+
+/**
  * Process a single zlib file from Firebase Storage
  *
  * @param userId The user ID
@@ -84,52 +200,7 @@ export async function processZlibFile(
     const healthKitIdentifier = extractHealthKitIdentifier(filePath)
 
     // Decompress the data using async methods for better performance
-    const decompressStartTime = Date.now()
-    let decompressedData: Buffer
-    try {
-      // Try standard inflate with async version for better performance
-      decompressedData = await new Promise<Buffer>((resolve, reject) => {
-        zlib.inflate(compressedData, (err, result) => {
-          if (err) reject(err)
-          else resolve(result)
-        })
-      })
-      logger.info(
-        `Decompressed with inflate in ${Date.now() - decompressStartTime}ms`,
-      )
-    } catch (inflateError) {
-      logger.warn(
-        `Standard inflate failed after ${Date.now() - decompressStartTime}ms, trying gunzip`,
-      )
-      const gunzipStartTime = Date.now()
-      try {
-        // If inflate fails, try gunzip with async version
-        decompressedData = await new Promise<Buffer>((resolve, reject) => {
-          zlib.gunzip(compressedData, (err, result) => {
-            if (err) reject(err)
-            else resolve(result)
-          })
-        })
-        logger.info(
-          `Decompressed with gunzip in ${Date.now() - gunzipStartTime}ms`,
-        )
-      } catch (gunzipError) {
-        logger.warn(
-          `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying deflate`,
-        )
-        const deflateStartTime = Date.now()
-        // If both fail, try deflate as a last resort with async version
-        decompressedData = await new Promise<Buffer>((resolve, reject) => {
-          zlib.deflate(compressedData, (err, result) => {
-            if (err) reject(err)
-            else resolve(result)
-          })
-        })
-        logger.info(
-          `Decompressed with deflate in ${Date.now() - deflateStartTime}ms`,
-        )
-      }
-    }
+    const decompressedData = await decompressData(compressedData)
 
     // Parse the JSON content
     const parseStartTime = Date.now()
@@ -208,51 +279,13 @@ export async function processZlibFile(
 
     // For each decompressed item, prepare it for the appropriate Firestore collection
     for (const [key, value] of Object.entries(jsonContent)) {
-      let collectionName: string
-      let documentId: string
-
-      // Try to extract UUID from the value data if it's an object to use as document ID
-      const documentData = value as Record<string, any>
-      let uuidFromValue: string | null = null
-
-      // Check if the value has an identifier field with UUID
-      if (
-        Array.isArray(documentData?.identifier) &&
-        documentData?.identifier?.[0]?.id
-      ) {
-        uuidFromValue = documentData.identifier[0].id
-      }
-
-      // Parse the key to get collection name and document ID as fallback
-      const keyParts = key.split('/')
-      const fileNameParts = keyParts[keyParts.length - 1].split('.')
-
-      // Set collection name based on HealthKit identifier from filename
-      if (healthKitIdentifier) {
-        collectionName = `HealthKitObservations_${healthKitIdentifier}`
-
-        // Use UUID from JSON if available, otherwise generate a timestamp ID
-        if (uuidFromValue) {
-          documentId = uuidFromValue
-        } else {
-          documentId = admin.firestore.Timestamp.now().toMillis().toString()
-        }
-      } else if (keyParts.length > 1) {
-        // Fallback for standard collection/document structure
-        collectionName = keyParts[0]
-        documentId = fileNameParts[0] // Remove .json extension
-      } else {
-        // Final fallback
-        collectionName = fileNameParts[0]
-        documentId =
-          uuidFromValue ?? admin.firestore.Timestamp.now().toMillis().toString()
-      }
-
-      // Collection reference is set globally
-
       try {
-        // Convert to proper firestore document data - optimize data before storing
-        const documentData = value as Record<string, any>
+        // Parse document info
+        const { collectionName, documentId } = parseDocumentInfo(
+          key,
+          value,
+          healthKitIdentifier,
+        )
 
         // For any collection, we use the raw firestore reference
         // to avoid type issues with the converters
@@ -264,7 +297,7 @@ export async function processZlibFile(
         // Store document reference and data for bulk writing
         documentRefs.push({
           ref: collectionRef.doc(documentId),
-          data: documentData,
+          data: value as Record<string, any>,
         })
       } catch (writeError) {
         logger.error(`Error writing to Firestore: ${String(writeError)}`)
