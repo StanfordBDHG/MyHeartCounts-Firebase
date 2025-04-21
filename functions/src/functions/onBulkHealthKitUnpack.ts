@@ -98,7 +98,6 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
 
 /**
  * Helper function to check if execution time limit is approaching
- * Extracted for better testability
  *
  * @param startTime The time when execution started
  * @param maxTimeMs The maximum execution time in milliseconds
@@ -110,7 +109,7 @@ export function isApproachingTimeLimit(
 ): boolean {
   const elapsedMs = Date.now() - startTime
   const remainingMs = maxTimeMs - elapsedMs
-  return remainingMs < 300000 // less than 5 minutes remaining
+  return remainingMs < 30000
 }
 
 /**
@@ -848,9 +847,8 @@ export async function processAllZlibFiles(options?: {
  */
 export const onZlibFileUploaded = onObjectFinalized(
   {
-    // Use a more generic bucket option to avoid initialization errors during testing
-    bucket: undefined, // This will match any bucket in the project
-    timeoutSeconds: 1800, // Extend timeout to 30 minutes
+    bucket: undefined, // This will match any bucket
+    timeoutSeconds: 540,
     region: 'us-central1',
     memory: '4GiB',
   },
