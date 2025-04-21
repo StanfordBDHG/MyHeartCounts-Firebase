@@ -21,6 +21,7 @@ on:
         default: 'development'
         type: choice
         options:
+          - development
           - staging
           - production-uk
           - production-us
