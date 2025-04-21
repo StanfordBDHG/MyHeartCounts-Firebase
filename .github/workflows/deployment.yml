@@ -22,8 +22,8 @@ on:
         type: choice
         options:
           - staging
-          - production-us
           - production-uk
+          - production-us
   workflow_call:
     inputs:
       environment:
@@ -72,15 +72,49 @@ jobs:
       contents: read
       checks: write
     secrets: inherit
-  deployfirebase:
-    name: Deploy Firebase Project
+
+  # Staged deployment
+  # First deploy to staging environment
+  deploystaging:
+    name: Deploy to Staging
+    if: needs.determineenvironment.outputs.environment == 'staging' || github.event_name == 'push'
     needs: [buildandtest, determineenvironment, vars]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
       contents: read
     with:
       customcommand: "npm run install"
-      environment: ${{ needs.determineenvironment.outputs.environment }}
+      environment: staging
+      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+
+  # Then deploy to UK production environment
+  deployuk:
+    name: Deploy to UK Production
+    if: needs.determineenvironment.outputs.environment == 'production-uk' || github.event_name == 'push'
+    needs: [buildandtest, determineenvironment, vars, deploystaging]
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    permissions:
+      contents: read
+    with:
+      customcommand: "npm run install"
+      environment: production-uk
+      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+
+  # Finally deploy to US production environment if UK deployment was successful
+  deployus:
+    name: Deploy to US Production
+    if: needs.determineenvironment.outputs.environment == 'production-us' || github.event_name == 'push'
+    needs: [buildandtest, determineenvironment, vars, deployuk]
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    permissions:
+      contents: read
+    with:
+      customcommand: "npm run install"
+      environment: production-us
       arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
