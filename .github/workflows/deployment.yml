@@ -16,19 +16,19 @@ on:
     inputs:
       environment:
         description: |
-          The GitHub deployment environment.
+          The GitHub deployment environment
         required: true
         default: 'development'
         type: choice
         options:
-          - development
           - staging
-          - production
+          - production-us
+          - production-uk
   workflow_call:
     inputs:
       environment:
         description: |
-          The GitHub deployment environment.
+          The GitHub deployment environment
         required: false
         type: string
         default: development
