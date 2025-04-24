@@ -247,7 +247,7 @@ export async function processZlibFile(
   // Define i at function scope to track the last processed index
   let i = 0
   try {
-    logInfo(`[${executionId}] Processing zlib file for user ${userId}: ${filePath}`)
+    logInfo(`Processing zlib file for user ${userId}: ${filePath}`)
     const bucket = storage.bucket()
     const file = bucket.file(filePath)
 
@@ -340,7 +340,7 @@ export async function processZlibFile(
 
     // Execute writes in batches using bulkWriter
     if (documentRefs.length > 0) {
-      logInfo(`[${executionId}] Writing ${documentRefs.length} documents to Firestore in batches`)
+      logInfo(`Writing ${documentRefs.length} documents to Firestore in batches`)
 
       // Add performance tracking
       const startTime = Date.now()
@@ -385,7 +385,7 @@ export async function processZlibFile(
           const batchNumber = Math.floor(i / batchSize) + 1
           const totalBatches = Math.ceil(documentRefs.length / batchSize)
           logDebug(
-            `[${executionId}] Processing batch ${batchNumber}/${totalBatches}: documents ${i+1}-${batchEnd} of ${documentRefs.length}`
+            `Processing batch ${batchNumber}/${totalBatches}: documents ${i+1}-${batchEnd} of ${documentRefs.length}`
           )
           
           // Commit this batch
@@ -397,7 +397,7 @@ export async function processZlibFile(
             i = batchEnd // Move to next batch
             
             logDebug(
-              `[${executionId}] Batch ${batchNumber} committed successfully in ${Date.now() - batchStartTime}ms`
+              `Batch ${batchNumber} committed successfully in ${Date.now() - batchStartTime}ms`
             )
             
             // Update file metadata with progress after each successful batch
@@ -430,9 +430,9 @@ export async function processZlibFile(
               // Update file metadata
               await file.setMetadata({ metadata: metadataObject });
               
-              logDebug(`[${executionId}] Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed (${progressPercent}%)`)
+              logDebug(`Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed (${progressPercent}%)`)
             } catch (metadataError) {
-              logError(`[${executionId}] Failed to update metadata after batch: ${String(metadataError)}`)
+              logError(`Failed to update metadata after batch: ${String(metadataError)}`)
             }
           } catch (batchError) {
             // Handle batch errors without logging to prevent log spam
@@ -451,7 +451,7 @@ export async function processZlibFile(
       
       // Log overall performance
       logInfo(
-        `[${executionId}] Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`
+        `Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`
       )
     }
 
@@ -539,10 +539,10 @@ export async function processZlibFile(
 
     // Only report full success if all items were processed
     if (allDocumentsProcessed) {
-      logInfo(`[${executionId}] Successfully processed all ${keys.length} items from ${filePath}`)
+      logInfo(`Successfully processed all ${keys.length} items from ${filePath}`)
     } else {
       const itemsProcessed = Math.min(i, keys.length);
-      logInfo(`[${executionId}] Partially processed ${itemsProcessed} of ${keys.length} items from ${filePath}`)
+      logInfo(`Partially processed ${itemsProcessed} of ${keys.length} items from ${filePath}`)
     }
   } catch (error) {
     logError(`Error processing zlib file ${filePath}: ${String(error)}`)
