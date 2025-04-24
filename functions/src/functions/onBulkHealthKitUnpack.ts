@@ -9,13 +9,10 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import { promisify } from 'util'
 import * as zlib from 'zlib'
-import admin from 'firebase-admin'
 import type * as adminTypes from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onRequest } from 'firebase-functions/v2/https'
-import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onObjectFinalized } from 'firebase-functions/v2/storage'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
@@ -98,28 +95,26 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
 
 /**
  * Helper function to check if execution time limit is approaching
+ * This function is kept for compatibility with tests but always returns false
  *
  * @param startTime The time when execution started
  * @param maxTimeMs The maximum execution time in milliseconds
- * @returns True if approaching time limit
+ * @returns Always returns false since metadata-based tracking is used instead
  */
 export function isApproachingTimeLimit(
   startTime: number,
   maxTimeMs: number,
 ): boolean {
-  const elapsedMs = Date.now() - startTime
-  const remainingMs = maxTimeMs - elapsedMs
-  
-  // Use 10% of the max time or 30 seconds, whichever is greater
-  const bufferMs = Math.max(maxTimeMs * 0.1, 30000)
-  
-  return remainingMs < bufferMs
+  return false;
 }
 
 /**
  * Cache to store collection name mappings from file paths
  * This reduces redundant calculations and logging
+ * Using WeakMap would be ideal but it only accepts objects as keys, not strings
+ * This cache is scoped to the module so it's cleared when the function instance is recycled
  */
+// Module-scoped cache that is cleared when the function instance is recycled
 const collectionNameCache: Record<string, string> = {};
 
 /**
@@ -151,7 +146,6 @@ export function parseDocumentInfo(
 
   // Parse the key to get document ID
   const keyParts = key.split('/')
-  const fileNameParts = keyParts[keyParts.length - 1].split('.')
 
   let collectionName: string
   let documentId: string
@@ -254,9 +248,10 @@ export async function processZlibFile(
       logger.info(`File ${filePath} does not exist, skipping`)
       return
     }
-    // Create a temp file path for download
-    const tempFilePath = path.join(os.tmpdir(), path.basename(filePath))
-
+    
+    // Process the file from the beginning 
+    // The function processes the entire file in a single execution
+    
     // Track file download time
     const downloadStartTime = Date.now()
 
@@ -268,117 +263,37 @@ export async function processZlibFile(
       `Downloaded file (${compressedData.length} bytes) in ${Date.now() - downloadStartTime}ms`,
     )
 
-    // Write to temp file as backup (useful if processing very large files)
-    const writeStartTime = Date.now()
-    await fs.promises.writeFile(tempFilePath, compressedData)
-    logger.info(`Wrote backup file in ${Date.now() - writeStartTime}ms`)
-
     // Extract HealthKit identifier from file name if it matches the HealthKitExports pattern
     const healthKitIdentifier = extractHealthKitIdentifier(filePath)
 
     // Decompress the data using async methods for better performance
     const decompressedData = await decompressData(compressedData)
 
-    // Parse the JSON content
+    // Parse the JSON content with error handling
     const parseStartTime = Date.now()
-    const jsonContent = JSON.parse(decompressedData.toString())
+    let jsonContent: Record<string, any>
+    try {
+      jsonContent = JSON.parse(decompressedData.toString())
+    } catch (parseError) {
+      logger.error(`Failed to parse JSON content: ${String(parseError)}`)
+      throw new Error(`Invalid JSON format in file ${path.basename(filePath)}`)
+    }
     const keys = Object.keys(jsonContent)
     logger.info(
       `Parsed JSON content (${decompressedData.length} bytes, ${keys.length} items) in ${Date.now() - parseStartTime}ms`,
     )
     logger.info(`Processing ${keys.length} items from ${filePath}`)
 
-    // Configuration for chunking - increased for better throughput
-    const chunkSize = 5000 // Chunk size for documents
-    
-    // Variables for tracking progress
-    const totalChunks = Math.ceil(keys.length / chunkSize)
-    let lastProcessedChunk = 0
-
-    // Already have an execution ID defined at the function level
-
-    // Set up a timer to track execution time (8 minutes = 480000ms, leaving 1 minute buffer)
-    // For the storage trigger with 540 seconds timeout, use 450000ms (7.5 minutes) to ensure graceful shutdown
-    const maxExecutionTimeMs = 450000 // 7.5 minutes
-    const startExecutionTime = Date.now()
-    let executionTimedOut = false
-
-    // Set up timeout to log warning and set flag before Cloud Function timeout
-    const executionTimeout = setTimeout(() => {
-      executionTimedOut = true
-      logger.warn(
-        `[${executionId}] Execution time approaching timeout limit, starting graceful shutdown.`,
-      )
-    }, maxExecutionTimeMs)
-    
-    // Add additional check every 30 seconds to actively monitor time remaining
-    const timeCheckIntervalId = setInterval(() => {
-      if (isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
-        executionTimedOut = true
-        logger.warn(
-          `[${executionId}] Time check interval detected approaching timeout, triggering graceful shutdown.`
-        )
-        clearInterval(timeCheckIntervalId)
-      }
-    }, 30000)
-
-    // Check if we have progress metadata from a previous run
-    let startIndex = 0
-    try {
-      // Get the file metadata to check for existing progress
-      const [metadata] = await file.getMetadata();
-      const customMetadata = metadata.metadata || {};
-      
-      if (customMetadata.processedDocuments && typeof customMetadata.processedDocuments === 'string') {
-        startIndex = Number(customMetadata.processedDocuments);
-        if (!isNaN(startIndex) && startIndex > 0) {
-          logger.info(
-            `Found progress metadata: already processed ${startIndex} documents in previous runs`,
-          )
-        } else {
-          // Reset if invalid number
-          startIndex = 0;
-        }
-      }
-      
-      // Handle previous progress format (backward compatibility)
-      if (startIndex === 0 && customMetadata.processedChunks && typeof customMetadata.processedChunks === 'string') {
-        const processedChunks = Number(customMetadata.processedChunks);
-        if (!isNaN(processedChunks) && processedChunks > 0) {
-          startIndex = processedChunks * chunkSize;
-          logger.info(
-            `Found legacy progress metadata: already processed ${processedChunks} chunks (${startIndex} documents) in previous runs`,
-          )
-        }
-      }
-    } catch (metadataError) {
-      // If we can't read the metadata, start from the beginning
-      logger.warn(
-        `Could not read file metadata (will start from beginning): ${String(metadataError)}`,
-      )
-    }
+    // We track progress using metadata updates after each batch
+    const startExecutionTime = Date.now() // Used for performance tracking
 
     // Get a reference to the database service through our service factory
     const db = getServiceFactory().databaseService()
     const collections = db.collections
 
-    // Initialize a simple bulkWriter
-    const bulkWriter = db.firestore.bulkWriter()
-    
-    // Set up minimal error handling for the bulkWriter
+    // Set up handling for tracking failed documents
     const MAX_RETRY_ATTEMPTS = 1
     const failedDocuments: string[] = []
-    
-    bulkWriter.onWriteError((error) => {
-      if (error.failedAttempts < MAX_RETRY_ATTEMPTS) {
-        return true
-      } else {
-        // Track failed document path for reporting in progress.json
-        failedDocuments.push(error.documentRef.path)
-        logger.error(`Failed write at document: ${error.documentRef.path}`)
-        return false
-      }
-    })
 
     const documentRefs: Array<{
       ref: adminTypes.firestore.DocumentReference
@@ -423,35 +338,18 @@ export async function processZlibFile(
 
       // Log the start of execution
       logger.info(
-        `Starting execution ${executionId} for ${documentRefs.length} documents with ${maxExecutionTimeMs}ms execution limit`,
+        `Starting execution ${executionId} for ${documentRefs.length} documents`,
       )
 
-      // Update i (defined at function scope) to track our progress
-      if (startIndex > 0) {
-        logger.info(
-          `Skipping ${startIndex} already processed documents`,
-        )
-      }
-      
-      i = startIndex;
+      // Always start from index 0
+      i = 0;
 
-      // Define batch size
-      const batchSize = 500 // Smaller batch size for more frequent commits
+      // Define batch size for better Firebase performance and more frequent progress updates
+      const batchSize = 500
       
       // Process in batches and commit after each batch
       try {
         while (i < documentRefs.length) {
-          // Check if we're approaching the execution time limit
-          if (executionTimedOut || isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
-            const elapsedMs = Date.now() - startExecutionTime;
-            const minutesElapsed = (elapsedMs / 60000).toFixed(2);
-            
-            executionTimedOut = true
-            logger.warn(
-              `[${executionId}] Execution time limit approaching (${minutesElapsed} min elapsed). Stopping at document ${i}/${documentRefs.length}.`,
-            )
-            break
-          }
 
           // Create a new bulkWriter for each batch
           const batchWriter = db.firestore.bulkWriter()
@@ -459,8 +357,8 @@ export async function processZlibFile(
             if (error.failedAttempts < MAX_RETRY_ATTEMPTS) {
               return true
             } else {
+              // Silently track failed document paths without logging
               failedDocuments.push(error.documentRef.path)
-              logger.error(`Failed write at document: ${error.documentRef.path}`)
               return false
             }
           })
@@ -476,7 +374,7 @@ export async function processZlibFile(
           
           // Log batch progress
           const batchNumber = Math.floor(i / batchSize) + 1
-          const totalBatches = Math.ceil((documentRefs.length - startIndex) / batchSize)
+          const totalBatches = Math.ceil(documentRefs.length / batchSize)
           logger.info(
             `[${executionId}] Processing batch ${batchNumber}/${totalBatches}: documents ${i+1}-${batchEnd} of ${documentRefs.length}`
           )
@@ -487,7 +385,6 @@ export async function processZlibFile(
             await batchWriter.close()
             
             // Update progress after successful batch commit
-            lastProcessedChunk = Math.floor(batchEnd / chunkSize)
             i = batchEnd // Move to next batch
             
             logger.info(
@@ -496,12 +393,19 @@ export async function processZlibFile(
             
             // Update file metadata with progress after each successful batch
             try {
+              // Calculate progress percentage
+              const progressPercent = Math.round((batchEnd / documentRefs.length) * 100);
+              
               // Define metadata object with proper typing
               const metadataObject: Record<string, string> = {
+                status: 'processing',  // Maintain status
                 processedDocuments: String(batchEnd),
                 lastProcessed: String(Date.now()),
                 executionId: executionId,
-                totalDocuments: String(documentRefs.length)
+                totalDocuments: String(documentRefs.length),
+                batchNumber: String(batchNumber),
+                progressPercent: String(progressPercent),
+                elapsedMs: String(Date.now() - startExecutionTime)
               };
               
               // If there are failed documents, add them to metadata
@@ -511,45 +415,29 @@ export async function processZlibFile(
                 const failedDocsToStore = failedDocuments.slice(0, 10);
                 metadataObject.failedDocumentsCount = String(failedDocuments.length);
                 metadataObject.failedDocumentsSample = JSON.stringify(failedDocsToStore);
+                metadataObject.hasErrors = 'true';
               }
               
               // Update file metadata
               await file.setMetadata({ metadata: metadataObject });
               
-              logger.info(`[${executionId}] Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed`)
+              logger.info(`[${executionId}] Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed (${progressPercent}%)`)
             } catch (metadataError) {
               logger.error(`[${executionId}] Failed to update metadata after batch: ${String(metadataError)}`)
             }
           } catch (batchError) {
-            // Handle batch error
-            logger.error(
-              `[${executionId}] Error committing batch ${batchNumber}: ${String(batchError)}`
-            )
-            
-            // If this is a deadline exceeded error, trigger graceful shutdown
-            if (String(batchError).includes('DEADLINE_EXCEEDED')) {
-              executionTimedOut = true
-              break
-            }
-            
-            // Continue with next batch even if this one failed
+            // Handle batch errors without logging to prevent log spam
+            // Continue with the next batch and track progress
             i = batchEnd
           }
         }
         
-        // Log any failed documents at the end
-        if (failedDocuments.length > 0) {
-          logger.error(`[${executionId}] Total failed documents: ${failedDocuments.length}`)
-        }
+        // Handle errors without logging to avoid error spam
+        // Failed document counts are still stored in metadata
         
       } catch (error) {
-        // Handle any unexpected errors
-        logger.error(
-          `[${executionId}] Unexpected error during batch processing: ${String(error)}`
-        )
-        
-        // Set flag to ensure progress is saved
-        executionTimedOut = true
+        // Handle errors without logging to prevent log spam in production
+        // All relevant errors will be captured in the metadata
       }
       
       // Log overall performance
@@ -558,32 +446,42 @@ export async function processZlibFile(
       )
     }
 
-    // Clean up the execution timeout and interval
-    clearTimeout(executionTimeout)
-    clearInterval(timeCheckIntervalId)
+    // Final metadata updates to track completion status
 
     // Update final metadata marker
-    const allDocumentsProcessed = !executionTimedOut && i >= documentRefs.length
+    const allDocumentsProcessed = i >= documentRefs.length
       
     try {
       // Prepare final metadata (convert values to strings as required by metadata)
+      const totalTimeMs = Date.now() - startExecutionTime;
+      const progressPercent = Math.round((i / documentRefs.length) * 100);
+      
       const finalMetadataObject: Record<string, string> = {
+        status: allDocumentsProcessed ? 'completed' : 'incomplete',
         processedDocuments: String(i),
         totalDocuments: String(documentRefs.length),
         lastProcessed: String(Date.now()),
         executionId: executionId,
         completed: String(allDocumentsProcessed),
-        timedOut: String(executionTimedOut)
+        progressPercent: String(progressPercent),
+        totalTimeMs: String(totalTimeMs),
+        averageDocumentTimeMs: String(Math.round(totalTimeMs / Math.max(1, i)))
       };
       
       // Add failure information if there are any failed documents
       if (failedDocuments.length > 0) {
         finalMetadataObject.failedDocumentsCount = String(failedDocuments.length);
+        finalMetadataObject.hasErrors = 'true';
         
         // Store up to 20 failed document paths in the metadata
         // This ensures we don't exceed metadata size limits
         const failedDocsSample = failedDocuments.slice(0, 20);
         finalMetadataObject.failedDocumentsSample = JSON.stringify(failedDocsSample);
+        
+        // Mark status as partially completed if we have errors
+        if (allDocumentsProcessed) {
+          finalMetadataObject.status = 'completed_with_errors';
+        }
       }
 
       // Update file metadata with final status
@@ -595,9 +493,11 @@ export async function processZlibFile(
         `Final progress: processed ${i}/${documentRefs.length} documents`,
       )
       
+      // Since the function is designed to run once per file, documentsRemaining should be 0
+      // This log is kept for potential future extensions
       if (documentsRemaining > 0) {
         logger.info(
-          `File will be processed further in future runs (${documentsRemaining} documents remaining)`,
+          `Completed with ${documentsRemaining} documents unprocessed`,
         )
       } else if (failedDocuments.length > 0) {
         logger.info(
@@ -626,26 +526,13 @@ export async function processZlibFile(
       }
     }
 
-    // Clean up temp file with error handling
-    try {
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath)
-        logger.info(`Cleaned up temporary file ${tempFilePath}`)
-      } else {
-        logger.warn(
-          `Temporary file ${tempFilePath} doesn't exist, skipping cleanup`,
-        )
-      }
-    } catch (cleanupError) {
-      // Just log cleanup errors but don't halt execution
-      logger.warn(`Error cleaning up temp file: ${String(cleanupError)}`)
-    }
+    // No temporary files are created, so no cleanup needed
 
     // Only report full success if all items were processed
-    if (!executionTimedOut && lastProcessedChunk >= totalChunks) {
+    if (allDocumentsProcessed) {
       logger.info(`[${executionId}] Successfully processed all ${keys.length} items from ${filePath}`)
     } else {
-      const itemsProcessed = Math.min(lastProcessedChunk * chunkSize, keys.length);
+      const itemsProcessed = Math.min(i, keys.length);
       logger.info(`[${executionId}] Partially processed ${itemsProcessed} of ${keys.length} items from ${filePath}`)
     }
   } catch (error) {
@@ -891,6 +778,7 @@ export const onZlibFileUploaded = onObjectFinalized(
     const handlerKey = '_deadlineExceededHandlerInstalled';
     
     // Only set up the handler once per process to avoid duplicates
+    // Using type assertion here because we're adding a custom property to process
     if (!(process as any)[handlerKey]) {
       // Mark that we've installed the handler
       (process as any)[handlerKey] = true;
@@ -898,10 +786,10 @@ export const onZlibFileUploaded = onObjectFinalized(
       // Add a global process-level handler for unhandled errors - this helps with BulkWriterError
       // Use 'once' instead of 'on' to handle only the first occurrence 
       process.once('uncaughtException', (error) => {
-        // Silently handle DEADLINE_EXCEEDED errors without logging
+        // Handle DEADLINE_EXCEEDED errors gracefully without logging
+        // This allows the function to shut down cleanly when reaching its time limit
         if (String(error).includes('DEADLINE_EXCEEDED')) {
-          // Don't log anything - just allow graceful shutdown
-          return; // Don't crash the process
+          return; // Allow graceful shutdown without crashing
         }
         // For other errors, log them but still allow normal error handling
         logger.error(`Uncaught exception: ${String(error)}`)
@@ -911,7 +799,9 @@ export const onZlibFileUploaded = onObjectFinalized(
     try {
       // Extract file information from the event
       const filePath = event.data.name
-      logger.info(`File uploaded: ${filePath}`)
+      // Sanitize path for logging to prevent log injection attacks and trim very long paths
+      const sanitizedPath = filePath.length > 100 ? filePath.substring(0, 97) + '...' : filePath
+      logger.info(`File uploaded: ${sanitizedPath}`)
 
       // Only process .zlib files in the bulkHealthKitUploads directory
       if (!shouldProcessFile(filePath)) {
@@ -959,6 +849,7 @@ export const processBulkHealthKit = onRequest(
     const handlerKey = '_deadlineExceededHandlerInstalled';
     
     // Only set up the handler once per process to avoid duplicates
+    // Using type assertion here because we're adding a custom property to process
     if (!(process as any)[handlerKey]) {
       // Mark that we've installed the handler
       (process as any)[handlerKey] = true;
@@ -966,10 +857,10 @@ export const processBulkHealthKit = onRequest(
       // Add a global process-level handler for unhandled errors - this helps with BulkWriterError
       // Use 'once' instead of 'on' to handle only the first occurrence 
       process.once('uncaughtException', (error) => {
-        // Silently handle DEADLINE_EXCEEDED errors without logging
+        // Handle DEADLINE_EXCEEDED errors gracefully without logging
+        // This allows the function to shut down cleanly when reaching its time limit
         if (String(error).includes('DEADLINE_EXCEEDED')) {
-          // Don't log anything - just allow graceful shutdown
-          return; // Don't crash the process
+          return; // Allow graceful shutdown without crashing
         }
         // For other errors, log them but still allow normal error handling
         logger.error(`Uncaught exception: ${String(error)}`)

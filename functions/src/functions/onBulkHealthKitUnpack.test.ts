@@ -19,7 +19,7 @@ import {
   processZlibFile,
   decompressData,
   parseDocumentInfo,
-  isApproachingTimeLimit,
+  // isApproachingTimeLimit removed
   extractUserIdsFromFiles,
   correctZlibFilePath,
   filterZlibFiles,
@@ -706,62 +706,14 @@ describe('onBulkHealthKitUnpack', () => {
         })
       })
 
-      // Test the isApproachingTimeLimit helper function
-      describe('isApproachingTimeLimit', () => {
-        it('should return true when time remaining is less than 5 minutes', () => {
-          // Current time is 25 minutes into a 29 minute max execution
-          const startTime = Date.now() - 1500000 // 25 minutes ago
-          const maxTime = 1740000 // 29 minutes
+      // isApproachingTimeLimit tests removed - function no longer needed
 
-          // Should return true with less than 5 minutes remaining
-          expect(isApproachingTimeLimit(startTime, maxTime)).to.be.true
-        })
-
-        it('should return false when plenty of time remains', () => {
-          // Current time is 10 minutes into a 29 minute max execution
-          const startTime = Date.now() - 600000 // 10 minutes ago
-          const maxTime = 1740000 // 29 minutes
-
-          // Should return false with more than 5 minutes remaining
-          expect(isApproachingTimeLimit(startTime, maxTime)).to.be.false
-        })
-
-        it('should return true when execution time has exceeded max time', () => {
-          // Current time is 30 minutes into a 29 minute max execution
-          const startTime = Date.now() - 1800000 // 30 minutes ago
-          const maxTime = 1740000 // 29 minutes
-
-          // Should return true when time has already exceeded limit
-          expect(isApproachingTimeLimit(startTime, maxTime)).to.be.true
-        })
-      })
-
-      // Test the execution timeout functionality
-      it('should test execution timeout functionality', () => {
-        // Test the timeout logic and graceful shutdown
+      // Test performance logging functionality
+      it('should test execution time tracking', () => {
+        // Test how we track execution time for logging
         const startExecutionTime = Date.now() - 1500000 // 25 minutes ago
-        const maxExecutionTimeMs = 1740000 // 29 minutes
-
-        // Calculate remaining time
-        const remainingTimeMs =
-          maxExecutionTimeMs - (Date.now() - startExecutionTime)
-        const remainingMinutes = remainingTimeMs / 60000
-
-        // Test approaching timeout condition using our helper function
-        expect(isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs))
-          .to.be.true
-
-        // Test timeout flag
-        let executionTimedOut = false
-        const setTimeoutCallback = () => {
-          executionTimedOut = true
-        }
-
-        // Simulate timeout occurring
-        setTimeoutCallback()
-        expect(executionTimedOut).to.be.true
-
-        // Test logging when timeout occurs
+        
+        // Test logging of elapsed time
         const minutesElapsed = (
           (Date.now() - startExecutionTime) /
           60000
@@ -769,8 +721,8 @@ describe('onBulkHealthKitUnpack', () => {
         expect(Number(minutesElapsed)).to.be.greaterThan(24) // Should be around 25 minutes
       })
 
-      // Test progress tracking with timeout
-      it('should test progress tracking with timeout', () => {
+      // Test progress tracking
+      it('should test progress tracking logic', () => {
         // Setup test variables
         const chunkSize = 2000
         const documentRefs = Array.from({ length: 5000 }, (_, i) => ({
@@ -779,56 +731,36 @@ describe('onBulkHealthKitUnpack', () => {
         }))
         const totalChunks = Math.ceil(documentRefs.length / chunkSize)
 
-        // Test progress marker calculation when timeout occurs
-        let executionTimedOut = true
+        // Test progress marker calculation
         let i = 3200 // Processed 1 full chunk and partially into the second
 
-        // Calculate current chunk index when timed out
-        const currentChunkIndex =
-          executionTimedOut ?
-            Math.floor(i / chunkSize) // If timed out, use the last chunk we were working on
-          : totalChunks // Otherwise we've processed all chunks
+        // Calculate current chunk index
+        const currentChunkIndex = Math.floor(i / chunkSize)
 
         expect(currentChunkIndex).to.equal(1) // Should be processing chunk 1 (0-indexed)
 
         // Test progress marker data structure
         const progressMarker = {
           totalDocuments: documentRefs.length,
-          processedChunks: currentChunkIndex,
+          processedDocuments: i,
+          processedChunks: currentChunkIndex, // Keep for backward compatibility
           totalChunks: totalChunks,
           lastProcessed: Date.now(),
           executionId: 'test-execution',
         }
 
         expect(progressMarker.processedChunks).to.equal(1)
+        expect(progressMarker.processedDocuments).to.equal(3200)
         expect(progressMarker.totalChunks).to.equal(3)
 
-        // Test all chunks processed calculation
-        const startChunkIndex = 0
-        const allChunksProcessed =
-          !executionTimedOut &&
-          startChunkIndex * chunkSize +
-            (totalChunks - startChunkIndex) * chunkSize >=
-            documentRefs.length
+        // Test all documents processed calculation
+        const allDocumentsProcessed = i >= documentRefs.length
+        expect(allDocumentsProcessed).to.be.false // Should not be complete yet
 
-        expect(allChunksProcessed).to.be.false // Should not be complete due to timeout
-
-        // Test when not timed out
-        executionTimedOut = false
+        // Test when all documents are processed
         i = documentRefs.length // Processed all documents
-
-        const completedChunkIndex =
-          executionTimedOut ? Math.floor(i / chunkSize) : totalChunks
-
-        expect(completedChunkIndex).to.equal(3) // All chunks processed
-
-        const allComplete =
-          !executionTimedOut &&
-          startChunkIndex * chunkSize +
-            (totalChunks - startChunkIndex) * chunkSize >=
-            documentRefs.length
-
-        expect(allComplete).to.be.true // Should be complete since no timeout
+        const completedAllDocs = i >= documentRefs.length
+        expect(completedAllDocs).to.be.true // Should be complete
       })
 
       // Test timeout for bulkWriter close
@@ -919,19 +851,7 @@ describe('onBulkHealthKitUnpack', () => {
         expect(errorHandler(errorWithManyAttempts)).to.be.false // Should not retry
       })
 
-      // Test execution timeout detection
-      it('should test execution timeout detection logic', () => {
-        // Test approaching time limit (less than 5 minutes remaining)
-        const startTime = Date.now() - 1600000 // 26.67 minutes ago
-        const maxTimeMs = 1740000 // 29 minutes
-
-        // Test when we're approaching the timeout
-        expect(isApproachingTimeLimit(startTime, maxTimeMs)).to.be.true
-
-        // Test with plenty of time remaining
-        const earlyStartTime = Date.now() - 600000 // Only 10 minutes ago
-        expect(isApproachingTimeLimit(earlyStartTime, maxTimeMs)).to.be.false
-      })
+      // Execution time tracking test removed - no longer needed
 
       // Test file content processing directly
       it('should test file content processing logic', async () => {
