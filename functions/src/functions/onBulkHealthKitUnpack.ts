@@ -322,31 +322,39 @@ export async function processZlibFile(
       }
     }, 30000)
 
-    // Check if we have a progress marker file from a previous run
-    let startChunkIndex = 0
+    // Check if we have progress metadata from a previous run
+    let startIndex = 0
     try {
-      const progressFilePath = `${filePath}.progress.json`
-      const progressFile = bucket.file(progressFilePath)
-      const [progressExists] = await progressFile.exists()
-
-      if (progressExists) {
-        const [progressBuffer] = await progressFile.download()
-        const progressData = JSON.parse(progressBuffer.toString())
-
-        if (
-          progressData?.processedChunks &&
-          typeof progressData.processedChunks === 'number'
-        ) {
-          startChunkIndex = Number(progressData.processedChunks)
+      // Get the file metadata to check for existing progress
+      const [metadata] = await file.getMetadata();
+      const customMetadata = metadata.metadata || {};
+      
+      if (customMetadata.processedDocuments && typeof customMetadata.processedDocuments === 'string') {
+        startIndex = Number(customMetadata.processedDocuments);
+        if (!isNaN(startIndex) && startIndex > 0) {
           logger.info(
-            `Found progress marker: already processed ${startChunkIndex} chunks of data in previous runs`,
+            `Found progress metadata: already processed ${startIndex} documents in previous runs`,
+          )
+        } else {
+          // Reset if invalid number
+          startIndex = 0;
+        }
+      }
+      
+      // Handle previous progress format (backward compatibility)
+      if (startIndex === 0 && customMetadata.processedChunks && typeof customMetadata.processedChunks === 'string') {
+        const processedChunks = Number(customMetadata.processedChunks);
+        if (!isNaN(processedChunks) && processedChunks > 0) {
+          startIndex = processedChunks * chunkSize;
+          logger.info(
+            `Found legacy progress metadata: already processed ${processedChunks} chunks (${startIndex} documents) in previous runs`,
           )
         }
       }
-    } catch (progressError) {
-      // If we can't read the progress file, start from the beginning
+    } catch (metadataError) {
+      // If we can't read the metadata, start from the beginning
       logger.warn(
-        `Could not read progress file (will start from beginning): ${String(progressError)}`,
+        `Could not read file metadata (will start from beginning): ${String(metadataError)}`,
       )
     }
 
@@ -354,8 +362,23 @@ export async function processZlibFile(
     const db = getServiceFactory().databaseService()
     const collections = db.collections
 
-    // We'll use individual document writes instead of BulkWriter
-    // No need to initialize a BulkWriter or set up error handling for it
+    // Initialize a simple bulkWriter
+    const bulkWriter = db.firestore.bulkWriter()
+    
+    // Set up minimal error handling for the bulkWriter
+    const MAX_RETRY_ATTEMPTS = 1
+    const failedDocuments: string[] = []
+    
+    bulkWriter.onWriteError((error) => {
+      if (error.failedAttempts < MAX_RETRY_ATTEMPTS) {
+        return true
+      } else {
+        // Track failed document path for reporting in progress.json
+        failedDocuments.push(error.documentRef.path)
+        logger.error(`Failed write at document: ${error.documentRef.path}`)
+        return false
+      }
+    })
 
     const documentRefs: Array<{
       ref: adminTypes.firestore.DocumentReference
@@ -391,9 +414,9 @@ export async function processZlibFile(
       }
     }
 
-    // Execute all writes using individual document writes for better tracking
+    // Execute writes in batches using bulkWriter
     if (documentRefs.length > 0) {
-      logger.info(`[${executionId}] Writing ${documentRefs.length} documents to Firestore one by one`)
+      logger.info(`[${executionId}] Writing ${documentRefs.length} documents to Firestore in batches`)
 
       // Add performance tracking
       const startTime = Date.now()
@@ -403,57 +426,135 @@ export async function processZlibFile(
         `Starting execution ${executionId} for ${documentRefs.length} documents with ${maxExecutionTimeMs}ms execution limit`,
       )
 
-      // Skip already processed documents if needed
-      let startIndex = 0
-      if (startChunkIndex > 0) {
-        startIndex = startChunkIndex * chunkSize
+      // Update i (defined at function scope) to track our progress
+      if (startIndex > 0) {
         logger.info(
           `Skipping ${startIndex} already processed documents`,
         )
       }
-
-      // Update i (defined at function scope) to track our progress
-      i = startIndex;
       
-      // Process one document at a time
-      for (; i < documentRefs.length; i++) {
-        // Check if we're approaching the execution time limit
-        if (executionTimedOut || isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
-          const elapsedMs = Date.now() - startExecutionTime;
-          const remainingMs = maxExecutionTimeMs - elapsedMs;
-          const minutesElapsed = (elapsedMs / 60000).toFixed(2);
-          
-          executionTimedOut = true
-          logger.warn(
-            `[${executionId}] Execution time limit approaching (${minutesElapsed} min elapsed). Stopping at document ${i}/${documentRefs.length}.`,
-          )
-          break
-        }
+      i = startIndex;
 
-        // Get current document
-        const doc = documentRefs[i]
-        
-        try {
-          // Simple individual document write without logging each operation
-          await doc.ref.set(doc.data)
+      // Define batch size
+      const batchSize = 500 // Smaller batch size for more frequent commits
+      
+      // Process in batches and commit after each batch
+      try {
+        while (i < documentRefs.length) {
+          // Check if we're approaching the execution time limit
+          if (executionTimedOut || isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
+            const elapsedMs = Date.now() - startExecutionTime;
+            const minutesElapsed = (elapsedMs / 60000).toFixed(2);
+            
+            executionTimedOut = true
+            logger.warn(
+              `[${executionId}] Execution time limit approaching (${minutesElapsed} min elapsed). Stopping at document ${i}/${documentRefs.length}.`,
+            )
+            break
+          }
+
+          // Create a new bulkWriter for each batch
+          const batchWriter = db.firestore.bulkWriter()
+          batchWriter.onWriteError((error) => {
+            if (error.failedAttempts < MAX_RETRY_ATTEMPTS) {
+              return true
+            } else {
+              failedDocuments.push(error.documentRef.path)
+              logger.error(`Failed write at document: ${error.documentRef.path}`)
+              return false
+            }
+          })
           
-        } catch (writeError) {
-          // Log error and trigger graceful shutdown
-          logger.error(
-            `[${executionId}] Error writing document ${doc.ref.path}: ${String(writeError)}`
+          // Calculate batch end index
+          const batchEnd = Math.min(i + batchSize, documentRefs.length)
+          
+          // Queue documents in this batch
+          for (let j = i; j < batchEnd; j++) {
+            const doc = documentRefs[j]
+            batchWriter.set(doc.ref, doc.data)
+          }
+          
+          // Log batch progress
+          const batchNumber = Math.floor(i / batchSize) + 1
+          const totalBatches = Math.ceil((documentRefs.length - startIndex) / batchSize)
+          logger.info(
+            `[${executionId}] Processing batch ${batchNumber}/${totalBatches}: documents ${i+1}-${batchEnd} of ${documentRefs.length}`
           )
           
-          // Set flag to ensure progress is saved
-          executionTimedOut = true
-          
-          // No retry logic - just log and break out of the loop
-          break
+          // Commit this batch
+          const batchStartTime = Date.now()
+          try {
+            await batchWriter.close()
+            
+            // Update progress after successful batch commit
+            lastProcessedChunk = Math.floor(batchEnd / chunkSize)
+            i = batchEnd // Move to next batch
+            
+            logger.info(
+              `[${executionId}] Batch ${batchNumber} committed successfully in ${Date.now() - batchStartTime}ms`
+            )
+            
+            // Update file metadata with progress after each successful batch
+            try {
+              // Define metadata object with proper typing
+              const metadataObject: Record<string, string> = {
+                processedDocuments: String(batchEnd),
+                lastProcessed: String(Date.now()),
+                executionId: executionId,
+                totalDocuments: String(documentRefs.length)
+              };
+              
+              // If there are failed documents, add them to metadata
+              // Limited to a reasonable number to avoid metadata size limits
+              if (failedDocuments.length > 0) {
+                // Limit to the first 10 failed documents to avoid metadata size issues
+                const failedDocsToStore = failedDocuments.slice(0, 10);
+                metadataObject.failedDocumentsCount = String(failedDocuments.length);
+                metadataObject.failedDocumentsSample = JSON.stringify(failedDocsToStore);
+              }
+              
+              // Update file metadata
+              await file.setMetadata({ metadata: metadataObject });
+              
+              logger.info(`[${executionId}] Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed`)
+            } catch (metadataError) {
+              logger.error(`[${executionId}] Failed to update metadata after batch: ${String(metadataError)}`)
+            }
+          } catch (batchError) {
+            // Handle batch error
+            logger.error(
+              `[${executionId}] Error committing batch ${batchNumber}: ${String(batchError)}`
+            )
+            
+            // If this is a deadline exceeded error, trigger graceful shutdown
+            if (String(batchError).includes('DEADLINE_EXCEEDED')) {
+              executionTimedOut = true
+              break
+            }
+            
+            // Continue with next batch even if this one failed
+            i = batchEnd
+          }
         }
+        
+        // Log any failed documents at the end
+        if (failedDocuments.length > 0) {
+          logger.error(`[${executionId}] Total failed documents: ${failedDocuments.length}`)
+        }
+        
+      } catch (error) {
+        // Handle any unexpected errors
+        logger.error(
+          `[${executionId}] Unexpected error during batch processing: ${String(error)}`
+        )
+        
+        // Set flag to ensure progress is saved
+        executionTimedOut = true
       }
       
       // Log overall performance
       logger.info(
-        `[${executionId}] Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`,
+        `[${executionId}] Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`
       )
     }
 
@@ -461,47 +562,56 @@ export async function processZlibFile(
     clearTimeout(executionTimeout)
     clearInterval(timeCheckIntervalId)
 
-    // Update progress marker at the end
-    const allChunksProcessed =
-      !executionTimedOut &&
-      i >= documentRefs.length
+    // Update final metadata marker
+    const allDocumentsProcessed = !executionTimedOut && i >= documentRefs.length
       
     try {
-      // Save a progress marker with the stopping point
-      const progressMarker = {
-        totalDocuments: documentRefs.length,
-        processedChunks: lastProcessedChunk,
-        totalChunks: totalChunks,
-        lastProcessed: Date.now(),
+      // Prepare final metadata (convert values to strings as required by metadata)
+      const finalMetadataObject: Record<string, string> = {
+        processedDocuments: String(i),
+        totalDocuments: String(documentRefs.length),
+        lastProcessed: String(Date.now()),
         executionId: executionId,
-        timedOut: executionTimedOut
+        completed: String(allDocumentsProcessed),
+        timedOut: String(executionTimedOut)
+      };
+      
+      // Add failure information if there are any failed documents
+      if (failedDocuments.length > 0) {
+        finalMetadataObject.failedDocumentsCount = String(failedDocuments.length);
+        
+        // Store up to 20 failed document paths in the metadata
+        // This ensures we don't exceed metadata size limits
+        const failedDocsSample = failedDocuments.slice(0, 20);
+        finalMetadataObject.failedDocumentsSample = JSON.stringify(failedDocsSample);
       }
 
-      // Store progress marker alongside the original file
-      const progressFilePath = `${filePath}.progress.json`
-      const progressFile = bucket.file(progressFilePath)
-      await progressFile.save(JSON.stringify(progressMarker), {
-        contentType: 'application/json',
-      })
+      // Update file metadata with final status
+      await file.setMetadata({ metadata: finalMetadataObject });
 
-      const documentsProcessed = lastProcessedChunk * chunkSize
-      const documentsRemaining = documentRefs.length - documentsProcessed
+      const documentsRemaining = documentRefs.length - i
 
       logger.info(
-        `Saved progress marker: processed ${lastProcessedChunk}/${totalChunks} chunks (${documentsProcessed}/${documentRefs.length} documents)`,
+        `Final progress: processed ${i}/${documentRefs.length} documents`,
       )
       
       if (documentsRemaining > 0) {
         logger.info(
           `File will be processed further in future runs (${documentsRemaining} documents remaining)`,
         )
+      } else if (failedDocuments.length > 0) {
+        logger.info(
+          `All documents processed but ${failedDocuments.length} failed and will need to be reprocessed`
+        )
+      } else {
+        logger.info('All documents processed successfully')
       }
-    } catch (progressError) {
-      logger.error(`Failed to save progress marker: ${String(progressError)}`)
+    } catch (metadataError) {
+      logger.error(`Failed to save final metadata: ${String(metadataError)}`)
     }
 
-    // Only delete the original file if we've processed all chunks
-    if (allChunksProcessed) {
+    // Only delete the original file if we've processed all documents
+    if (allDocumentsProcessed) {
       // Delete the original compressed file with error handling
       try {
         await file.delete()
