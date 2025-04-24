@@ -773,28 +773,6 @@ export const onZlibFileUploaded = onObjectFinalized(
     // Note: failurePolicy not supported in StorageOptions
   },
   async (event) => {
-    // Create a flag to track if we've already set up the handler
-    // This is necessary because Firebase may reuse the process for multiple invocations
-    const handlerKey = '_deadlineExceededHandlerInstalled';
-    
-    // Only set up the handler once per process to avoid duplicates
-    // Using type assertion here because we're adding a custom property to process
-    if (!(process as any)[handlerKey]) {
-      // Mark that we've installed the handler
-      (process as any)[handlerKey] = true;
-      
-      // Add a global process-level handler for unhandled errors - this helps with BulkWriterError
-      // Use 'once' instead of 'on' to handle only the first occurrence 
-      process.once('uncaughtException', (error) => {
-        // Handle DEADLINE_EXCEEDED errors gracefully without logging
-        // This allows the function to shut down cleanly when reaching its time limit
-        if (String(error).includes('DEADLINE_EXCEEDED')) {
-          return; // Allow graceful shutdown without crashing
-        }
-        // For other errors, log them but still allow normal error handling
-        logger.error(`Uncaught exception: ${String(error)}`)
-      });
-    }
     
     try {
       // Extract file information from the event
@@ -844,28 +822,6 @@ export const processBulkHealthKit = onRequest(
     timeoutSeconds: 1800, // Extend timeout to 30 minutes for HTTP function
   },
   async (req, res) => {
-    // Create a flag to track if we've already set up the handler
-    // This is necessary because Firebase may reuse the process for multiple invocations
-    const handlerKey = '_deadlineExceededHandlerInstalled';
-    
-    // Only set up the handler once per process to avoid duplicates
-    // Using type assertion here because we're adding a custom property to process
-    if (!(process as any)[handlerKey]) {
-      // Mark that we've installed the handler
-      (process as any)[handlerKey] = true;
-      
-      // Add a global process-level handler for unhandled errors - this helps with BulkWriterError
-      // Use 'once' instead of 'on' to handle only the first occurrence 
-      process.once('uncaughtException', (error) => {
-        // Handle DEADLINE_EXCEEDED errors gracefully without logging
-        // This allows the function to shut down cleanly when reaching its time limit
-        if (String(error).includes('DEADLINE_EXCEEDED')) {
-          return; // Allow graceful shutdown without crashing
-        }
-        // For other errors, log them but still allow normal error handling
-        logger.error(`Uncaught exception: ${String(error)}`)
-      });
-    }
     
     try {
       // Check if the request includes a specific file path
