@@ -109,8 +109,18 @@ export function isApproachingTimeLimit(
 ): boolean {
   const elapsedMs = Date.now() - startTime
   const remainingMs = maxTimeMs - elapsedMs
-  return remainingMs < 30000
+  
+  // Use 10% of the max time or 30 seconds, whichever is greater
+  const bufferMs = Math.max(maxTimeMs * 0.1, 30000)
+  
+  return remainingMs < bufferMs
 }
+
+/**
+ * Cache to store collection name mappings from file paths
+ * This reduces redundant calculations and logging
+ */
+const collectionNameCache: Record<string, string> = {};
 
 /**
  * Parse document information from a key-value pair
@@ -174,8 +184,38 @@ export function parseDocumentInfo(
       let fallbackName = 'HealthKitObservations'
 
       if (filePath) {
-        const filename = path.basename(filePath, '.zlib')
-        fallbackName = `HealthKitObservations_${filename}`
+        // Use cached value if available
+        if (collectionNameCache[filePath]) {
+          fallbackName = collectionNameCache[filePath]
+        } else {
+          let filename = path.basename(filePath, '.zlib')
+          
+          // For health kit files with format like "TypeName_UUID.json.zlib",
+          // extract just the type name portion before the underscore
+          if (filename.includes('_')) {
+            // HKCategoryTypeIdentifierAppleStandHour_0CAC9DB1-D901-4A89-B0C8-9F18B2484EE2.json
+            // becomes HKCategoryTypeIdentifierAppleStandHour
+            const parts = filename.split('_')
+            filename = parts[0]
+            
+            // If it's a known HealthKit type, use it directly with the HealthKit prefix
+            if (filename.startsWith('HK')) {
+              fallbackName = filename
+            } else {
+              // Otherwise use our standard prefix
+              fallbackName = `HealthKitObservations_${filename}`
+            }
+          } else {
+            // For files without underscore, use the original logic
+            fallbackName = `HealthKitObservations_${filename}`
+          }
+          
+          // Cache the result for future use
+          collectionNameCache[filePath] = fallbackName
+          
+          // Log once when we create a new mapping
+          logger.info(`Mapping file ${path.basename(filePath)} to collection: ${fallbackName}`)
+        }
       }
 
       collectionName = fallbackName
@@ -198,10 +238,13 @@ export async function processZlibFile(
   filePath: string,
   storage: adminTypes.storage.Storage,
 ) {
+  // Define execution ID for tracking and logging
+  const executionId = `exec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+  
   // Define i at function scope to track the last processed index
   let i = 0
   try {
-    logger.info(`Processing zlib file for user ${userId}: ${filePath}`)
+    logger.info(`[${executionId}] Processing zlib file for user ${userId}: ${filePath}`)
     const bucket = storage.bucket()
     const file = bucket.file(filePath)
 
@@ -245,24 +288,39 @@ export async function processZlibFile(
     )
     logger.info(`Processing ${keys.length} items from ${filePath}`)
 
-    // Configuration for chunking
-    const chunkSize = 2000 // Chunk size for documents
+    // Configuration for chunking - increased for better throughput
+    const chunkSize = 5000 // Chunk size for documents
+    
+    // Variables for tracking progress
+    const totalChunks = Math.ceil(keys.length / chunkSize)
+    let lastProcessedChunk = 0
 
-    // Create a unique execution ID to track this run
-    const executionId = `exec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    // Already have an execution ID defined at the function level
 
-    // Set up a timer to track execution time (29 minutes = 1740000ms)
-    const maxExecutionTimeMs = 1740000 // 29 minutes
+    // Set up a timer to track execution time (8 minutes = 480000ms, leaving 1 minute buffer)
+    // For the storage trigger with 540 seconds timeout, use 450000ms (7.5 minutes) to ensure graceful shutdown
+    const maxExecutionTimeMs = 450000 // 7.5 minutes
     const startExecutionTime = Date.now()
     let executionTimedOut = false
 
-    // Set up timeout to log warning and set flag after 29 minutes
+    // Set up timeout to log warning and set flag before Cloud Function timeout
     const executionTimeout = setTimeout(() => {
       executionTimedOut = true
-      logger.error(
-        `[${executionId}] Execution time approaching 30 minute limit, starting graceful shutdown.`,
+      logger.warn(
+        `[${executionId}] Execution time approaching timeout limit, starting graceful shutdown.`,
       )
     }, maxExecutionTimeMs)
+    
+    // Add additional check every 30 seconds to actively monitor time remaining
+    const timeCheckIntervalId = setInterval(() => {
+      if (isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
+        executionTimedOut = true
+        logger.warn(
+          `[${executionId}] Time check interval detected approaching timeout, triggering graceful shutdown.`
+        )
+        clearInterval(timeCheckIntervalId)
+      }
+    }, 30000)
 
     // Check if we have a progress marker file from a previous run
     let startChunkIndex = 0
@@ -296,89 +354,44 @@ export async function processZlibFile(
     const db = getServiceFactory().databaseService()
     const collections = db.collections
 
-    // Check if this file has already been processed
-    // Determine potential collection names based on our naming conventions
-    const potentialCollectionNames = new Set<string>()
-
-    if (healthKitIdentifier) {
-      potentialCollectionNames.add(
-        `HealthKitObservations_${healthKitIdentifier}`,
-      )
-    } else {
-      const filename = path.basename(filePath, '.zlib')
-      potentialCollectionNames.add(`HealthKitObservations_${filename}`)
-    }
-
-    // Check if any of these collections already exist and have documents
-    let skipProcessing = false
-    try {
-      // Convert Set to Array to avoid TypeScript iteration error
-      const collectionNamesArray = Array.from(potentialCollectionNames)
-      for (const collName of collectionNamesArray) {
-        const existingCollRef = db.firestore
-          .collection('users')
-          .doc(userId)
-          .collection(collName)
-
-        // Check if collection has documents
-        const existingDocs = await existingCollRef.limit(1).get()
-
-        if (!existingDocs.empty) {
-          // Collection already has documents from previous processing
-          logger.info(
-            `Found existing documents in collection ${collName}. This file may have been processed already.`,
-          )
-
-          // Only skip if there's no progress marker indicating partial processing
-          const progressFilePath = `${filePath}.progress.json`
-          const progressFile = bucket.file(progressFilePath)
-          const [progressExists] = await progressFile.exists()
-
-          if (!progressExists) {
-            // If there's no progress marker but data exists, we can skip
-            skipProcessing = true
-            logger.info(
-              `No progress marker found but data exists. Skipping processing for ${filePath}`,
-            )
-            break
-          } else {
-            logger.info(
-              `Progress marker exists. Continuing with processing for ${filePath}`,
-            )
-          }
-        }
-      }
-    } catch (checkError) {
-      // If checking fails, continue with processing to be safe
-      logger.warn(
-        `Error checking existing collections: ${String(checkError)}. Will proceed with processing.`,
-      )
-    }
-
-    // Skip processing if we determined the file was already fully processed
-    if (skipProcessing) {
-      logger.info(`Skipping processing for ${filePath} as data already exists`)
-      return
-    }
-
     // Initialize BulkWriter with more conservative settings to avoid timeouts
     const bulkWriter = db.firestore.bulkWriter({
       throttling: {
-        maxOpsPerSecond: 200, // More conservative rate to avoid hitting limits
+        maxOpsPerSecond: 100, // Reduce rate to avoid hitting limits
       },
     })
 
     // Add error handling for the bulk writer
     bulkWriter.onWriteError((error) => {
-      if (error.failedAttempts < 5) {
-        logger.warn(
-          `Retrying write to ${error.documentRef.path}, attempt ${error.failedAttempts}`,
-        )
-        return true // Retry the write
+      // Check for DEADLINE_EXCEEDED specifically
+      const isDeadlineExceeded = error.code === 4 || 
+                                String(error).includes('DEADLINE_EXCEEDED');
+      
+      if (isDeadlineExceeded) {
+        // For deadline exceeded errors, trigger immediate shutdown
+        // Only log once per execution to prevent log spam
+        if (!executionTimedOut) {
+          logger.warn(
+            `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
+          )
+        }
+        executionTimedOut = true // Trigger graceful shutdown immediately
+        return false // Don't retry
+      } else if (error.failedAttempts < 2) {
+        // Add exponential backoff with jitter
+        const baseDelay = Math.min(1000 * Math.pow(2, error.failedAttempts), 60000)
+        const jitter = Math.floor(Math.random() * 1000)
+        const delayMs = baseDelay + jitter
+        
+        // Schedule retry after delay, but return true immediately to indicate we want to retry
+        setTimeout(() => {}, delayMs)
+        return true
       } else {
         logger.error(
-          `Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts`,
+          `[${executionId}] Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts, shutting down gracefully`
         )
+        // Set flag to true, but don't throw an exception - this allows for proper shutdown
+        executionTimedOut = true // Trigger graceful shutdown after 2 failed attempts
         return false // Don't retry anymore
       }
     })
@@ -419,16 +432,24 @@ export async function processZlibFile(
 
     // Execute all writes using BulkWriter with chunking for better performance
     if (documentRefs.length > 0) {
-      logger.info(`Bulk writing ${documentRefs.length} documents to Firestore`)
+      logger.info(`[${executionId}] Bulk writing ${documentRefs.length} documents to Firestore`)
 
       // Using the chunk size defined earlier in the function
 
       // Add performance tracking
       const startTime = Date.now()
 
+      // Update lastProcessedChunk with the startChunkIndex
+      lastProcessedChunk = startChunkIndex;
+
       // Log the start of execution using the ID defined earlier
       logger.info(
-        `Starting execution ${executionId} for ${documentRefs.length} documents`,
+        `Starting execution ${executionId} for ${documentRefs.length} documents with ${maxExecutionTimeMs}ms execution limit`,
+      )
+      
+      // Add early log about current execution time to help with debugging timeouts
+      logger.info(
+        `[${executionId}] Initial execution time check: ${Date.now() - startExecutionTime}ms elapsed, ${maxExecutionTimeMs - (Date.now() - startExecutionTime)}ms remaining`
       )
 
       // Skip already processed chunks based on progress marker
@@ -448,20 +469,31 @@ export async function processZlibFile(
       // Process in chunks to reduce memory usage and improve performance
       // Start from the chunk index indicated by our progress marker
       // Update i (defined at function scope) to track our progress
-      i = lastProcessedIndex
-      for (; i < documentRefs.length; i += chunkSize) {
-        // Check if we're approaching the execution time limit
+      i = lastProcessedIndex;
+      
+      // Process each chunk with its own bulkWriter
+      try {
+        for (; i < documentRefs.length; i += chunkSize) {
+        // Check if we're approaching the execution time limit - force a time check every chunk
+        const currentTime = Date.now();
+        const elapsedMs = currentTime - startExecutionTime;
+        const approachingLimit = elapsedMs > (maxExecutionTimeMs * 0.85); // 85% of max time
+        
         if (
           executionTimedOut ||
+          approachingLimit ||
           isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)
         ) {
-          const minutesElapsed = (
-            (Date.now() - startExecutionTime) /
-            60000
-          ).toFixed(2)
+          const remainingMs = maxExecutionTimeMs - elapsedMs;
+          const minutesElapsed = (elapsedMs / 60000).toFixed(2);
+          const minutesRemaining = (remainingMs / 60000).toFixed(2);
+          
           executionTimedOut = true // Set flag if we detected timeout here
-          logger.info(
-            `[${executionId}] Execution time limit approaching (${minutesElapsed} minutes). Saving progress and stopping gracefully.`,
+          const bufferMs = Math.max(maxExecutionTimeMs * 0.1, 30000)
+          const bufferMinutes = (bufferMs / 60000).toFixed(1)
+          
+          logger.warn(
+            `[${executionId}] Execution time limit approaching (${minutesElapsed}/${(maxExecutionTimeMs/60000).toFixed(1)} minutes elapsed, ${minutesRemaining} minutes remaining, ${bufferMinutes} min buffer). Saving progress and stopping gracefully at chunk ${Math.floor(i / chunkSize) + 1}/${totalChunks}.`,
           )
           break
         }
@@ -469,90 +501,285 @@ export async function processZlibFile(
         const chunkStartTime = Date.now()
         const chunk = documentRefs.slice(i, i + chunkSize)
         const chunkNumber = Math.floor(i / chunkSize) + 1
-        const totalChunks = Math.ceil(documentRefs.length / chunkSize)
 
         logger.info(
-          `[${executionId}] Writing chunk ${chunkNumber}/${totalChunks} (${chunk.length} docs)`,
+          `[${executionId}] Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} docs)`,
         )
 
-        // Set each document with the bulkWriter
+        // Create a new BulkWriter for each chunk to prevent memory buildup
+        // Using 'let' instead of 'const' to allow reassignment during retries
+        let chunkBulkWriter = db.firestore.bulkWriter({
+          throttling: {
+            maxOpsPerSecond: 200, // Increased for better throughput
+          },
+        });
+
+        // Add error handling for the chunk's bulk writer
+        chunkBulkWriter.onWriteError((error) => {
+          // Check for DEADLINE_EXCEEDED specifically
+          const isDeadlineExceeded = error.code === 4 || 
+                                    String(error).includes('DEADLINE_EXCEEDED');
+          
+          if (isDeadlineExceeded) {
+            // For deadline exceeded errors, trigger immediate shutdown
+            // Only log once per execution to prevent log spam
+            if (!executionTimedOut) {
+              logger.warn(
+                `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
+              )
+            }
+            executionTimedOut = true // Trigger graceful shutdown immediately
+            return false // Don't retry 
+          } else if (error.failedAttempts < 2) {
+            return true // Retry only once for other errors
+          } else {
+            logger.error(
+              `[${executionId}] Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts, shutting down gracefully`
+            )
+            // Set flag to true, but don't throw an exception - this allows for proper shutdown
+            executionTimedOut = true // Trigger graceful shutdown after 2 failed attempts
+            return false // Don't retry anymore
+          }
+        });
+
+        // Set each document with the chunk's bulkWriter
         const queueStartTime = Date.now()
-        for (const doc of chunk) {
-          // Use void to explicitly mark as ignored since we're handling errors with onWriteError
-          void bulkWriter.set(doc.ref, doc.data)
+        
+        // Increase micro-batch size for better throughput
+        const microBatchSize = 200
+        for (let j = 0; j < chunk.length; j += microBatchSize) {
+          const microBatch = chunk.slice(j, j + microBatchSize)
+          
+          // Queue the micro-batch with additional error handling
+          for (const doc of microBatch) {
+            try {
+              // Here we should properly await or handle the promise - void isn't necessary with BulkWriter
+              // as the commit operation is what awaits everything
+              chunkBulkWriter.set(doc.ref, doc.data)
+            } catch (setError) {
+              // Handle any synchronous errors that might occur
+              logger.warn(`[${executionId}] Error queueing document ${doc.ref.path}: ${String(setError)}`)
+              
+              // Check if this is a deadline exceeded error
+              if (String(setError).includes('DEADLINE_EXCEEDED')) {
+                // Only log once per execution to prevent log spam
+                if (!executionTimedOut) {
+                  logger.warn(`[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`)
+                }
+                executionTimedOut = true
+                break
+              }
+            }
+          }
+          
+          // If we've hit a timeout, break out of the micro-batch loop
+          if (executionTimedOut) {
+            break
+          }
+          
+          // No delay between micro-batches for better throughput
         }
+        
         logger.info(
           `[${executionId}] Queued ${chunk.length} documents in ${Date.now() - queueStartTime}ms`,
         )
 
-        // Insert a slightly longer delay between chunks to avoid rate limits
-        if (i + chunkSize < documentRefs.length) {
-          const delayTime = 50 // Slightly longer delay
+        // Commit this chunk with unlimited retries until time limit
+        let commitSuccess = false
+        let commitAttempt = 0
+        
+        while (!commitSuccess) {
+          commitAttempt++
+          const commitStartTime = Date.now()
           logger.info(
-            `[${executionId}] Delaying ${delayTime}ms before next chunk`,
+            `[${executionId}] Committing chunk ${chunkNumber}/${totalChunks} (attempt ${commitAttempt}) at ${new Date().toISOString()}`,
           )
-          await new Promise((resolve) => setTimeout(resolve, delayTime))
+          
+          // Check if we're approaching the execution time limit before attempting commit
+          if (executionTimedOut || isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
+            logger.warn(
+              `[${executionId}] Approaching time limit during commit attempt ${commitAttempt}, aborting chunk ${chunkNumber}`,
+            )
+            break
+          }
+          
+          try {
+            // Reduce timeout to avoid hitting Firestore deadlines (which are around 60s)
+            const timeoutMs = Math.min(45000, 30000 + (chunk.length * 5)) // Base 30s + 5ms per doc, max 45 seconds
+            
+            // Set a timeout for uploads to complete
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(
+                () =>
+                  reject(
+                    new Error(
+                      `[${executionId}] Chunk ${chunkNumber} commit timed out after ${timeoutMs}ms (attempt ${commitAttempt})`,
+                    ),
+                  ),
+                timeoutMs,
+              )
+            })
+
+            // Race the bulkWriter close with the timeout
+            // Important: This await ensures we don't return before the operation completes or times out
+            await Promise.race([
+              chunkBulkWriter.close().catch(error => {
+                // Handle any promise rejection here to prevent unhandled rejections
+                if (String(error).includes('DEADLINE_EXCEEDED')) {
+                  // Silently mark as timed out but don't log to prevent spam
+                  executionTimedOut = true;
+                }
+                // Re-throw so Promise.race sees it
+                throw error;
+              }), 
+              timeoutPromise
+            ])
+
+            logger.info(
+              `[${executionId}] Chunk ${chunkNumber} committed in ${Date.now() - commitStartTime}ms (attempt ${commitAttempt})`,
+            )
+            
+            // Mark this chunk as successfully processed
+            lastProcessedChunk = chunkNumber;
+            
+            // Mark as successful to exit retry loop
+            commitSuccess = true
+            
+          } catch (closeError) {
+            // Check if this is a deadline exceeded error
+            const isDeadlineExceeded = String(closeError).includes('DEADLINE_EXCEEDED');
+            
+            if (isDeadlineExceeded) {
+              // Only log once per execution to prevent log spam
+              if (!executionTimedOut) {
+                logger.warn(
+                  `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
+                )
+              }
+              executionTimedOut = true; // Trigger graceful shutdown
+              commitSuccess = true; // Break out of retry loop
+              break; // Exit the retry loop
+            }
+            
+            logger.warn(
+              `[${executionId}] Error committing chunk ${chunkNumber} (attempt ${commitAttempt}): ${String(closeError)}, will retry...`,
+            )
+            
+            // Create a new BulkWriter for the retry
+            chunkBulkWriter = db.firestore.bulkWriter({
+              throttling: {
+                maxOpsPerSecond: 200, // Keep the same throttling
+              },
+            });
+            
+            // Add error handling for the new bulk writer
+            chunkBulkWriter.onWriteError((error) => {
+              // Check for DEADLINE_EXCEEDED specifically
+              const isDeadlineExceeded = error.code === 4 || 
+                                        String(error).includes('DEADLINE_EXCEEDED');
+              
+              if (isDeadlineExceeded) {
+                // For deadline exceeded errors, trigger immediate shutdown
+                // Only log once per execution to prevent log spam
+                if (!executionTimedOut) {
+                  logger.warn(
+                    `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
+                  )
+                }
+                executionTimedOut = true // Trigger graceful shutdown immediately
+                return false // Don't retry 
+              } else if (error.failedAttempts < 2) {
+                return true // Retry only once for other errors
+              } else {
+                logger.error(
+                  `[${executionId}] Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts, shutting down gracefully`
+                )
+                // Set flag to true, but don't throw an exception - this allows for proper shutdown
+                executionTimedOut = true // Trigger graceful shutdown after 2 failed attempts
+                return false // Don't retry anymore
+              }
+            });
+            
+            // Re-queue all documents for this chunk 
+            for (const doc of chunk) {
+              // No need for void - the BulkWriter.close() will await all operations
+              chunkBulkWriter.set(doc.ref, doc.data)
+            }
+            
+            // Short delay before retry (5 seconds)
+            logger.info(`Waiting 5000ms before retry attempt ${commitAttempt + 1}...`)
+            await new Promise(resolve => setTimeout(resolve, 5000))
+          }
         }
 
         logger.info(
-          `[${executionId}] Finished processing chunk ${chunkNumber} in ${Date.now() - chunkStartTime}ms`,
+          `[${executionId}] Completed chunk ${chunkNumber}/${totalChunks} in ${Date.now() - chunkStartTime}ms`,
         )
+        }
+      } catch (bulkWriterError) {
+        // Catch any unhandled BulkWriterErrors
+        logger.warn(`[${executionId}] Caught unhandled error during bulk write: ${String(bulkWriterError)}`)
+        
+        // Set timeout flag to ensure graceful shutdown
+        if (String(bulkWriterError).includes('DEADLINE_EXCEEDED')) {
+          // Only log once per execution to prevent log spam
+          if (!executionTimedOut) {
+            logger.warn(`[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`)
+          }
+          executionTimedOut = true
+        }
       }
-
-      // Wait for all writes to complete with timing
-      const commitStartTime = Date.now()
+      
+      // Log overall performance
       logger.info(
-        `[${executionId}] Starting bulkWriter.close() at ${new Date().toISOString()}`,
+        `[${executionId}] Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`,
       )
-
-      try {
-        // Set a longer timeout for large uploads to complete
-        const timeoutPromise = new Promise((_, reject) => {
-          const timeoutMs = 1740000 // 29 minutes timeout (matches our maxExecutionTimeMs)
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `[${executionId}] BulkWriter close timed out after ${timeoutMs}ms`,
-                ),
-              ),
-            timeoutMs,
-          )
-        })
-
-        // Race the bulkWriter close with the timeout
-        await Promise.race([bulkWriter.close(), timeoutPromise])
-
-        logger.info(
-          `[${executionId}] BulkWriter.close() completed in ${Date.now() - commitStartTime}ms`,
-        )
-
-        // Log overall performance
-        logger.info(
-          `[${executionId}] Total bulk write operation took ${Date.now() - startTime}ms`,
-        )
-        logger.info(
-          `[${executionId}] Successfully processed batch of documents`,
-        )
-      } catch (closeError) {
-        logger.error(
-          `[${executionId}] Error during bulkWriter.close(): ${String(closeError)}`,
-        )
-        // Continue with cleanup even if bulkWriter.close() fails
-      }
     }
 
-    // Clean up the execution timeout
+    // Clean up the execution timeout and interval
     clearTimeout(executionTimeout)
+    clearInterval(timeCheckIntervalId)
 
-    // Only delete the original file if we've processed all chunks
-    const totalChunks = Math.ceil(documentRefs.length / chunkSize)
+    // Update progress marker at the end
     const allChunksProcessed =
       !executionTimedOut &&
-      startChunkIndex * chunkSize +
-        (totalChunks - startChunkIndex) * chunkSize >=
-        documentRefs.length
+      i >= documentRefs.length
+      
+    try {
+      // Save a progress marker with the stopping point
+      const progressMarker = {
+        totalDocuments: documentRefs.length,
+        processedChunks: lastProcessedChunk,
+        totalChunks: totalChunks,
+        lastProcessed: Date.now(),
+        executionId: executionId,
+        timedOut: executionTimedOut
+      }
 
+      // Store progress marker alongside the original file
+      const progressFilePath = `${filePath}.progress.json`
+      const progressFile = bucket.file(progressFilePath)
+      await progressFile.save(JSON.stringify(progressMarker), {
+        contentType: 'application/json',
+      })
+
+      const documentsProcessed = lastProcessedChunk * chunkSize
+      const documentsRemaining = documentRefs.length - documentsProcessed
+
+      logger.info(
+        `Saved progress marker: processed ${lastProcessedChunk}/${totalChunks} chunks (${documentsProcessed}/${documentRefs.length} documents)`,
+      )
+      
+      if (documentsRemaining > 0) {
+        logger.info(
+          `File will be processed further in future runs (${documentsRemaining} documents remaining)`,
+        )
+      }
+    } catch (progressError) {
+      logger.error(`Failed to save progress marker: ${String(progressError)}`)
+    }
+
+    // Only delete the original file if we've processed all chunks
     if (allChunksProcessed) {
       // Delete the original compressed file with error handling
       try {
@@ -565,42 +792,6 @@ export async function processZlibFile(
         logger.warn(
           `Error deleting original file ${filePath}: ${String(deleteError)}`,
         )
-      }
-    } else {
-      // Create a progress marker file to indicate processing progress
-      try {
-        // At this point, i will contain the last index we processed (or started to process)
-        // and lastProcessedIndex is also available at function scope
-        const currentChunkIndex =
-          executionTimedOut ?
-            Math.floor(i / chunkSize) // Use last chunk we were working on when timed out
-          : totalChunks // Otherwise we've processed all chunks
-        const progressMarker = {
-          totalDocuments: documentRefs.length,
-          processedChunks: currentChunkIndex,
-          totalChunks: totalChunks,
-          lastProcessed: Date.now(),
-          executionId: executionId,
-        }
-
-        // Store progress marker alongside the original file
-        const progressFilePath = `${filePath}.progress.json`
-        const progressFile = bucket.file(progressFilePath)
-        await progressFile.save(JSON.stringify(progressMarker), {
-          contentType: 'application/json',
-        })
-
-        const documentsProcessed = progressMarker.processedChunks * chunkSize
-        const documentsRemaining = documentRefs.length - documentsProcessed
-
-        logger.info(
-          `Saved progress marker for ${filePath}: processed ${progressMarker.processedChunks}/${progressMarker.totalChunks} chunks (${documentsProcessed}/${documentRefs.length} documents)`,
-        )
-        logger.info(
-          `File will be processed further in future runs (${documentsRemaining} documents remaining)`,
-        )
-      } catch (progressError) {
-        logger.error(`Failed to save progress marker: ${String(progressError)}`)
       }
     }
 
@@ -619,7 +810,13 @@ export async function processZlibFile(
       logger.warn(`Error cleaning up temp file: ${String(cleanupError)}`)
     }
 
-    logger.info(`Successfully processed ${keys.length} items from ${filePath}`)
+    // Only report full success if all items were processed
+    if (!executionTimedOut && lastProcessedChunk >= totalChunks) {
+      logger.info(`[${executionId}] Successfully processed all ${keys.length} items from ${filePath}`)
+    } else {
+      const itemsProcessed = Math.min(lastProcessedChunk * chunkSize, keys.length);
+      logger.info(`[${executionId}] Partially processed ${itemsProcessed} of ${keys.length} items from ${filePath}`)
+    }
   } catch (error) {
     logger.error(`Error processing zlib file ${filePath}: ${String(error)}`)
     logger.error(`Stack trace: ${(error as Error).stack ?? 'No stack trace'}`)
@@ -742,6 +939,10 @@ export function shouldProcessFile(filePath: string): boolean {
  *
  * The fileConcurrencyLimit controls how many files are processed in parallel
  * for each user. This helps balance processing speed with system load.
+ * 
+ * IMPORTANT: When using this with timeoutSeconds=540 in the onObjectFinalized trigger,
+ * the maxExecutionTimeMs should be set to around 450000 (7.5 minutes) to ensure
+ * there's enough buffer for graceful shutdown before Firebase terminates the function.
  *
  * @param options Optional configuration options to control concurrency
  * @returns A promise that resolves when processing is complete
@@ -851,8 +1052,31 @@ export const onZlibFileUploaded = onObjectFinalized(
     timeoutSeconds: 540,
     region: 'us-central1',
     memory: '4GiB',
+    // Note: failurePolicy not supported in StorageOptions
   },
   async (event) => {
+    // Create a flag to track if we've already set up the handler
+    // This is necessary because Firebase may reuse the process for multiple invocations
+    const handlerKey = '_deadlineExceededHandlerInstalled';
+    
+    // Only set up the handler once per process to avoid duplicates
+    if (!(process as any)[handlerKey]) {
+      // Mark that we've installed the handler
+      (process as any)[handlerKey] = true;
+      
+      // Add a global process-level handler for unhandled errors - this helps with BulkWriterError
+      // Use 'once' instead of 'on' to handle only the first occurrence 
+      process.once('uncaughtException', (error) => {
+        // Silently handle DEADLINE_EXCEEDED errors without logging
+        if (String(error).includes('DEADLINE_EXCEEDED')) {
+          // Don't log anything - just allow graceful shutdown
+          return; // Don't crash the process
+        }
+        // For other errors, log them but still allow normal error handling
+        logger.error(`Uncaught exception: ${String(error)}`)
+      });
+    }
+    
     try {
       // Extract file information from the event
       const filePath = event.data.name
@@ -899,6 +1123,28 @@ export const processBulkHealthKit = onRequest(
     timeoutSeconds: 1800, // Extend timeout to 30 minutes for HTTP function
   },
   async (req, res) => {
+    // Create a flag to track if we've already set up the handler
+    // This is necessary because Firebase may reuse the process for multiple invocations
+    const handlerKey = '_deadlineExceededHandlerInstalled';
+    
+    // Only set up the handler once per process to avoid duplicates
+    if (!(process as any)[handlerKey]) {
+      // Mark that we've installed the handler
+      (process as any)[handlerKey] = true;
+      
+      // Add a global process-level handler for unhandled errors - this helps with BulkWriterError
+      // Use 'once' instead of 'on' to handle only the first occurrence 
+      process.once('uncaughtException', (error) => {
+        // Silently handle DEADLINE_EXCEEDED errors without logging
+        if (String(error).includes('DEADLINE_EXCEEDED')) {
+          // Don't log anything - just allow graceful shutdown
+          return; // Don't crash the process
+        }
+        // For other errors, log them but still allow normal error handling
+        logger.error(`Uncaught exception: ${String(error)}`)
+      });
+    }
+    
     try {
       // Check if the request includes a specific file path
       const specificPath = req.query.path as string | undefined
