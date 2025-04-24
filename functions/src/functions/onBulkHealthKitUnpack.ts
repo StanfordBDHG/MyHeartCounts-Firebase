@@ -354,47 +354,8 @@ export async function processZlibFile(
     const db = getServiceFactory().databaseService()
     const collections = db.collections
 
-    // Initialize BulkWriter with more conservative settings to avoid timeouts
-    const bulkWriter = db.firestore.bulkWriter({
-      throttling: {
-        maxOpsPerSecond: 100, // Reduce rate to avoid hitting limits
-      },
-    })
-
-    // Add error handling for the bulk writer
-    bulkWriter.onWriteError((error) => {
-      // Check for DEADLINE_EXCEEDED specifically
-      const isDeadlineExceeded = error.code === 4 || 
-                                String(error).includes('DEADLINE_EXCEEDED');
-      
-      if (isDeadlineExceeded) {
-        // For deadline exceeded errors, trigger immediate shutdown
-        // Only log once per execution to prevent log spam
-        if (!executionTimedOut) {
-          logger.warn(
-            `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
-          )
-        }
-        executionTimedOut = true // Trigger graceful shutdown immediately
-        return false // Don't retry
-      } else if (error.failedAttempts < 2) {
-        // Add exponential backoff with jitter
-        const baseDelay = Math.min(1000 * Math.pow(2, error.failedAttempts), 60000)
-        const jitter = Math.floor(Math.random() * 1000)
-        const delayMs = baseDelay + jitter
-        
-        // Schedule retry after delay, but return true immediately to indicate we want to retry
-        setTimeout(() => {}, delayMs)
-        return true
-      } else {
-        logger.error(
-          `[${executionId}] Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts, shutting down gracefully`
-        )
-        // Set flag to true, but don't throw an exception - this allows for proper shutdown
-        executionTimedOut = true // Trigger graceful shutdown after 2 failed attempts
-        return false // Don't retry anymore
-      }
-    })
+    // We'll use individual document writes instead of BulkWriter
+    // No need to initialize a BulkWriter or set up error handling for it
 
     const documentRefs: Array<{
       ref: adminTypes.firestore.DocumentReference
@@ -430,303 +391,63 @@ export async function processZlibFile(
       }
     }
 
-    // Execute all writes using BulkWriter with chunking for better performance
+    // Execute all writes using individual document writes for better tracking
     if (documentRefs.length > 0) {
-      logger.info(`[${executionId}] Bulk writing ${documentRefs.length} documents to Firestore`)
-
-      // Using the chunk size defined earlier in the function
+      logger.info(`[${executionId}] Writing ${documentRefs.length} documents to Firestore one by one`)
 
       // Add performance tracking
       const startTime = Date.now()
 
-      // Update lastProcessedChunk with the startChunkIndex
-      lastProcessedChunk = startChunkIndex;
-
-      // Log the start of execution using the ID defined earlier
+      // Log the start of execution
       logger.info(
         `Starting execution ${executionId} for ${documentRefs.length} documents with ${maxExecutionTimeMs}ms execution limit`,
       )
-      
-      // Add early log about current execution time to help with debugging timeouts
-      logger.info(
-        `[${executionId}] Initial execution time check: ${Date.now() - startExecutionTime}ms elapsed, ${maxExecutionTimeMs - (Date.now() - startExecutionTime)}ms remaining`
-      )
 
-      // Skip already processed chunks based on progress marker
-      let skipCount = 0
+      // Skip already processed documents if needed
+      let startIndex = 0
       if (startChunkIndex > 0) {
-        skipCount = startChunkIndex * chunkSize
+        startIndex = startChunkIndex * chunkSize
         logger.info(
-          `Skipping ${skipCount} already processed documents (${startChunkIndex} chunks)`,
+          `Skipping ${startIndex} already processed documents`,
         )
       }
 
-      // Define this variable at function scope so it's accessible everywhere in the function
-      // including the progress marker section outside the for loop
-      // Keep track of the last index we processed
-      const lastProcessedIndex = startChunkIndex * chunkSize
-
-      // Process in chunks to reduce memory usage and improve performance
-      // Start from the chunk index indicated by our progress marker
       // Update i (defined at function scope) to track our progress
-      i = lastProcessedIndex;
+      i = startIndex;
       
-      // Process each chunk with its own bulkWriter
-      try {
-        for (; i < documentRefs.length; i += chunkSize) {
-        // Check if we're approaching the execution time limit - force a time check every chunk
-        const currentTime = Date.now();
-        const elapsedMs = currentTime - startExecutionTime;
-        const approachingLimit = elapsedMs > (maxExecutionTimeMs * 0.85); // 85% of max time
-        
-        if (
-          executionTimedOut ||
-          approachingLimit ||
-          isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)
-        ) {
+      // Process one document at a time
+      for (; i < documentRefs.length; i++) {
+        // Check if we're approaching the execution time limit
+        if (executionTimedOut || isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
+          const elapsedMs = Date.now() - startExecutionTime;
           const remainingMs = maxExecutionTimeMs - elapsedMs;
           const minutesElapsed = (elapsedMs / 60000).toFixed(2);
-          const minutesRemaining = (remainingMs / 60000).toFixed(2);
           
-          executionTimedOut = true // Set flag if we detected timeout here
-          const bufferMs = Math.max(maxExecutionTimeMs * 0.1, 30000)
-          const bufferMinutes = (bufferMs / 60000).toFixed(1)
-          
+          executionTimedOut = true
           logger.warn(
-            `[${executionId}] Execution time limit approaching (${minutesElapsed}/${(maxExecutionTimeMs/60000).toFixed(1)} minutes elapsed, ${minutesRemaining} minutes remaining, ${bufferMinutes} min buffer). Saving progress and stopping gracefully at chunk ${Math.floor(i / chunkSize) + 1}/${totalChunks}.`,
+            `[${executionId}] Execution time limit approaching (${minutesElapsed} min elapsed). Stopping at document ${i}/${documentRefs.length}.`,
           )
           break
         }
 
-        const chunkStartTime = Date.now()
-        const chunk = documentRefs.slice(i, i + chunkSize)
-        const chunkNumber = Math.floor(i / chunkSize) + 1
-
-        logger.info(
-          `[${executionId}] Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} docs)`,
-        )
-
-        // Create a new BulkWriter for each chunk to prevent memory buildup
-        // Using 'let' instead of 'const' to allow reassignment during retries
-        let chunkBulkWriter = db.firestore.bulkWriter({
-          throttling: {
-            maxOpsPerSecond: 200, // Increased for better throughput
-          },
-        });
-
-        // Add error handling for the chunk's bulk writer
-        chunkBulkWriter.onWriteError((error) => {
-          // Check for DEADLINE_EXCEEDED specifically
-          const isDeadlineExceeded = error.code === 4 || 
-                                    String(error).includes('DEADLINE_EXCEEDED');
-          
-          if (isDeadlineExceeded) {
-            // For deadline exceeded errors, trigger immediate shutdown
-            // Only log once per execution to prevent log spam
-            if (!executionTimedOut) {
-              logger.warn(
-                `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
-              )
-            }
-            executionTimedOut = true // Trigger graceful shutdown immediately
-            return false // Don't retry 
-          } else if (error.failedAttempts < 2) {
-            return true // Retry only once for other errors
-          } else {
-            logger.error(
-              `[${executionId}] Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts, shutting down gracefully`
-            )
-            // Set flag to true, but don't throw an exception - this allows for proper shutdown
-            executionTimedOut = true // Trigger graceful shutdown after 2 failed attempts
-            return false // Don't retry anymore
-          }
-        });
-
-        // Set each document with the chunk's bulkWriter
-        const queueStartTime = Date.now()
+        // Get current document
+        const doc = documentRefs[i]
         
-        // Increase micro-batch size for better throughput
-        const microBatchSize = 200
-        for (let j = 0; j < chunk.length; j += microBatchSize) {
-          const microBatch = chunk.slice(j, j + microBatchSize)
+        try {
+          // Simple individual document write without logging each operation
+          await doc.ref.set(doc.data)
           
-          // Queue the micro-batch with additional error handling
-          for (const doc of microBatch) {
-            try {
-              // Here we should properly await or handle the promise - void isn't necessary with BulkWriter
-              // as the commit operation is what awaits everything
-              chunkBulkWriter.set(doc.ref, doc.data)
-            } catch (setError) {
-              // Handle any synchronous errors that might occur
-              logger.warn(`[${executionId}] Error queueing document ${doc.ref.path}: ${String(setError)}`)
-              
-              // Check if this is a deadline exceeded error
-              if (String(setError).includes('DEADLINE_EXCEEDED')) {
-                // Only log once per execution to prevent log spam
-                if (!executionTimedOut) {
-                  logger.warn(`[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`)
-                }
-                executionTimedOut = true
-                break
-              }
-            }
-          }
-          
-          // If we've hit a timeout, break out of the micro-batch loop
-          if (executionTimedOut) {
-            break
-          }
-          
-          // No delay between micro-batches for better throughput
-        }
-        
-        logger.info(
-          `[${executionId}] Queued ${chunk.length} documents in ${Date.now() - queueStartTime}ms`,
-        )
-
-        // Commit this chunk with unlimited retries until time limit
-        let commitSuccess = false
-        let commitAttempt = 0
-        
-        while (!commitSuccess) {
-          commitAttempt++
-          const commitStartTime = Date.now()
-          logger.info(
-            `[${executionId}] Committing chunk ${chunkNumber}/${totalChunks} (attempt ${commitAttempt}) at ${new Date().toISOString()}`,
+        } catch (writeError) {
+          // Log error and trigger graceful shutdown
+          logger.error(
+            `[${executionId}] Error writing document ${doc.ref.path}: ${String(writeError)}`
           )
           
-          // Check if we're approaching the execution time limit before attempting commit
-          if (executionTimedOut || isApproachingTimeLimit(startExecutionTime, maxExecutionTimeMs)) {
-            logger.warn(
-              `[${executionId}] Approaching time limit during commit attempt ${commitAttempt}, aborting chunk ${chunkNumber}`,
-            )
-            break
-          }
-          
-          try {
-            // Reduce timeout to avoid hitting Firestore deadlines (which are around 60s)
-            const timeoutMs = Math.min(45000, 30000 + (chunk.length * 5)) // Base 30s + 5ms per doc, max 45 seconds
-            
-            // Set a timeout for uploads to complete
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(
-                () =>
-                  reject(
-                    new Error(
-                      `[${executionId}] Chunk ${chunkNumber} commit timed out after ${timeoutMs}ms (attempt ${commitAttempt})`,
-                    ),
-                  ),
-                timeoutMs,
-              )
-            })
-
-            // Race the bulkWriter close with the timeout
-            // Important: This await ensures we don't return before the operation completes or times out
-            await Promise.race([
-              chunkBulkWriter.close().catch(error => {
-                // Handle any promise rejection here to prevent unhandled rejections
-                if (String(error).includes('DEADLINE_EXCEEDED')) {
-                  // Silently mark as timed out but don't log to prevent spam
-                  executionTimedOut = true;
-                }
-                // Re-throw so Promise.race sees it
-                throw error;
-              }), 
-              timeoutPromise
-            ])
-
-            logger.info(
-              `[${executionId}] Chunk ${chunkNumber} committed in ${Date.now() - commitStartTime}ms (attempt ${commitAttempt})`,
-            )
-            
-            // Mark this chunk as successfully processed
-            lastProcessedChunk = chunkNumber;
-            
-            // Mark as successful to exit retry loop
-            commitSuccess = true
-            
-          } catch (closeError) {
-            // Check if this is a deadline exceeded error
-            const isDeadlineExceeded = String(closeError).includes('DEADLINE_EXCEEDED');
-            
-            if (isDeadlineExceeded) {
-              // Only log once per execution to prevent log spam
-              if (!executionTimedOut) {
-                logger.warn(
-                  `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
-                )
-              }
-              executionTimedOut = true; // Trigger graceful shutdown
-              commitSuccess = true; // Break out of retry loop
-              break; // Exit the retry loop
-            }
-            
-            logger.warn(
-              `[${executionId}] Error committing chunk ${chunkNumber} (attempt ${commitAttempt}): ${String(closeError)}, will retry...`,
-            )
-            
-            // Create a new BulkWriter for the retry
-            chunkBulkWriter = db.firestore.bulkWriter({
-              throttling: {
-                maxOpsPerSecond: 200, // Keep the same throttling
-              },
-            });
-            
-            // Add error handling for the new bulk writer
-            chunkBulkWriter.onWriteError((error) => {
-              // Check for DEADLINE_EXCEEDED specifically
-              const isDeadlineExceeded = error.code === 4 || 
-                                        String(error).includes('DEADLINE_EXCEEDED');
-              
-              if (isDeadlineExceeded) {
-                // For deadline exceeded errors, trigger immediate shutdown
-                // Only log once per execution to prevent log spam
-                if (!executionTimedOut) {
-                  logger.warn(
-                    `[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`
-                  )
-                }
-                executionTimedOut = true // Trigger graceful shutdown immediately
-                return false // Don't retry 
-              } else if (error.failedAttempts < 2) {
-                return true // Retry only once for other errors
-              } else {
-                logger.error(
-                  `[${executionId}] Failed to write to ${error.documentRef.path} after ${error.failedAttempts} attempts, shutting down gracefully`
-                )
-                // Set flag to true, but don't throw an exception - this allows for proper shutdown
-                executionTimedOut = true // Trigger graceful shutdown after 2 failed attempts
-                return false // Don't retry anymore
-              }
-            });
-            
-            // Re-queue all documents for this chunk 
-            for (const doc of chunk) {
-              // No need for void - the BulkWriter.close() will await all operations
-              chunkBulkWriter.set(doc.ref, doc.data)
-            }
-            
-            // Short delay before retry (5 seconds)
-            logger.info(`Waiting 5000ms before retry attempt ${commitAttempt + 1}...`)
-            await new Promise(resolve => setTimeout(resolve, 5000))
-          }
-        }
-
-        logger.info(
-          `[${executionId}] Completed chunk ${chunkNumber}/${totalChunks} in ${Date.now() - chunkStartTime}ms`,
-        )
-        }
-      } catch (bulkWriterError) {
-        // Catch any unhandled BulkWriterErrors
-        logger.warn(`[${executionId}] Caught unhandled error during bulk write: ${String(bulkWriterError)}`)
-        
-        // Set timeout flag to ensure graceful shutdown
-        if (String(bulkWriterError).includes('DEADLINE_EXCEEDED')) {
-          // Only log once per execution to prevent log spam
-          if (!executionTimedOut) {
-            logger.warn(`[${executionId}] DEADLINE_EXCEEDED detected, shutting down gracefully. Further similar messages will be suppressed.`)
-          }
+          // Set flag to ensure progress is saved
           executionTimedOut = true
+          
+          // No retry logic - just log and break out of the loop
+          break
         }
       }
       
