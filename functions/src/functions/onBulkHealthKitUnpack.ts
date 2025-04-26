@@ -12,6 +12,9 @@ import * as path from 'path'
 import * as zlib from 'zlib'
 import type * as adminTypes from 'firebase-admin'
 import { logger } from 'firebase-functions'
+import { onRequest } from 'firebase-functions/v2/https'
+import { onObjectFinalized } from 'firebase-functions/v2/storage'
+import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 // Get process ID for consistent log tagging
 const PID = process.pid
@@ -21,9 +24,6 @@ const logDebug = (message: string) => logger.debug(`[pid:${PID}] ${message}`)
 const logInfo = (message: string) => logger.info(`[pid:${PID}] ${message}`)
 const logWarn = (message: string) => logger.warn(`[pid:${PID}] ${message}`)
 const logError = (message: string) => logger.error(`[pid:${PID}] ${message}`)
-import { onRequest } from 'firebase-functions/v2/https'
-import { onObjectFinalized } from 'firebase-functions/v2/storage'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 /**
  * Extracts the HealthKit identifier from a filename
@@ -62,12 +62,12 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
       })
     })
     logDebug(
-      `Decompressed with inflate in ${Date.now() - decompressStartTime}ms`
+      `Decompressed with inflate in ${Date.now() - decompressStartTime}ms`,
     )
     return decompressedData
   } catch (inflateError) {
     logWarn(
-      `Standard inflate failed after ${Date.now() - decompressStartTime}ms, trying gunzip`
+      `Standard inflate failed after ${Date.now() - decompressStartTime}ms, trying gunzip`,
     )
     const gunzipStartTime = Date.now()
     try {
@@ -78,13 +78,11 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
           else resolve(result)
         })
       })
-      logDebug(
-        `Decompressed with gunzip in ${Date.now() - gunzipStartTime}ms`
-      )
+      logDebug(`Decompressed with gunzip in ${Date.now() - gunzipStartTime}ms`)
       return decompressedData
     } catch (gunzipError) {
       logWarn(
-        `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying inflateRaw`
+        `Gunzip also failed after ${Date.now() - gunzipStartTime}ms, trying inflateRaw`,
       )
       const inflateRawStartTime = Date.now()
       // If both fail, try inflateRaw as a last resort with async version
@@ -95,7 +93,7 @@ export async function decompressData(compressedData: Buffer): Promise<Buffer> {
         })
       })
       logDebug(
-        `Decompressed with inflateRaw in ${Date.now() - inflateRawStartTime}ms`
+        `Decompressed with inflateRaw in ${Date.now() - inflateRawStartTime}ms`,
       )
       return decompressedData
     }
@@ -114,7 +112,7 @@ export function isApproachingTimeLimit(
   startTime: number,
   maxTimeMs: number,
 ): boolean {
-  return false;
+  return false
 }
 
 /**
@@ -124,7 +122,7 @@ export function isApproachingTimeLimit(
  * This cache is scoped to the module so it's cleared when the function instance is recycled
  */
 // Module-scoped cache that is cleared when the function instance is recycled
-const collectionNameCache: Record<string, string> = {};
+const collectionNameCache: Record<string, string> = {}
 
 /**
  * Parse document information from a key-value pair
@@ -192,7 +190,7 @@ export function parseDocumentInfo(
           fallbackName = collectionNameCache[filePath]
         } else {
           let filename = path.basename(filePath, '.zlib')
-          
+
           // For health kit files with format like "TypeName_UUID.json.zlib",
           // extract just the type name portion before the underscore
           if (filename.includes('_')) {
@@ -200,7 +198,7 @@ export function parseDocumentInfo(
             // becomes HKCategoryTypeIdentifierAppleStandHour
             const parts = filename.split('_')
             filename = parts[0]
-            
+
             // If it's a known HealthKit type, use it directly with the HealthKit prefix
             if (filename.startsWith('HK')) {
               fallbackName = filename
@@ -212,12 +210,14 @@ export function parseDocumentInfo(
             // For files without underscore, use the original logic
             fallbackName = `HealthKitObservations_${filename}`
           }
-          
+
           // Cache the result for future use
           collectionNameCache[filePath] = fallbackName
-          
+
           // Log once when we create a new mapping
-          logDebug(`Mapping file ${path.basename(filePath)} to collection: ${fallbackName}`)
+          logDebug(
+            `Mapping file ${path.basename(filePath)} to collection: ${fallbackName}`,
+          )
         }
       }
 
@@ -243,7 +243,7 @@ export async function processZlibFile(
 ) {
   // Define execution ID for tracking and logging
   const executionId = `exec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
-  
+
   // Define i at function scope to track the last processed index
   let i = 0
   try {
@@ -257,10 +257,10 @@ export async function processZlibFile(
       logDebug(`File ${filePath} does not exist, skipping`)
       return
     }
-    
-    // Process the file from the beginning 
+
+    // Process the file from the beginning
     // The function processes the entire file in a single execution
-    
+
     // Track file download time
     const downloadStartTime = Date.now()
 
@@ -269,7 +269,7 @@ export async function processZlibFile(
     const compressedData = fileBuffer
 
     logDebug(
-      `Downloaded file (${compressedData.length} bytes) in ${Date.now() - downloadStartTime}ms`
+      `Downloaded file (${compressedData.length} bytes) in ${Date.now() - downloadStartTime}ms`,
     )
 
     // Extract HealthKit identifier from file name if it matches the HealthKitExports pattern
@@ -289,7 +289,7 @@ export async function processZlibFile(
     }
     const keys = Object.keys(jsonContent)
     logDebug(
-      `Parsed JSON content (${decompressedData.length} bytes, ${keys.length} items) in ${Date.now() - parseStartTime}ms`
+      `Parsed JSON content (${decompressedData.length} bytes, ${keys.length} items) in ${Date.now() - parseStartTime}ms`,
     )
     logInfo(`Processing ${keys.length} items from ${filePath}`)
 
@@ -340,26 +340,27 @@ export async function processZlibFile(
 
     // Execute writes in batches using bulkWriter
     if (documentRefs.length > 0) {
-      logInfo(`Writing ${documentRefs.length} documents to Firestore in batches`)
+      logInfo(
+        `Writing ${documentRefs.length} documents to Firestore in batches`,
+      )
 
       // Add performance tracking
       const startTime = Date.now()
 
       // Log the start of execution
       logDebug(
-        `Starting execution ${executionId} for ${documentRefs.length} documents`
+        `Starting execution ${executionId} for ${documentRefs.length} documents`,
       )
 
       // Always start from index 0
-      i = 0;
+      i = 0
 
       // Define batch size for better Firebase performance and more frequent progress updates
       const batchSize = 500
-      
+
       // Process in batches and commit after each batch
       try {
         while (i < documentRefs.length) {
-
           // Create a new bulkWriter for each batch
           const batchWriter = db.firestore.bulkWriter()
           batchWriter.onWriteError((error) => {
@@ -371,68 +372,77 @@ export async function processZlibFile(
               return false
             }
           })
-          
+
           // Calculate batch end index
           const batchEnd = Math.min(i + batchSize, documentRefs.length)
-          
+
           // Queue documents in this batch
           for (let j = i; j < batchEnd; j++) {
             const doc = documentRefs[j]
-            batchWriter.set(doc.ref, doc.data)
+            void batchWriter.set(doc.ref, doc.data)
           }
-          
+
           // Log batch progress
           const batchNumber = Math.floor(i / batchSize) + 1
           const totalBatches = Math.ceil(documentRefs.length / batchSize)
           logDebug(
-            `Processing batch ${batchNumber}/${totalBatches}: documents ${i+1}-${batchEnd} of ${documentRefs.length}`
+            `Processing batch ${batchNumber}/${totalBatches}: documents ${i + 1}-${batchEnd} of ${documentRefs.length}`,
           )
-          
+
           // Commit this batch
           const batchStartTime = Date.now()
           try {
             await batchWriter.close()
-            
+
             // Update progress after successful batch commit
             i = batchEnd // Move to next batch
-            
+
             logDebug(
-              `Batch ${batchNumber} committed successfully in ${Date.now() - batchStartTime}ms`
+              `Batch ${batchNumber} committed successfully in ${Date.now() - batchStartTime}ms`,
             )
-            
+
             // Update file metadata with progress after each successful batch
             try {
               // Calculate progress percentage
-              const progressPercent = Math.round((batchEnd / documentRefs.length) * 100);
-              
+              const progressPercent = Math.round(
+                (batchEnd / documentRefs.length) * 100,
+              )
+
               // Define metadata object with proper typing
               const metadataObject: Record<string, string> = {
-                status: 'processing',  // Maintain status
+                status: 'processing', // Maintain status
                 processedDocuments: String(batchEnd),
                 lastProcessed: String(Date.now()),
                 executionId: executionId,
                 totalDocuments: String(documentRefs.length),
                 batchNumber: String(batchNumber),
                 progressPercent: String(progressPercent),
-                elapsedMs: String(Date.now() - startExecutionTime)
-              };
-              
+                elapsedMs: String(Date.now() - startExecutionTime),
+              }
+
               // If there are failed documents, add them to metadata
               // Limited to a reasonable number to avoid metadata size limits
               if (failedDocuments.length > 0) {
                 // Limit to the first 10 failed documents to avoid metadata size issues
-                const failedDocsToStore = failedDocuments.slice(0, 10);
-                metadataObject.failedDocumentsCount = String(failedDocuments.length);
-                metadataObject.failedDocumentsSample = JSON.stringify(failedDocsToStore);
-                metadataObject.hasErrors = 'true';
+                const failedDocsToStore = failedDocuments.slice(0, 10)
+                metadataObject.failedDocumentsCount = String(
+                  failedDocuments.length,
+                )
+                metadataObject.failedDocumentsSample =
+                  JSON.stringify(failedDocsToStore)
+                metadataObject.hasErrors = 'true'
               }
-              
+
               // Update file metadata
-              await file.setMetadata({ metadata: metadataObject });
-              
-              logDebug(`Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed (${progressPercent}%)`)
+              await file.setMetadata({ metadata: metadataObject })
+
+              logDebug(
+                `Progress metadata updated: ${batchEnd}/${documentRefs.length} documents processed (${progressPercent}%)`,
+              )
             } catch (metadataError) {
-              logError(`Failed to update metadata after batch: ${String(metadataError)}`)
+              logError(
+                `Failed to update metadata after batch: ${String(metadataError)}`,
+              )
             }
           } catch (batchError) {
             // Handle batch errors without logging to prevent log spam
@@ -440,18 +450,17 @@ export async function processZlibFile(
             i = batchEnd
           }
         }
-        
+
         // Handle errors without logging to avoid error spam
         // Failed document counts are still stored in metadata
-        
       } catch (error) {
         // Handle errors without logging to prevent log spam in production
         // All relevant errors will be captured in the metadata
       }
-      
+
       // Log overall performance
       logInfo(
-        `Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`
+        `Total operation took ${Date.now() - startTime}ms for ${Math.min(i, documentRefs.length)} of ${documentRefs.length} documents`,
       )
     }
 
@@ -459,12 +468,12 @@ export async function processZlibFile(
 
     // Update final metadata marker
     const allDocumentsProcessed = i >= documentRefs.length
-      
+
     try {
       // Prepare final metadata (convert values to strings as required by metadata)
-      const totalTimeMs = Date.now() - startExecutionTime;
-      const progressPercent = Math.round((i / documentRefs.length) * 100);
-      
+      const totalTimeMs = Date.now() - startExecutionTime
+      const progressPercent = Math.round((i / documentRefs.length) * 100)
+
       const finalMetadataObject: Record<string, string> = {
         status: allDocumentsProcessed ? 'completed' : 'incomplete',
         processedDocuments: String(i),
@@ -474,43 +483,42 @@ export async function processZlibFile(
         completed: String(allDocumentsProcessed),
         progressPercent: String(progressPercent),
         totalTimeMs: String(totalTimeMs),
-        averageDocumentTimeMs: String(Math.round(totalTimeMs / Math.max(1, i)))
-      };
-      
+        averageDocumentTimeMs: String(Math.round(totalTimeMs / Math.max(1, i))),
+      }
+
       // Add failure information if there are any failed documents
       if (failedDocuments.length > 0) {
-        finalMetadataObject.failedDocumentsCount = String(failedDocuments.length);
-        finalMetadataObject.hasErrors = 'true';
-        
+        finalMetadataObject.failedDocumentsCount = String(
+          failedDocuments.length,
+        )
+        finalMetadataObject.hasErrors = 'true'
+
         // Store up to 20 failed document paths in the metadata
         // This ensures we don't exceed metadata size limits
-        const failedDocsSample = failedDocuments.slice(0, 20);
-        finalMetadataObject.failedDocumentsSample = JSON.stringify(failedDocsSample);
-        
+        const failedDocsSample = failedDocuments.slice(0, 20)
+        finalMetadataObject.failedDocumentsSample =
+          JSON.stringify(failedDocsSample)
+
         // Mark status as partially completed if we have errors
         if (allDocumentsProcessed) {
-          finalMetadataObject.status = 'completed_with_errors';
+          finalMetadataObject.status = 'completed_with_errors'
         }
       }
 
       // Update file metadata with final status
-      await file.setMetadata({ metadata: finalMetadataObject });
+      await file.setMetadata({ metadata: finalMetadataObject })
 
       const documentsRemaining = documentRefs.length - i
 
-      logInfo(
-        `Final progress: processed ${i}/${documentRefs.length} documents`
-      )
-      
+      logInfo(`Final progress: processed ${i}/${documentRefs.length} documents`)
+
       // Since the function is designed to run once per file, documentsRemaining should be 0
       // This log is kept for potential future extensions
       if (documentsRemaining > 0) {
-        logInfo(
-          `Completed with ${documentsRemaining} documents unprocessed`
-        )
+        logInfo(`Completed with ${documentsRemaining} documents unprocessed`)
       } else if (failedDocuments.length > 0) {
         logInfo(
-          `All documents processed but ${failedDocuments.length} failed and will need to be reprocessed`
+          `All documents processed but ${failedDocuments.length} failed and will need to be reprocessed`,
         )
       } else {
         logInfo('All documents processed successfully')
@@ -525,12 +533,12 @@ export async function processZlibFile(
       try {
         await file.delete()
         logInfo(
-          `Deleted original file from storage: ${filePath} (all data processed)`
+          `Deleted original file from storage: ${filePath} (all data processed)`,
         )
       } catch (deleteError) {
         // Log but continue execution
         logWarn(
-          `Error deleting original file ${filePath}: ${String(deleteError)}`
+          `Error deleting original file ${filePath}: ${String(deleteError)}`,
         )
       }
     }
@@ -539,10 +547,14 @@ export async function processZlibFile(
 
     // Only report full success if all items were processed
     if (allDocumentsProcessed) {
-      logInfo(`Successfully processed all ${keys.length} items from ${filePath}`)
+      logInfo(
+        `Successfully processed all ${keys.length} items from ${filePath}`,
+      )
     } else {
-      const itemsProcessed = Math.min(i, keys.length);
-      logInfo(`Partially processed ${itemsProcessed} of ${keys.length} items from ${filePath}`)
+      const itemsProcessed = Math.min(i, keys.length)
+      logInfo(
+        `Partially processed ${itemsProcessed} of ${keys.length} items from ${filePath}`,
+      )
     }
   } catch (error) {
     logError(`Error processing zlib file ${filePath}: ${String(error)}`)
@@ -666,7 +678,7 @@ export function shouldProcessFile(filePath: string): boolean {
  *
  * The fileConcurrencyLimit controls how many files are processed in parallel
  * for each user. This helps balance processing speed with system load.
- * 
+ *
  * IMPORTANT: When using this with timeoutSeconds=540 in the onObjectFinalized trigger,
  * the maxExecutionTimeMs should be set to around 450000 (7.5 minutes) to ensure
  * there's enough buffer for graceful shutdown before Firebase terminates the function.
@@ -701,7 +713,7 @@ export async function processAllZlibFiles(options?: {
     for (let i = 0; i < userIdArray.length; i += userConcurrencyLimit) {
       const userBatch = userIdArray.slice(i, i + userConcurrencyLimit)
       logDebug(
-        `Processing batch of ${userBatch.length} users (${i + 1}-${Math.min(i + userConcurrencyLimit, userIdArray.length)} of ${userIdArray.length})`
+        `Processing batch of ${userBatch.length} users (${i + 1}-${Math.min(i + userConcurrencyLimit, userIdArray.length)} of ${userIdArray.length})`,
       )
 
       // Process this batch of users in parallel
@@ -718,7 +730,7 @@ export async function processAllZlibFiles(options?: {
 
             if (correctedPath) {
               logWarn(
-                `${file.name} appears to be a zlib file with incorrect extension`
+                `${file.name} appears to be a zlib file with incorrect extension`,
               )
 
               try {
@@ -736,7 +748,7 @@ export async function processAllZlibFiles(options?: {
 
           if (zlibFiles.length > 0) {
             logInfo(
-              `Processing ${zlibFiles.length} .zlib files for user ${userId}`
+              `Processing ${zlibFiles.length} .zlib files for user ${userId}`,
             )
 
             // Process files in parallel with a concurrency limit
@@ -754,7 +766,7 @@ export async function processAllZlibFiles(options?: {
               )
 
               logDebug(
-                `Completed batch ${j / concurrencyLimit + 1} of ${Math.ceil(zlibFiles.length / concurrencyLimit)}`
+                `Completed batch ${j / concurrencyLimit + 1} of ${Math.ceil(zlibFiles.length / concurrencyLimit)}`,
               )
             }
           }
@@ -782,18 +794,18 @@ export const onZlibFileUploaded = onObjectFinalized(
     // Note: failurePolicy not supported in StorageOptions
   },
   async (event) => {
-    
     try {
       // Extract file information from the event
       const filePath = event.data.name
       // Sanitize path for logging to prevent log injection attacks and trim very long paths
-      const sanitizedPath = filePath.length > 100 ? filePath.substring(0, 97) + '...' : filePath
+      const sanitizedPath =
+        filePath.length > 100 ? filePath.substring(0, 97) + '...' : filePath
       logInfo(`File uploaded: ${sanitizedPath}`)
 
       // Only process .zlib files in the bulkHealthKitUploads directory
       if (!shouldProcessFile(filePath)) {
         logDebug(
-          `Skipping file: ${filePath} - Not a .zlib file or not in bulkHealthKitUploads directory`
+          `Skipping file: ${filePath} - Not a .zlib file or not in bulkHealthKitUploads directory`,
         )
         return
       }
@@ -831,7 +843,6 @@ export const processBulkHealthKit = onRequest(
     timeoutSeconds: 1800, // Extend timeout to 30 minutes for HTTP function
   },
   async (req, res) => {
-    
     try {
       // Check if the request includes a specific file path
       const specificPath = req.query.path as string | undefined

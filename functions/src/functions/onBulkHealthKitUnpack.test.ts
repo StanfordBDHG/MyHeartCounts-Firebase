@@ -712,7 +712,7 @@ describe('onBulkHealthKitUnpack', () => {
       it('should test execution time tracking', () => {
         // Test how we track execution time for logging
         const startExecutionTime = Date.now() - 1500000 // 25 minutes ago
-        
+
         // Test logging of elapsed time
         const minutesElapsed = (
           (Date.now() - startExecutionTime) /
