@@ -34,4 +34,5 @@ export interface UserService {
   updateLastActiveDate(userId: string): Promise<void>
   deleteUser(userId: string): Promise<void>
   deleteExpiredAccounts(): Promise<void>
+  getActiveUsers(): Promise<Array<Document<User>>>
 }

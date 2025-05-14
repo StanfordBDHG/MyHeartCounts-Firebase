@@ -236,4 +236,11 @@ export class DatabaseUserService implements UserService {
 
     await Promise.all(promises)
   }
+
+  async getActiveUsers(): Promise<Array<Document<User>>> {
+    logger.info('Getting all active users')
+    return this.databaseService.getQuery<User>((collections) =>
+      collections.users.where('disabled', '==', false),
+    )
+  }
 }

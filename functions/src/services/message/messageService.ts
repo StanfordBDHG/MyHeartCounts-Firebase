@@ -55,9 +55,13 @@ export interface MessageService {
     notification: {
       title: Record<string, string>
       body: Record<string, string>
+      data?: Record<string, string>
     },
     options?: {
       language?: string
     },
   ): Promise<void>
+
+  // Get all devices for a user
+  getUserDevices(userId: string): Promise<UserDevice[]>
 }

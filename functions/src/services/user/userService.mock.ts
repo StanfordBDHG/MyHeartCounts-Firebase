@@ -15,6 +15,10 @@ import { type Document } from '../database/databaseService.js'
 export class MockUserService implements UserService {
   // Methods - Auth
 
+  async getActiveUsers(): Promise<Array<Document<User>>> {
+    return [await this.getUser('mockUser')]
+  }
+
   async getAuth(userId: string): Promise<UserAuth> {
     switch (userId) {
       case 'mockClinician':

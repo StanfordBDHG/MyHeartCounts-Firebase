@@ -377,11 +377,28 @@ export class DefaultMessageService implements MessageService {
     )
   }
 
+  async getUserDevices(userId: string): Promise<UserDevice[]> {
+    logger.debug(
+      `DatabaseMessageService.getUserDevices(user: ${userId}): Start`,
+    )
+
+    const devices = await this.databaseService.getQuery<UserDevice>(
+      (collections) => collections.userDevices(userId),
+    )
+
+    logger.debug(
+      `DatabaseMessageService.getUserDevices(user: ${userId}): Found ${devices.length} devices`,
+    )
+
+    return devices.map((device) => device.content)
+  }
+
   async sendNotification(
     userId: string,
     notification: {
       title: Record<string, string>
       body: Record<string, string>
+      data?: Record<string, string>
     },
     options?: {
       language?: string
@@ -418,13 +435,42 @@ export class DefaultMessageService implements MessageService {
 
       // Create token message for this device
       if (device.content.notificationToken) {
-        notifications.push({
+        const message: TokenMessage = {
           token: device.content.notificationToken,
           notification: {
             title,
             body,
           },
-        })
+        }
+
+        // Add data payload if provided
+        if (notification.data) {
+          message.data = notification.data
+
+          // Add data to Android configuration
+          message.android = {
+            notification: {
+              title,
+              body,
+            },
+            data: notification.data,
+          }
+
+          // Add data to APNS configuration for iOS
+          message.apns = {
+            payload: {
+              aps: {
+                alert: {
+                  title,
+                  body,
+                },
+              },
+              ...notification.data,
+            },
+          }
+        }
+
+        notifications.push(message)
       }
     }
 
