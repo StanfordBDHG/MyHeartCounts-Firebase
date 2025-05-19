@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { dateConverter, SchemaConverter } from '@stanfordbdhg/engagehf-models'
+import { dateConverter, SchemaConverter } from '@stanfordbdhg/myheartcounts-models'
 import { type DocumentSnapshot } from 'firebase-admin/firestore'
 import { type Change } from 'firebase-functions'
 import { z } from 'zod'

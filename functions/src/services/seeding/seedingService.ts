@@ -7,7 +7,7 @@
 //
 
 import fs from 'fs'
-import { CachingStrategy } from '@stanfordbdhg/engagehf-models'
+import { CachingStrategy } from '@stanfordbdhg/myheartcounts-models'
 import { type CollectionReference } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions'
 import { z } from 'zod'

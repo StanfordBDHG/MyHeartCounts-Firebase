@@ -9,7 +9,7 @@
 import {
   FHIRQuestionnaireResponse,
   type SymptomQuestionnaireResponse,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { describe } from 'mocha'
 

@@ -14,7 +14,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
-import { UserType } from '@stanfordbdhg/engagehf-models'
+import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import type firebase from 'firebase/compat/app'
 import { describe, it } from 'mocha'
 

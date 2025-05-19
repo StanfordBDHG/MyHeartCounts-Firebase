@@ -14,7 +14,7 @@ import {
   userDeviceConverter,
   userMessageConverter,
   type UserObservationCollection,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { type Firestore } from 'firebase-admin/firestore'
 import { DatabaseConverter } from './databaseConverter.js'
 import { historyChangeItemConverter } from '../history/historyService.js'

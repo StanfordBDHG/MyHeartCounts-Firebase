@@ -10,7 +10,7 @@ import {
   type GetUsersInformationInput,
   type GetUsersInformationOutput,
   UserType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { it } from 'mocha'
 import { getUsersInformation } from './getUsersInformation.js'

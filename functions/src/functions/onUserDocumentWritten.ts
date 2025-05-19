@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { fhirQuestionnaireResponseConverter } from '@stanfordbdhg/engagehf-models'
+import { fhirQuestionnaireResponseConverter } from '@stanfordbdhg/myheartcounts-models'
 import { onDocumentWritten } from 'firebase-functions/v2/firestore'
 import { DatabaseConverter } from '../services/database/databaseConverter.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'

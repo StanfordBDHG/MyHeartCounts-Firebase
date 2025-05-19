@@ -1,9 +1,9 @@
 {
-  "name": "@stanfordbdhg/engagehf-models",
-  "description": "Model types for ENGAGE-HF",
+  "name": "@stanfordbdhg/myheartcounts-models",
+  "description": "Model types for MyHeartCounts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/StanfordBDHG/ENGAGE-HF-Firebase.git"
+    "url": "git+https://github.com/StanfordBDHG/MyHeartCounts-Firebase.git"
   },
   "type": "module",
   "scripts": {

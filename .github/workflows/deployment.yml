@@ -92,9 +92,9 @@ jobs:
   deployfirebase:
     name: "Deploy to ${{ needs.determineenvironment.outputs.environment }}"
     needs: [buildandtest, determineenvironment, vars]
-    # Check if this is a push to main without region tag (run full deployment sequence)
+    # Check if this is a push to main without region tag (run then the full deployment sequence) -
     # OR if this is a workflow_dispatch or workflow_call with specific environment
-    # OR if this is a tag with region specified
+    # OR if this is a tag with region specified 
     if: |
       (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
       (needs.determineenvironment.outputs.environment != '') ||

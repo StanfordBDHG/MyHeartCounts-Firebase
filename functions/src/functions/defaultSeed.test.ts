@@ -13,7 +13,7 @@ import {
   UserDebugDataComponent,
   UserType,
   UserObservationCollection,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { _defaultSeed } from './defaultSeed.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'

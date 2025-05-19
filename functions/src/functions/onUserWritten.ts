@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type User, userConverter } from '@stanfordbdhg/engagehf-models'
+import { type User, userConverter } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
 import { onDocumentWritten } from 'firebase-functions/v2/firestore'
 import { DatabaseConverter } from '../services/database/databaseConverter.js'

@@ -20,7 +20,7 @@ import {
   type UserSeedingOptions,
   userSeedingOptionsSchema,
   UserObservationCollection,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { type Auth } from 'firebase-admin/auth'
 import { type CollectionReference } from 'firebase-admin/firestore'
 import { type Storage } from 'firebase-admin/storage'

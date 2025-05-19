@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { customSeedingOptionsSchema } from '@stanfordbdhg/engagehf-models'
+import { customSeedingOptionsSchema } from '@stanfordbdhg/myheartcounts-models'
 import { validatedOnRequest } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type SchemaConverter } from '@stanfordbdhg/engagehf-models'
+import { type SchemaConverter } from '@stanfordbdhg/myheartcounts-models'
 import {
   type DocumentData,
   type DocumentSnapshot,

@@ -9,7 +9,7 @@
 import {
   type CachingStrategy,
   fhirQuestionnaireConverter,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { z } from 'zod'
 import { type DatabaseService } from '../../database/databaseService.js'
 import { SeedingService } from '../seedingService.js'

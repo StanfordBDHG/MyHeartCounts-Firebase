@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType } from '@stanfordbdhg/engagehf-models'
+import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { type DecodedIdToken } from 'firebase-admin/auth'
 import { https } from 'firebase-functions/v2'

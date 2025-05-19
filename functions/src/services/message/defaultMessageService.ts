@@ -15,7 +15,7 @@ import {
   UserMessage,
   userMessageConverter,
   UserMessageType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { type QueryDocumentSnapshot } from 'firebase-admin/firestore'
 import { type Messaging, type TokenMessage } from 'firebase-admin/messaging'
 import { https, logger } from 'firebase-functions'

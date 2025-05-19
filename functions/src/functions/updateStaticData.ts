@@ -10,7 +10,7 @@ import {
   StaticDataComponent,
   updateStaticDataInputSchema,
   type UpdateStaticDataOutput,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { type z } from 'zod'
 import { validatedOnCall, validatedOnRequest } from './helpers.js'
 import { UserRole } from '../services/credential/credential.js'

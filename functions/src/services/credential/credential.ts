@@ -10,7 +10,7 @@ import {
   type UserClaims,
   userClaimsSchema,
   UserType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { https, logger } from 'firebase-functions/v2'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 
