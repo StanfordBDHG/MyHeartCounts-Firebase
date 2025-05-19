@@ -90,7 +90,7 @@ jobs:
     secrets: inherit
 
   deployfirebase:
-    name: Deploy to ${{ (needs.determineenvironment.outputs.region != '' && format('Region: {0}', needs.determineenvironment.outputs.region)) || needs.determineenvironment.outputs.environment }}
+    name: "Deploy to ${{ needs.determineenvironment.outputs.environment }}"
     needs: [buildandtest, determineenvironment, vars]
     # Check if this is a push to main without region tag (run full deployment sequence)
     # OR if this is a workflow_dispatch or workflow_call with specific environment
