@@ -101,7 +101,7 @@ export async function _defaultSeed(
           })
         } else if (user?.content.type === UserType.clinician) {
           const clinicianPatients = allPatients.filter(
-            (patient) => patient.content.clinician === user.id,
+            (patient) => patient.content.clinician === user?.id,
           )
           const patients = await Promise.all(
             clinicianPatients.map(async (patient) => {
