@@ -259,6 +259,9 @@ export class FHIRObservation extends FHIRResource {
     // HealthKit electrocardiograms and workouts
     [LoincCode.electrocardiogram, 'Electrocardiogram'],
     [LoincCode.workout, 'Workout'],
+
+    // Diet questionnaire score
+    [LoincCode.dietQuestionnaireScore, 'Diet questionnaire score'],
   ])
 
   static createSimple(input: {

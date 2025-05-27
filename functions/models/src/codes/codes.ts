@@ -82,4 +82,7 @@ export enum LoincCode {
 
   // HealthKit workouts
   workout = '93849-7', // Custom code
+
+  // Diet questionnaire score
+  dietQuestionnaireScore = '93850-5', // Custom code for diet questionnaire score
 }
