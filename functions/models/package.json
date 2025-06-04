@@ -23,7 +23,8 @@
   ],
   "main": "lib/index.js",
   "dependencies": {
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "typescript": "^5"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -34,7 +35,6 @@
     "eslint-config-prettier": "^9",
     "eslint-plugin-import": "^2",
     "eslint-plugin-prettier": "^5",
-    "prettier": "^3",
-    "typescript": "^5"
+    "prettier": "^3"
   }
 }
