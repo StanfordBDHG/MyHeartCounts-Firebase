@@ -89,9 +89,9 @@ service cloud.firestore {
         // Regex pattern for observation collections
         // This matches any collection ending with "Observations" or "ObservationSeries"
         // and requires at least one character before these suffixes
-        // ...also allows HealthKitObservations_[a-zA-Z]+ collections
+        // ...also allows HealthObservations_[a-zA-Z]+ collections
         return collectionName.matches('^[A-Za-z]+(Observations|ObservationSeries)$')
-          || collectionName.matches('^HealthKitObservations_[a-zA-Z]+$')
+          || collectionName.matches('^HealthObservations_[a-zA-Z]+$')
           || collectionName in ['questionnaireResponses', 'workouts'];
       }
 
