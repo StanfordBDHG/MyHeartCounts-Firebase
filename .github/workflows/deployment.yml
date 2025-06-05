@@ -12,8 +12,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'region-*'
   workflow_dispatch:
     inputs:
       environment:
@@ -25,13 +23,12 @@ on:
         options:
           - development
           - staging
-          - production-uk
-          - production-us
+          - production
   workflow_call:
     inputs:
       environment:
         description: |
-          The GitHub deployment environment
+          The GitHub deployment environment.
         required: false
         type: string
         default: development
@@ -89,22 +86,49 @@ jobs:
       checks: write
     secrets: inherit
 
+  # For non-production environments, use the original single deployment
   deployfirebase:
-    name: "Deploy to ${{ needs.determineenvironment.outputs.environment }}"
+    name: Deploy Firebase Project
+    if: needs.determineenvironment.outputs.environment != 'production'
     needs: [buildandtest, determineenvironment, vars]
-    # Check if this is a push to main without region tag (run then the full deployment sequence) -
-    # OR if this is a workflow_dispatch or workflow_call with specific environment
-    # OR if this is a tag with region specified 
-    if: |
-      (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
-      (needs.determineenvironment.outputs.environment != '') ||
-      (needs.determineenvironment.outputs.region != '')
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
       contents: read
     with:
       customcommand: "npm run install"
-      environment: ${{ needs.determineenvironment.outputs.region != '' && format('production-{0}', needs.determineenvironment.outputs.region) || needs.determineenvironment.outputs.environment }}
+      environment: ${{ needs.determineenvironment.outputs.environment }}
       arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+
+  # Deploy to US first
+  deployfirebase-production-us:
+    name: Deploy Firebase Project (Production US)
+    if: needs.determineenvironment.outputs.environment == 'production'
+    needs: [buildandtest, determineenvironment]
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    environment: production-us
+    permissions:
+      contents: read
+    with:
+      customcommand: "npm run install"
+      environment: production-us
+      arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+
+  # Deploy to UK after US succeeds
+  deployfirebase-production-uk:
+    name: Deploy Firebase Project (Production UK)
+    if: needs.determineenvironment.outputs.environment == 'production'
+    needs: [deployfirebase-production-us, determineenvironment]
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    environment: production-uk
+    permissions:
+      contents: read
+    with:
+      customcommand: "npm run install"
+      environment: production-uk
+      arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
