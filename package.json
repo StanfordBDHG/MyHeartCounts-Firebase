@@ -13,11 +13,13 @@
     "url": "https://github.com/StanfordBDHG/MyHeartCounts-Firebase"
   },
   "dependencies": {
+    "@stanfordspezi/spezi-firebase-cloud-messaging": "^0.1.0",
+    "@stanfordspezi/spezi-firebase-utils": "^0.1.0",
     "firebase-admin": "^12.1.1"
   },
   "scripts": {
     "install": "npm --prefix functions/models install && npm --prefix functions install",
-    "lint": "npm --prefix functions/models run lint && npm --prefix functions run lint", 
+    "lint": "npm --prefix functions/models run lint && npm --prefix functions run lint",
     "lint:fix": "npm --prefix functions/models run lint:fix && npm --prefix functions run lint:fix",
     "lint:strict": "npm --prefix functions/models run lint:strict && npm --prefix functions run lint:strict",
     "build": "npm --prefix functions/models run build && npm --prefix functions run build",
