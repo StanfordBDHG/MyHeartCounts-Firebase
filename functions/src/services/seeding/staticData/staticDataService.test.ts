@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { CachingStrategy } from '@stanfordbdhg/engagehf-models'
+import { CachingStrategy } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { type Firestore } from 'firebase-admin/firestore'

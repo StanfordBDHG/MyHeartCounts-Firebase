@@ -6,7 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { User, type UserAuth, UserType } from '@stanfordbdhg/engagehf-models'
+import {
+  User,
+  type UserAuth,
+  UserType,
+} from '@stanfordbdhg/myheartcounts-models'
 import { type EnrollUserOptions, type UserService } from './userService.js'
 import { type Document } from '../database/databaseService.js'
 /* eslint-disable @typescript-eslint/require-await */

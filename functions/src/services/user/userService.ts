@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type User, type UserAuth } from '@stanfordbdhg/engagehf-models'
+import { type User, type UserAuth } from '@stanfordbdhg/myheartcounts-models'
 import { type Document } from '../database/databaseService.js'
 
 export interface EnrollUserOptions {

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType } from '@stanfordbdhg/engagehf-models'
+import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { disableUser } from './disableUser.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'

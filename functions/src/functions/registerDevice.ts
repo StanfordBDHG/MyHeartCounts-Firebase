@@ -9,7 +9,7 @@
 import {
   registerDeviceInputSchema,
   type RegisterDeviceOutput,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { validatedOnCall } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 

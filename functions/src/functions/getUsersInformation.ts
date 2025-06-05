@@ -11,7 +11,7 @@ import {
   type GetUsersInformationOutput,
   userAuthConverter,
   userConverter,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { https } from 'firebase-functions'
 import { validatedOnCall } from './helpers.js'
 import { UserRole } from '../services/credential/credential.js'

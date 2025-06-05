@@ -16,7 +16,7 @@ on:
     inputs:
       environment:
         description: |
-          The GitHub deployment environment.
+          The GitHub deployment environment
         required: true
         default: 'development'
         type: choice
@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
+      region: ${{ steps.set-region.outputs.region }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,6 +55,17 @@ jobs:
           else
             echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
           fi
+      - name: Extract Region from Tag
+        id: set-region
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/region-* ]]; then
+            REGION="${{ github.ref_name }}"
+            REGION="${REGION#region-}"
+            echo "region=$REGION" >> $GITHUB_OUTPUT
+          else
+            echo "region=" >> $GITHUB_OUTPUT
+          fi
+
   vars:
     name: Inject Environment Variables In Deployment Workflow
     needs: determineenvironment
@@ -64,6 +76,7 @@ jobs:
     steps:
       - run: |
           echo "Injecting Environment Variables In Deployment Workflow: ${{ vars.FIREBASE_PROJECT_ID }}"
+
   buildandtest:
     name: Build and Test
     needs: determineenvironment
@@ -72,8 +85,11 @@ jobs:
       contents: read
       checks: write
     secrets: inherit
+
+  # For non-production environments, use the original single deployment
   deployfirebase:
     name: Deploy Firebase Project
+    if: needs.determineenvironment.outputs.environment != 'production'
     needs: [buildandtest, determineenvironment, vars]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
@@ -82,5 +98,37 @@ jobs:
       customcommand: "npm run install"
       environment: ${{ needs.determineenvironment.outputs.environment }}
       arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+
+  # Deploy to US first
+  deployfirebase-production-us:
+    name: Deploy Firebase Project (Production US)
+    if: needs.determineenvironment.outputs.environment == 'production'
+    needs: [buildandtest, determineenvironment]
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    environment: production-us
+    permissions:
+      contents: read
+    with:
+      customcommand: "npm run install"
+      environment: production-us
+      arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+
+  # Deploy to UK after US succeeds
+  deployfirebase-production-uk:
+    name: Deploy Firebase Project (Production UK)
+    if: needs.determineenvironment.outputs.environment == 'production'
+    needs: [deployfirebase-production-us, determineenvironment]
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    environment: production-uk
+    permissions:
+      contents: read
+    with:
+      customcommand: "npm run install"
+      environment: production-uk
+      arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}

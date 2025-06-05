@@ -12,7 +12,7 @@ import {
   type UserDevice,
   type UserMessage,
   type UserMessageType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { type Document } from '../database/databaseService'
 
 export interface MessageService {

@@ -21,7 +21,7 @@ import {
   LoincCode,
   QuantityUnit,
   CachingStrategy,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { logger } from 'firebase-functions'
 import { TriggerServiceImpl } from '../../services/trigger/triggerService.js'

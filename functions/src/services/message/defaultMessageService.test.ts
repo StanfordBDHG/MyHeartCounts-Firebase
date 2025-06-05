@@ -10,7 +10,7 @@ import {
   UserMessage,
   UserMessageType,
   QuestionnaireReference,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { https } from 'firebase-functions'

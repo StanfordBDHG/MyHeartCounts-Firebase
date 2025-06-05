@@ -1,6 +1,6 @@
 {
   "name": "myheartcounts-firebase",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "Stanford Biodesign Digital Health MyHeart Counts open-source project",
   "keywords": [
@@ -16,7 +16,7 @@
     "firebase-admin": "^12.1.1"
   },
   "scripts": {
-    "install": "npm --prefix functions/models install --save-dev && npm --prefix functions install --save-dev",
+    "install": "npm --prefix functions/models install && npm --prefix functions install",
     "lint": "npm --prefix functions/models run lint && npm --prefix functions run lint", 
     "lint:fix": "npm --prefix functions/models run lint:fix && npm --prefix functions run lint:fix",
     "lint:strict": "npm --prefix functions/models run lint:strict && npm --prefix functions run lint:strict",

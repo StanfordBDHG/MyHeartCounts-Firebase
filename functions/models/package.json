@@ -1,9 +1,9 @@
 {
-  "name": "@stanfordbdhg/engagehf-models",
-  "description": "Model types for ENGAGE-HF",
+  "name": "@stanfordbdhg/myheartcounts-models",
+  "description": "Model types for MyHeartCounts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/StanfordBDHG/ENGAGE-HF-Firebase.git"
+    "url": "git+https://github.com/StanfordBDHG/MyHeartCounts-Firebase.git"
   },
   "type": "module",
   "scripts": {
@@ -22,7 +22,8 @@
   ],
   "main": "lib/index.js",
   "dependencies": {
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "typescript": "^5"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -33,7 +34,6 @@
     "eslint-config-prettier": "^9",
     "eslint-plugin-import": "^2",
     "eslint-plugin-prettier": "^5",
-    "prettier": "^3",
-    "typescript": "^5"
+    "prettier": "^3"
   }
 }

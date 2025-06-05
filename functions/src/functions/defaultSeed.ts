@@ -12,7 +12,7 @@ import {
   type DefaultSeedOutput,
   UserDebugDataComponent,
   UserType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
 import { type z } from 'zod'
 import { validatedOnCall, validatedOnRequest } from './helpers.js'
@@ -101,7 +101,7 @@ export async function _defaultSeed(
           })
         } else if (user?.content.type === UserType.clinician) {
           const clinicianPatients = allPatients.filter(
-            (patient) => patient.content.clinician === user.id,
+            (patient) => patient.content.clinician === user?.id,
           )
           const patients = await Promise.all(
             clinicianPatients.map(async (patient) => {

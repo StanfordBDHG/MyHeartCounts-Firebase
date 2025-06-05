@@ -10,7 +10,7 @@ import {
   FHIRQuestionnaire,
   FHIRQuestionnaireItemType,
   FHIRQuestionnairePublicationStatus,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 
 export function mockQuestionnaire(): FHIRQuestionnaire {
   return new FHIRQuestionnaire({

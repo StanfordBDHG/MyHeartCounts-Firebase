@@ -13,7 +13,7 @@ import {
   User,
   type UserAuth,
   UserType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { type Auth } from 'firebase-admin/auth'
 import { type UserRecord } from 'firebase-functions/v1/auth'
 import { https, logger } from 'firebase-functions/v2'

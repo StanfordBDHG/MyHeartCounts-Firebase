@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { Lazy } from '@stanfordbdhg/engagehf-models'
+import { Lazy } from '@stanfordbdhg/myheartcounts-models'
 import {
   type BulkWriter,
   type BulkWriterOptions,

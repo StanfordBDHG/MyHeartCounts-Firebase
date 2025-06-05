@@ -14,7 +14,7 @@ import {
   CachingStrategy,
   LocalizedText,
   StaticDataComponent,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { it } from 'mocha'
 import { _updateStaticData } from './updateStaticData.js'

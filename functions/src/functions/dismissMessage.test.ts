@@ -10,7 +10,7 @@ import {
   QuestionnaireReference,
   UserMessage,
   UserType,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { it } from 'mocha'
 import { dismissMessage } from './dismissMessage.js'

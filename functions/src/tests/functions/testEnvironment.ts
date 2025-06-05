@@ -7,7 +7,7 @@
 //
 
 import http from 'http'
-import { Lazy, User, type UserType } from '@stanfordbdhg/engagehf-models'
+import { Lazy, User, type UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { type DocumentSnapshot, Timestamp } from 'firebase-admin/firestore'

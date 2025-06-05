@@ -10,7 +10,7 @@ import {
   UserDevice,
   userDeviceConverter,
   UserDevicePlatform,
-} from '@stanfordbdhg/engagehf-models'
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { registerDevice } from './registerDevice.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
