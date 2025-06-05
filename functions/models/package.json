@@ -11,8 +11,7 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:strict": "npm run lint -- --max-warnings=0",
     "build": "tsc --noEmitOnError false",
-    "clean": "if [ -f 'tsconfig.tsbuildinfo' ]; then rm tsconfig.tsbuildinfo; fi && if [ -d 'lib' ]; then rm -r lib; fi",
-    "postinstall": "npm run build"
+    "clean": "if [ -f 'tsconfig.tsbuildinfo' ]; then rm tsconfig.tsbuildinfo; fi && if [ -d 'lib' ]; then rm -r lib; fi"
   },
   "engines": {
     "node": "22"
