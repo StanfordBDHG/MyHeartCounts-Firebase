@@ -36,16 +36,25 @@ export const onScheduleNudgeNotifications = onSchedule(
         `Checking ${usersSnapshot.size} users for nudge notifications`,
       )
 
+      let usersChecked = 0
+      let notificationsSent = 0
+      const skippedReasons = {
+        noTimezone: 0,
+        noDateOfBirth: 0,
+        invalidDateOfBirth: 0,
+        wrongTime: 0,
+        noFcmToken: 0,
+      }
+
       for (const userDoc of usersSnapshot.docs) {
         try {
           const rawUserData = userDoc.data()
           const userId = userDoc.id
-
-          logger.info(`Checking user ${userId} for notification eligibility`)
+          usersChecked++
 
           // Check if user has required fields
           if (!rawUserData.timeZone) {
-            logger.info(`User ${userId}: SKIP - No timezone`)
+            skippedReasons.noTimezone++
             continue
           }
 
@@ -62,12 +71,12 @@ export const onScheduleNudgeNotifications = onSchedule(
               // Try to parse as string or skip
               dateOfBirth = new Date(rawUserData.dateOfBirth)
               if (isNaN(dateOfBirth.getTime())) {
-                logger.info(`User ${userId}: SKIP - Invalid dateOfBirth format`)
+                skippedReasons.invalidDateOfBirth++
                 continue
               }
             }
           } else {
-            logger.info(`User ${userId}: SKIP - No dateOfBirth`)
+            skippedReasons.noDateOfBirth++
             continue
           }
 
@@ -78,14 +87,8 @@ export const onScheduleNudgeNotifications = onSchedule(
           const currentHour = userTime.getHours()
           const currentMinute = userTime.getMinutes()
 
-          logger.info(
-            `User ${userId}: Current local time is ${currentHour}:${currentMinute.toString().padStart(2, '0')} in timezone ${rawUserData.timeZone}`,
-          )
-
           if (currentHour !== 13 || currentMinute >= 15) {
-            logger.info(
-              `User ${userId}: SKIP - Not 3 PM time window (${currentHour}:${currentMinute.toString().padStart(2, '0')})`,
-            )
+            skippedReasons.wrongTime++
             continue
           }
 
@@ -97,36 +100,55 @@ export const onScheduleNudgeNotifications = onSchedule(
           // Get gender from user data
           const gender = rawUserData.genderIdentity ?? 'not specified'
 
-          logger.info(
-            `User ${userId}: Passed time check - Gender: ${gender}, Birth year: ${birthYear} (${birthGroup})`,
-          )
-
           // Check if user has FCM token
           if (!rawUserData.fcmToken) {
-            logger.info(`User ${userId}: SKIP - No FCM token`)
+            skippedReasons.noFcmToken++
             continue
           }
 
-          logger.info(`User ${userId}: SENDING notification - has FCM token`)
-
           // Send notification directly using FCM token from user document
+          const notificationTitle = 'Daily Health Check'
+          const notificationBody = `Hello! Your profile shows: Gender: ${gender}, Birth group: ${birthGroup}. Time for your daily health reminder.`
+
           const notificationMessage = {
             token: rawUserData.fcmToken,
             notification: {
-              title: 'Daily Health Check',
-              body: `Hello! Your profile shows: Gender: ${gender}, Birth group: ${birthGroup}. Time for your daily health reminder.`,
+              title: notificationTitle,
+              body: notificationBody,
             },
           }
 
-          await messaging.send(notificationMessage)
+          const sendResult = await messaging.send(notificationMessage)
 
-          logger.info(
-            `Sent nudge notification to user ${userId} (Gender: ${gender}, ${birthGroup})`,
-          )
+          if (sendResult) {
+            notificationsSent++
+
+            // Record notification in user's subcollection
+            await firestore
+              .collection('users')
+              .doc(userId)
+              .collection('notificationHistory')
+              .add({
+                title: notificationTitle,
+                body: notificationBody,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+              })
+
+            logger.info(
+              `Sent notification to user ${userId} (Gender: ${gender}, ${birthGroup})`,
+            )
+          } else {
+            logger.warn(`Failed to send notification to user ${userId}`)
+          }
         } catch (error) {
           logger.error(`Error processing user ${userDoc.id}: ${String(error)}`)
         }
       }
+
+      // Summary logging
+      logger.info(
+        `Nudge notification summary: ${notificationsSent} sent, ${usersChecked} checked. Skipped: ${skippedReasons.noTimezone} no timezone, ${skippedReasons.noDateOfBirth} no DOB, ${skippedReasons.invalidDateOfBirth} invalid DOB, ${skippedReasons.wrongTime} wrong time, ${skippedReasons.noFcmToken} no FCM token`,
+      )
     } catch (error) {
       logger.error(`Error in nudge notification check: ${String(error)}`)
     }
