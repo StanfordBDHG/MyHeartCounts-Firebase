@@ -9,148 +9,272 @@
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
-export const onScheduleNudgeNotifications = onSchedule(
+interface NotificationBacklogItem {
+  title: string
+  body: string
+  timestamp: admin.firestore.Timestamp
+}
+
+/**
+ * Sends a notification to a user and records it in their history
+ */
+async function sendNotificationToUser(
+  userId: string,
+  title: string,
+  body: string,
+  fcmToken: string,
+): Promise<boolean> {
+  try {
+    const messaging = admin.messaging()
+    const firestore = admin.firestore()
+
+    const notificationMessage = {
+      token: fcmToken,
+      notification: { title, body },
+    }
+
+    const sendResult = await messaging.send(notificationMessage)
+
+    if (sendResult) {
+      // Record notification in user's history
+      await firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationHistory')
+        .add({
+          title,
+          body,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        })
+
+      logger.info(`Sent notification to user ${userId}: ${title}`)
+      return true
+    } else {
+      logger.warn(`Failed to send notification to user ${userId}`)
+      return false
+    }
+  } catch (error) {
+    logger.error(
+      `Error sending notification to user ${userId}: ${String(error)}`,
+    )
+    return false
+  }
+}
+
+/**
+ * Processes notification backlog for all users
+ */
+async function processNotificationBacklog(): Promise<void> {
+  const firestore = admin.firestore()
+  const now = new Date()
+
+  // Get all users
+  const usersSnapshot = await firestore
+    .collection('users')
+    .where('type', '==', 'patient')
+    .get()
+
+  let totalProcessed = 0
+  let totalSent = 0
+
+  for (const userDoc of usersSnapshot.docs) {
+    try {
+      const userData = userDoc.data()
+      const userId = userDoc.id
+
+      // Skip users without FCM token or timezone
+      if (!userData.fcmToken || !userData.timeZone) {
+        continue
+      }
+
+      // Get user's local time
+      const userLocalTime = new Date(
+        now.toLocaleString('en-US', { timeZone: userData.timeZone }),
+      )
+
+      // Get user's notification backlog
+      const backlogSnapshot = await firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .get()
+
+      for (const backlogDoc of backlogSnapshot.docs) {
+        try {
+          const backlogItem = backlogDoc.data() as NotificationBacklogItem
+          totalProcessed++
+
+          // Check if notification time has passed (in user's local time)
+          const notificationTime = backlogItem.timestamp.toDate()
+          const notificationLocalTime = new Date(
+            notificationTime.toLocaleString('en-US', {
+              timeZone: userData.timeZone,
+            }),
+          )
+
+          if (notificationLocalTime <= userLocalTime) {
+            // Time has passed, send notification
+            const sent = await sendNotificationToUser(
+              userId,
+              backlogItem.title,
+              backlogItem.body,
+              userData.fcmToken,
+            )
+
+            if (sent) {
+              totalSent++
+              // Remove from backlog after successful send
+              await backlogDoc.ref.delete()
+            }
+          }
+        } catch (error) {
+          logger.error(
+            `Error processing backlog item for user ${userId}: ${String(error)}`,
+          )
+        }
+      }
+    } catch (error) {
+      logger.error(`Error processing user ${userDoc.id}: ${String(error)}`)
+    }
+  }
+
+  logger.info(
+    `Backlog processing complete: ${totalSent} sent, ${totalProcessed} processed`,
+  )
+}
+
+/**
+ * Creates weekly nudge notifications in backlog for all users
+ */
+async function createWeeklyNudgeBacklog(): Promise<void> {
+  const firestore = admin.firestore()
+
+  // Get all users
+  const usersSnapshot = await firestore
+    .collection('users')
+    .where('type', '==', 'patient')
+    .get()
+
+  let usersProcessed = 0
+  let nudgesCreated = 0
+
+  for (const userDoc of usersSnapshot.docs) {
+    try {
+      const rawUserData = userDoc.data()
+      const userId = userDoc.id
+      usersProcessed++
+
+      // Check if user has required fields
+      if (!rawUserData.timeZone || !rawUserData.dateOfBirth) {
+        continue
+      }
+
+      // Handle dateOfBirth as Firestore Timestamp
+      let dateOfBirth: Date
+      if (typeof rawUserData.dateOfBirth?.toDate === 'function') {
+        dateOfBirth = rawUserData.dateOfBirth.toDate()
+      } else if (rawUserData.dateOfBirth instanceof Date) {
+        dateOfBirth = rawUserData.dateOfBirth
+      } else {
+        dateOfBirth = new Date(rawUserData.dateOfBirth)
+        if (isNaN(dateOfBirth.getTime())) continue
+      }
+
+      // Determine birth year group and gender
+      const birthYear = dateOfBirth.getFullYear()
+      const birthGroup =
+        birthYear < 1990 ? 'born before 1990' : 'born 1990 or after'
+      const gender = rawUserData.genderIdentity ?? 'not specified'
+
+      // Create notification message template
+      const title = 'Daily Health Check'
+      const body = `Hello! Your profile shows: Gender: ${gender}, Birth group: ${birthGroup}. Time for your daily health reminder.`
+
+      // Create nudge notifications for the next 7 days at 1 PM user local time
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        // Calculate target date in user's timezone
+        const targetDate = new Date()
+        targetDate.setDate(targetDate.getDate() + dayOffset)
+
+        // Create a date for 1 PM in user's timezone
+        const userLocalTime = new Date(
+          targetDate.toLocaleString('en-US', {
+            timeZone: rawUserData.timeZone,
+          }),
+        )
+        userLocalTime.setHours(13, 0, 0, 0) // Set to 1:00 PM
+
+        // Convert back to UTC for storage
+        const utcTime = new Date(
+          userLocalTime.toLocaleString('en-US', { timeZone: 'UTC' }),
+        )
+
+        // Add to notification backlog
+        await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notificationBacklog')
+          .add({
+            title,
+            body,
+            timestamp: admin.firestore.Timestamp.fromDate(utcTime),
+          })
+
+        nudgesCreated++
+      }
+    } catch (error) {
+      logger.error(
+        `Error creating weekly nudges for user ${userDoc.id}: ${String(error)}`,
+      )
+    }
+  }
+
+  logger.info(
+    `Weekly nudge creation complete: ${nudgesCreated} nudges created for ${usersProcessed} users`,
+  )
+}
+
+/**
+ * Main scheduled function - processes notification backlog
+ */
+export const onScheduleNotificationProcessor = onSchedule(
   {
     schedule: '*/15 * * * *', // Every 15 minutes
     timeZone: 'UTC',
   },
   async () => {
-    logger.info('Starting nudge notification check')
+    logger.info('Starting notification backlog processing')
 
     try {
-      const factory = getServiceFactory()
-      const messaging = admin.messaging()
-      const firestore = admin.firestore()
+      // Process notification backlog
+      await processNotificationBacklog()
 
-      const now = new Date()
-
-      // Get all users directly from Firestore to avoid decoding issues
-      const usersSnapshot = await firestore
-        .collection('users')
-        .where('type', '==', 'patient')
-        .get()
-
-      logger.info(
-        `Checking ${usersSnapshot.size} users for nudge notifications`,
-      )
-
-      let usersChecked = 0
-      let notificationsSent = 0
-      const skippedReasons = {
-        noTimezone: 0,
-        noDateOfBirth: 0,
-        invalidDateOfBirth: 0,
-        wrongTime: 0,
-        noFcmToken: 0,
-      }
-
-      for (const userDoc of usersSnapshot.docs) {
-        try {
-          const rawUserData = userDoc.data()
-          const userId = userDoc.id
-          usersChecked++
-
-          // Check if user has required fields
-          if (!rawUserData.timeZone) {
-            skippedReasons.noTimezone++
-            continue
-          }
-
-          // Handle dateOfBirth as Firestore Timestamp
-          let dateOfBirth: Date
-          if (rawUserData.dateOfBirth) {
-            if (typeof rawUserData.dateOfBirth?.toDate === 'function') {
-              // Firestore Timestamp
-              dateOfBirth = rawUserData.dateOfBirth.toDate()
-            } else if (rawUserData.dateOfBirth instanceof Date) {
-              // Already a Date
-              dateOfBirth = rawUserData.dateOfBirth
-            } else {
-              // Try to parse as string or skip
-              dateOfBirth = new Date(rawUserData.dateOfBirth)
-              if (isNaN(dateOfBirth.getTime())) {
-                skippedReasons.invalidDateOfBirth++
-                continue
-              }
-            }
-          } else {
-            skippedReasons.noDateOfBirth++
-            continue
-          }
-
-          // Check if it's 1 PM in the user's timezone
-          const userTime = new Date(
-            now.toLocaleString('en-US', { timeZone: rawUserData.timeZone }),
-          )
-          const currentHour = userTime.getHours()
-          const currentMinute = userTime.getMinutes()
-
-          if (currentHour !== 13 || currentMinute >= 15) {
-            skippedReasons.wrongTime++
-            continue
-          }
-
-          // Determine birth year group
-          const birthYear = dateOfBirth.getFullYear()
-          const birthGroup =
-            birthYear < 1990 ? 'born before 1990' : 'born 1990 or after'
-
-          // Get gender from user data
-          const gender = rawUserData.genderIdentity ?? 'not specified'
-
-          // Check if user has FCM token
-          if (!rawUserData.fcmToken) {
-            skippedReasons.noFcmToken++
-            continue
-          }
-
-          // Send notification directly using FCM token from user document
-          const notificationTitle = 'Daily Health Check'
-          const notificationBody = `Hello! Your profile shows: Gender: ${gender}, Birth group: ${birthGroup}. Time for your daily health reminder.`
-
-          const notificationMessage = {
-            token: rawUserData.fcmToken,
-            notification: {
-              title: notificationTitle,
-              body: notificationBody,
-            },
-          }
-
-          const sendResult = await messaging.send(notificationMessage)
-
-          if (sendResult) {
-            notificationsSent++
-
-            // Record notification in user's subcollection
-            await firestore
-              .collection('users')
-              .doc(userId)
-              .collection('notificationHistory')
-              .add({
-                title: notificationTitle,
-                body: notificationBody,
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-              })
-
-            logger.info(
-              `Sent notification to user ${userId} (Gender: ${gender}, ${birthGroup})`,
-            )
-          } else {
-            logger.warn(`Failed to send notification to user ${userId}`)
-          }
-        } catch (error) {
-          logger.error(`Error processing user ${userDoc.id}: ${String(error)}`)
-        }
-      }
-
-      // Summary logging
-      logger.info(
-        `Nudge notification summary: ${notificationsSent} sent, ${usersChecked} checked. Skipped: ${skippedReasons.noTimezone} no timezone, ${skippedReasons.noDateOfBirth} no DOB, ${skippedReasons.invalidDateOfBirth} invalid DOB, ${skippedReasons.wrongTime} wrong time, ${skippedReasons.noFcmToken} no FCM token`,
-      )
+      logger.info('Notification backlog processing complete')
     } catch (error) {
-      logger.error(`Error in nudge notification check: ${String(error)}`)
+      logger.error(`Error in notification backlog processing: ${String(error)}`)
+    }
+  },
+)
+
+/**
+ * Weekly scheduled function - creates nudge notifications for the week
+ */
+export const onScheduleWeeklyNudgeCreation = onSchedule(
+  {
+    schedule: '0 8 * * 1', // Every Monday at 8 AM UTC
+    timeZone: 'UTC',
+  },
+  async () => {
+    logger.info('Starting weekly nudge notification creation')
+
+    try {
+      // Create nudge notifications for the next 7 days
+      await createWeeklyNudgeBacklog()
+
+      logger.info('Weekly nudge notification creation complete')
+    } catch (error) {
+      logger.error(`Error in weekly nudge creation: ${String(error)}`)
     }
   },
 )
