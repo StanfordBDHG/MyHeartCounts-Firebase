@@ -21,7 +21,7 @@ interface NudgeMessage {
 const PREDEFINED_NUDGES: NudgeMessage[] = [
   {
     title: 'Get Moving This Week!',
-    body: 'Ready for week 2? Let\'s start with some light exercise today. Even 10 minutes makes a difference!',
+    body: 'Ready for the day? Let\'s start with some light exercise today. Even 10 minutes makes a difference!',
   },
   {
     title: 'Your Heart Loves Movement',
@@ -44,7 +44,7 @@ const PREDEFINED_NUDGES: NudgeMessage[] = [
     body: 'Exercise is more fun with others! Invite a friend for a workout, join a sports team, or try a fitness class.',
   },
   {
-    title: 'Champion of Week 2!',
+    title: 'Champion of this Week!',
     body: 'Amazing work staying active this week! You\'re building habits that will keep your heart strong. Keep it up!',
   },
 ]
