@@ -27,9 +27,9 @@ interface OpenAIResponse {
 const openaiApiKey = defineSecret('OPENAI_API_KEY')
 
 /**
- * Pre-defined nudge messages for days 7-14 after enrollment - focused on sports motivation
+ * Pre-defined nudge messages for days 7-14 after enrollment - focused on sports motivation (English)
  */
-const PREDEFINED_NUDGES: NudgeMessage[] = [
+const PREDEFINED_NUDGES_EN: NudgeMessage[] = [
   {
     title: 'Get Moving This Week!',
     body: "Ready for the day? Let's start with some light exercise today. Even 10 minutes makes a difference!",
@@ -59,6 +59,47 @@ const PREDEFINED_NUDGES: NudgeMessage[] = [
     body: "Amazing work staying active this week! You're building habits that will keep your heart strong. Keep it up!",
   },
 ]
+
+/**
+ * Pre-defined nudge messages for days 7-14 after enrollment - focused on sports motivation (Spanish)
+ */
+const PREDEFINED_NUDGES_ES: NudgeMessage[] = [
+  {
+    title: '¡A Moverse Esta Semana!',
+    body: '¿Listo para el día? Comencemos con algo de ejercicio ligero hoy. ¡Incluso 10 minutos hacen la diferencia!',
+  },
+  {
+    title: 'Tu Corazón Ama el Movimiento',
+    body: '¡Es hora de activarse! Prueba una caminata rápida, baila o practica tu deporte favorito. Tu corazón te lo agradecerá.',
+  },
+  {
+    title: 'Construye tu Racha de Ejercicio',
+    body: '¡Mantén el impulso! ¿Qué actividad física elegirás hoy? ¿Natación, ciclismo o tal vez algo de yoga?',
+  },
+  {
+    title: 'Día de Desafío Deportivo',
+    body: '¡Desafíate hoy! Prueba un nuevo deporte o actividad. Tenis, baloncesto o incluso saltar la cuerda, ¿qué te parece divertido?',
+  },
+  {
+    title: 'Hora de Poder Cardiovascular',
+    body: '¡Tu corazón es un músculo, fortalezcámoslo! Ve a trotar, ve al gimnasio o juega tu juego activo favorito.',
+  },
+  {
+    title: 'Equípate para el Ejercicio',
+    body: '¡El ejercicio es más divertido con otros! Invita a un amigo a entrenar, únete a un equipo deportivo o prueba una clase de fitness.',
+  },
+  {
+    title: '¡Campeón de Esta Semana!',
+    body: '¡Increíble trabajo manteniéndote activo esta semana! Estás creando hábitos que mantendrán tu corazón fuerte. ¡Sigue así!',
+  },
+]
+
+/**
+ * Gets the appropriate predefined nudges based on language
+ */
+function getPredefinedNudges(language: string): NudgeMessage[] {
+  return language === 'es' ? PREDEFINED_NUDGES_ES : PREDEFINED_NUDGES_EN
+}
 
 /**
  * Calculates days since enrollment for a user
@@ -91,9 +132,27 @@ function getDaysSinceEnrollment(
 async function generateLLMNudges(
   userId: string,
   userData: any,
+  language: string,
 ): Promise<NudgeMessage[]> {
   try {
-    const prompt = `Generate 7 motivational sports and exercise nudges for a heart health study participant. Each nudge should:
+    const isSpanish = language === 'es'
+    const prompt = isSpanish
+      ? `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca. Cada recordatorio debe:
+    - Ser alentador y positivo
+    - Enfocarse en diferentes tipos de actividades físicas y deportes
+    - Ser personalizado y atractivo
+    - Incluir una llamada clara a la acción
+    - Ser adecuado para alguien en un estudio de salud cardíaca
+    
+    Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
+    Formato de ejemplo:
+    [
+      {"title": "Impulso de Energía Matutino", "body": "¡Comienza tu día con una caminata de 15 minutos! Tu corazón amará el cardio suave."},
+      ...
+    ]
+    
+    Haz cada recordatorio único y enfócate en diferentes actividades como caminar, nadar, bailar, deportes de equipo, entrenamiento de fuerza, yoga, etc.`
+      : `Generate 7 motivational sports and exercise nudges for a heart health study participant. Each nudge should:
     - Be encouraging and positive
     - Focus on different types of physical activities and sports
     - Be personalized and engaging
@@ -144,14 +203,14 @@ async function generateLLMNudges(
       throw new Error('Invalid response format from OpenAI API')
     }
 
-    logger.info(`Generated ${nudges.length} LLM nudges for user ${userId}`)
+    logger.info(`Generated ${nudges.length} LLM nudges for user ${userId} in ${language}`)
     return nudges
   } catch (error) {
     logger.error(
       `Error generating LLM nudges for user ${userId}: ${String(error)}`,
     )
     // Fallback to predefined nudges if API fails
-    return PREDEFINED_NUDGES
+    return getPredefinedNudges(language)
   }
 }
 
@@ -206,6 +265,13 @@ async function createNudgesForUser(
 }
 
 /**
+ * Gets user language, defaulting to English if not 'es'
+ */
+function getUserLanguage(userData: any): string {
+  return userData.userLanguage === 'es' ? 'es' : 'en'
+}
+
+/**
  * Creates nudge notifications for eligible users based on enrollment date and participant group
  */
 async function createNudgeNotifications(): Promise<void> {
@@ -239,6 +305,7 @@ async function createNudgeNotifications(): Promise<void> {
         userData.dateOfEnrollment,
       )
       const participantGroup = userData.participantGroup
+      const userLanguage = getUserLanguage(userData)
 
       // Group 1: Pre-defined nudges at day 7, LLM nudges at day 14
       // Group 2: LLM nudges at day 7, Pre-defined nudges at day 14
@@ -257,12 +324,13 @@ async function createNudgeNotifications(): Promise<void> {
 
       if (shouldCreatePredefinedNudges) {
         logger.info(
-          `Creating pre-defined nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment`,
+          `Creating pre-defined nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment, language: ${userLanguage}`,
         )
+        const predefinedNudges = getPredefinedNudges(userLanguage)
         const created = await createNudgesForUser(
           userId,
           userData,
-          PREDEFINED_NUDGES,
+          predefinedNudges,
           'predefined',
         )
         nudgesCreated += created
@@ -270,9 +338,9 @@ async function createNudgeNotifications(): Promise<void> {
 
       if (shouldCreateLLMNudges) {
         logger.info(
-          `Creating LLM-generated nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment`,
+          `Creating LLM-generated nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment, language: ${userLanguage}`,
         )
-        const llmNudges = await generateLLMNudges(userId, userData)
+        const llmNudges = await generateLLMNudges(userId, userData, userLanguage)
         const created = await createNudgesForUser(
           userId,
           userData,
