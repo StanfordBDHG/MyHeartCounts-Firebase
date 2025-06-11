@@ -136,8 +136,9 @@ async function generateLLMNudges(
 ): Promise<NudgeMessage[]> {
   try {
     const isSpanish = language === 'es'
-    const prompt = isSpanish
-      ? `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca. Cada recordatorio debe:
+    const prompt =
+      isSpanish ?
+        `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca. Cada recordatorio debe:
     - Ser alentador y positivo
     - Enfocarse en diferentes tipos de actividades físicas y deportes
     - Ser personalizado y atractivo
@@ -203,7 +204,9 @@ async function generateLLMNudges(
       throw new Error('Invalid response format from OpenAI API')
     }
 
-    logger.info(`Generated ${nudges.length} LLM nudges for user ${userId} in ${language}`)
+    logger.info(
+      `Generated ${nudges.length} LLM nudges for user ${userId} in ${language}`,
+    )
     return nudges
   } catch (error) {
     logger.error(
@@ -340,7 +343,11 @@ async function createNudgeNotifications(): Promise<void> {
         logger.info(
           `Creating LLM-generated nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment, language: ${userLanguage}`,
         )
-        const llmNudges = await generateLLMNudges(userId, userData, userLanguage)
+        const llmNudges = await generateLLMNudges(
+          userId,
+          userData,
+          userLanguage,
+        )
         const created = await createNudgesForUser(
           userId,
           userData,
