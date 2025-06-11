@@ -101,6 +101,7 @@ export class DatabaseUserService implements UserService {
           receivesInactivityReminders: true,
           receivesQuestionnaireReminders: true,
           receivesRecommendationUpdates: true,
+          participantGroup: Math.random() < 0.5 ? 1 : 2,
           lastActiveDate: new Date(),
           dateOfEnrollment: new Date(),
         })
