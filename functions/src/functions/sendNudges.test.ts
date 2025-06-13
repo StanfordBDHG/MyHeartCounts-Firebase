@@ -10,7 +10,7 @@ import { expect } from 'chai'
 import { it, describe } from 'mocha'
 import admin from 'firebase-admin'
 import type { Timestamp } from '@google-cloud/firestore'
-import { onScheduleNotificationProcessor } from './sendNudges.js'
+import { processNotificationBacklog } from './sendNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
 describeWithEmulators('function: sendNudges', (env) => {
@@ -36,7 +36,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -81,7 +81,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(futureTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -120,7 +120,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -159,7 +159,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -212,7 +212,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime2)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -269,7 +269,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const user1HistorySnapshot = await env.firestore
         .collection('users')
@@ -313,7 +313,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(utcTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -359,7 +359,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(futureTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -424,7 +424,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const user2HistorySnapshot = await env.firestore
         .collection('users')
@@ -444,7 +444,7 @@ describeWithEmulators('function: sendNudges', (env) => {
         timeZone: 'UTC'
       })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -464,7 +464,7 @@ describeWithEmulators('function: sendNudges', (env) => {
         timeZone: 'UTC'
       })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')
@@ -498,7 +498,7 @@ describeWithEmulators('function: sendNudges', (env) => {
           timestamp: admin.firestore.Timestamp.fromDate(pastTime)
         })
 
-      await env.call(onScheduleNotificationProcessor, {})
+      await processNotificationBacklog()
 
       const historySnapshot = await env.firestore
         .collection('users')

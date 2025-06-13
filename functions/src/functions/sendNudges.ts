@@ -65,7 +65,7 @@ async function sendNotificationToUser(
 /**
  * Processes notification backlog for all users
  */
-async function processNotificationBacklog(): Promise<void> {
+export async function processNotificationBacklog(): Promise<void> {
   const firestore = admin.firestore()
   const now = new Date()
 

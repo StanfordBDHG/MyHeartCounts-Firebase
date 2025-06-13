@@ -277,7 +277,7 @@ function getUserLanguage(userData: any): string {
 /**
  * Creates nudge notifications for eligible users based on enrollment date and participant group
  */
-async function createNudgeNotifications(): Promise<void> {
+export async function createNudgeNotifications(): Promise<void> {
   const firestore = admin.firestore()
 
   // Get all users

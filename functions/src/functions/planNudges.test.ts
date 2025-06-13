@@ -10,7 +10,7 @@ import { expect } from 'chai'
 import { it, describe } from 'mocha'
 import admin from 'firebase-admin'
 import type { Timestamp } from '@google-cloud/firestore'
-import { onScheduleDailyNudgeCreation } from './planNudges.js'
+import { createNudgeNotifications } from './planNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
 // Mock fetch for OpenAI API calls
@@ -67,7 +67,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -97,7 +97,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -126,7 +126,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -153,7 +153,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -180,7 +180,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'es'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -201,7 +201,7 @@ describeWithEmulators('function: planNudges', (env) => {
         participantGroup: 1
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -225,7 +225,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -255,7 +255,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -290,7 +290,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -319,7 +319,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -356,7 +356,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -380,7 +380,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'en'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -406,7 +406,7 @@ describeWithEmulators('function: planNudges', (env) => {
         userLanguage: 'fr'
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -432,7 +432,7 @@ describeWithEmulators('function: planNudges', (env) => {
         participantGroup: 1
       })
 
-      await env.call(onScheduleDailyNudgeCreation, {})
+      await createNudgeNotifications()
 
       const backlogSnapshot = await env.firestore
         .collection('users')

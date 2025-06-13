@@ -12,6 +12,17 @@ import { type Message } from 'firebase-admin/messaging'
 /* eslint-disable @typescript-eslint/require-await */
 
 export class MockMessaging {
+  async send(message: Message, dryRun?: boolean): Promise<string> {
+    const tokenMessage = message as { token?: string }
+    const isFailure = tokenMessage.token?.includes('fail') ?? false
+    
+    if (isFailure) {
+      throw new Error('Invalid FCM token')
+    }
+    
+    return 'mock-message-id-' + Math.random().toString(36).substr(2, 9)
+  }
+
   async sendEach(messages: Message[], dryRun?: boolean) {
     // Process each message and determine success/failure
     const responses = messages.map((message) => {
