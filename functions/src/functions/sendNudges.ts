@@ -135,7 +135,8 @@ export class NotificationService {
 
 const notificationService = new NotificationService()
 
-export const processNotificationBacklog = () => notificationService.processNotificationBacklog()
+export const processNotificationBacklog = () =>
+  notificationService.processNotificationBacklog()
 
 export const onScheduleNotificationProcessor = onSchedule(
   {

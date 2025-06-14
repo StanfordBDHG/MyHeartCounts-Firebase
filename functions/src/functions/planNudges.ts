@@ -348,7 +348,8 @@ export class NudgeService {
 
 const nudgeService = new NudgeService()
 
-export const createNudgeNotifications = () => nudgeService.createNudgeNotifications()
+export const createNudgeNotifications = () =>
+  nudgeService.createNudgeNotifications()
 
 export const onScheduleDailyNudgeCreation = onSchedule(
   {
