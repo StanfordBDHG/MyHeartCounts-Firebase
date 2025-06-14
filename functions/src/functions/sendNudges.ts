@@ -16,141 +16,137 @@ interface NotificationBacklogItem {
   timestamp: admin.firestore.Timestamp
 }
 
-/**
- * Sends a notification to a user and records it in their history
- * Returns true if successfull, false otherwise
- */
-async function sendNotificationToUser(
-  userId: string,
-  title: string,
-  body: string,
-  fcmToken: string,
-): Promise<boolean> {
-  try {
-    const messaging = admin.messaging()
-    const firestore = admin.firestore()
+export class NotificationService {
+  // Properties
 
-    const notificationMessage = {
-      token: fcmToken,
-      notification: { title, body },
-    }
+  private readonly firestore: admin.firestore.Firestore
+  private readonly messaging: admin.messaging.Messaging
 
-    const sendResult = await messaging.send(notificationMessage)
+  // Constructor
 
-    if (sendResult) {
-      // Record notification in user's history
-      await firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationHistory')
-        .add({
-          title,
-          body,
-          timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        })
-
-      logger.info(`Sent notification to user ${userId}: ${title}`)
-      return true
-    } else {
-      logger.warn(`Failed to send notification to user ${userId}`)
-      return false
-    }
-  } catch (error) {
-    logger.error(
-      `Error sending notification to user ${userId}: ${String(error)}`,
-    )
-    return false
+  constructor() {
+    this.firestore = admin.firestore()
+    this.messaging = admin.messaging()
   }
-}
 
-/**
- * Processes notification backlog for all users
- * This runs every 15 minutes to check for pending notifications
- */
-export async function processNotificationBacklog(): Promise<void> {
-  const firestore = admin.firestore()
-  const now = new Date()
+  // Methods
 
-  // Get all patient users only
-  const usersSnapshot = await firestore
-    .collection('users')
-    .where('type', '==', 'patient')
-    .get()
-
-  let totalProcessed = 0
-  let totalSent = 0
-
-  for (const userDoc of usersSnapshot.docs) {
+  async sendNotificationToUser(
+    userId: string,
+    title: string,
+    body: string,
+    fcmToken: string,
+  ): Promise<boolean> {
     try {
-      const userData = userDoc.data()
-      const userId = userDoc.id
-
-      // Skip users without FCM token or timezone - can't send without these
-      if (!userData.fcmToken || !userData.timeZone) {
-        continue
+      const notificationMessage = {
+        token: fcmToken,
+        notification: { title, body },
       }
 
-      // Get user's notification backlog
-      const backlogSnapshot = await firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .get()
+      const sendResult = await this.messaging.send(notificationMessage)
 
-      for (const backlogDoc of backlogSnapshot.docs) {
-        try {
-          const backlogItem = backlogDoc.data() as NotificationBacklogItem
-          totalProcessed++
+      if (sendResult) {
+        await this.firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notificationHistory')
+          .add({
+            title,
+            body,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          })
 
-          // Check if notification time has passed (compare UTC times directly)
-          const notificationTime = backlogItem.timestamp.toDate()
-
-          if (notificationTime <= now) {
-            // Time has passed, send notification
-            const sent = await sendNotificationToUser(
-              userId,
-              backlogItem.title,
-              backlogItem.body,
-              userData.fcmToken,
-            )
-
-            if (sent) {
-              totalSent++
-              // Remove from backlog after successful send
-              await backlogDoc.ref.delete()
-            }
-          }
-        } catch (error) {
-          logger.error(
-            `Error processing backlog item for user ${userId}: ${String(error)}`,
-          )
-        }
+        logger.info(`Sent notification to user ${userId}: ${title}`)
+        return true
+      } else {
+        logger.warn(`Failed to send notification to user ${userId}`)
+        return false
       }
     } catch (error) {
-      logger.error(`Error processing user ${userDoc.id}: ${String(error)}`)
+      logger.error(
+        `Error sending notification to user ${userId}: ${String(error)}`,
+      )
+      return false
     }
   }
 
-  logger.info(
-    `Backlog processing complete: ${totalSent} sent, ${totalProcessed} processed`,
-  )
+  async processNotificationBacklog(): Promise<void> {
+    const now = new Date()
+
+    const usersSnapshot = await this.firestore
+      .collection('users')
+      .where('type', '==', 'patient')
+      .get()
+
+    let totalProcessed = 0
+    let totalSent = 0
+
+    for (const userDoc of usersSnapshot.docs) {
+      try {
+        const userData = userDoc.data()
+        const userId = userDoc.id
+
+        if (!userData.fcmToken || !userData.timeZone) {
+          continue
+        }
+
+        const backlogSnapshot = await this.firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notificationBacklog')
+          .get()
+
+        for (const backlogDoc of backlogSnapshot.docs) {
+          try {
+            const backlogItem = backlogDoc.data() as NotificationBacklogItem
+            totalProcessed++
+
+            const notificationTime = backlogItem.timestamp.toDate()
+
+            if (notificationTime <= now) {
+              const sent = await this.sendNotificationToUser(
+                userId,
+                backlogItem.title,
+                backlogItem.body,
+                userData.fcmToken,
+              )
+
+              if (sent) {
+                totalSent++
+                await backlogDoc.ref.delete()
+              }
+            }
+          } catch (error) {
+            logger.error(
+              `Error processing backlog item for user ${userId}: ${String(error)}`,
+            )
+          }
+        }
+      } catch (error) {
+        logger.error(`Error processing user ${userDoc.id}: ${String(error)}`)
+      }
+    }
+
+    logger.info(
+      `Backlog processing complete: ${totalSent} sent, ${totalProcessed} processed`,
+    )
+  }
 }
 
-/**
- * Main scheduled function - processes notification backlog
- */
+const notificationService = new NotificationService()
+
+export const processNotificationBacklog = () => notificationService.processNotificationBacklog()
+
 export const onScheduleNotificationProcessor = onSchedule(
   {
-    schedule: '*/15 * * * *', // Every 15 minutes
+    schedule: '*/15 * * * *',
     timeZone: 'UTC',
   },
   async () => {
     logger.info('Starting notification backlog processing')
 
     try {
-      // Process notification backlog
-      await processNotificationBacklog()
-
+      await notificationService.processNotificationBacklog()
       logger.info('Notification backlog processing complete')
     } catch (error) {
       logger.error(`Error in notification backlog processing: ${String(error)}`)
