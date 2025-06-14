@@ -22,7 +22,10 @@ function mockFetch(
   input: RequestInfo | URL,
   init?: RequestInit,
 ): Promise<Response> {
-  if (typeof input === 'string' && input.startsWith('https://api.openai.com/')) {
+  if (
+    typeof input === 'string' &&
+    input.startsWith('https://api.openai.com/')
+  ) {
     if (shouldMockFail) {
       return Promise.reject(new Error('Network error'))
     }

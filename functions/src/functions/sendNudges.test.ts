@@ -7,8 +7,8 @@
 //
 
 import { expect } from 'chai'
-import { it, describe } from 'mocha'
 import admin from 'firebase-admin'
+import { it, describe } from 'mocha'
 import { stub, restore } from 'sinon'
 import { processNotificationBacklog } from './sendNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
