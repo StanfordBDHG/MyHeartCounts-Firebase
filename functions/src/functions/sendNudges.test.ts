@@ -6,10 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import type { Timestamp } from '@google-cloud/firestore'
 import { expect } from 'chai'
-import admin from 'firebase-admin'
 import { it, describe } from 'mocha'
+import admin from 'firebase-admin'
 import { stub, restore } from 'sinon'
 import { processNotificationBacklog } from './sendNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
