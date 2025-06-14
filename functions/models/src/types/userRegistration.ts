@@ -26,6 +26,7 @@ export const userRegistrationInputConverter = new Lazy(
         receivesRecommendationUpdates: optionalish(z.boolean()),
         language: optionalish(z.string()),
         timeZone: optionalish(z.string()),
+        participantGroup: optionalish(z.number().int()),
       }),
       encode: (object) => ({
         type: object.type,
@@ -40,6 +41,7 @@ export const userRegistrationInputConverter = new Lazy(
           object.receivesRecommendationUpdates ?? null,
         language: object.language ?? null,
         timeZone: object.timeZone ?? null,
+        participantGroup: object.participantGroup ?? null,
       }),
     }),
 )
@@ -76,6 +78,7 @@ export class UserRegistration {
 
   readonly language?: string
   readonly timeZone?: string
+  readonly participantGroup?: number
 
   // Computed Properties
 
@@ -98,6 +101,7 @@ export class UserRegistration {
     receivesRecommendationUpdates?: boolean
     language?: string
     timeZone?: string
+    participantGroup?: number
   }) {
     this.type = input.type
     this.disabled = input.disabled
@@ -108,5 +112,6 @@ export class UserRegistration {
     this.receivesRecommendationUpdates = input.receivesRecommendationUpdates
     this.language = input.language
     this.timeZone = input.timeZone
+    this.participantGroup = input.participantGroup
   }
 }
