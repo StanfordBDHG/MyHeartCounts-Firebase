@@ -18,6 +18,7 @@ interface NotificationBacklogItem {
 
 /**
  * Sends a notification to a user and records it in their history
+ * Returns true if successfull, false otherwise
  */
 async function sendNotificationToUser(
   userId: string,
@@ -64,12 +65,13 @@ async function sendNotificationToUser(
 
 /**
  * Processes notification backlog for all users
+ * This runs every 15 minutes to check for pending notifications
  */
 export async function processNotificationBacklog(): Promise<void> {
   const firestore = admin.firestore()
   const now = new Date()
 
-  // Get all users
+  // Get all patient users only
   const usersSnapshot = await firestore
     .collection('users')
     .where('type', '==', 'patient')
@@ -83,15 +85,10 @@ export async function processNotificationBacklog(): Promise<void> {
       const userData = userDoc.data()
       const userId = userDoc.id
 
-      // Skip users without FCM token or timezone
+      // Skip users without FCM token or timezone - can't send without these
       if (!userData.fcmToken || !userData.timeZone) {
         continue
       }
-
-      // Get user's local time
-      const userLocalTime = new Date(
-        now.toLocaleString('en-US', { timeZone: userData.timeZone }),
-      )
 
       // Get user's notification backlog
       const backlogSnapshot = await firestore
@@ -105,15 +102,10 @@ export async function processNotificationBacklog(): Promise<void> {
           const backlogItem = backlogDoc.data() as NotificationBacklogItem
           totalProcessed++
 
-          // Check if notification time has passed (in user's local time)
+          // Check if notification time has passed (compare UTC times directly)
           const notificationTime = backlogItem.timestamp.toDate()
-          const notificationLocalTime = new Date(
-            notificationTime.toLocaleString('en-US', {
-              timeZone: userData.timeZone,
-            }),
-          )
 
-          if (notificationLocalTime <= userLocalTime) {
+          if (notificationTime <= now) {
             // Time has passed, send notification
             const sent = await sendNotificationToUser(
               userId,

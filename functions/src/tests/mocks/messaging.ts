@@ -15,11 +15,11 @@ export class MockMessaging {
   async send(message: Message, dryRun?: boolean): Promise<string> {
     const tokenMessage = message as { token?: string }
     const isFailure = tokenMessage.token?.includes('fail') ?? false
-    
+
     if (isFailure) {
       throw new Error('Invalid FCM token')
     }
-    
+
     return 'mock-message-id-' + Math.random().toString(36).substr(2, 9)
   }
 

@@ -128,12 +128,14 @@ function getDaysSinceEnrollment(
 
 /**
  * Generates 7 personalized nudges using OpenAI API
+ * Returns both the nudges and whether they used fallback or not
+ * TODO: maybe add retry logic in the future?
  */
 async function generateLLMNudges(
   userId: string,
   userData: any,
   language: string,
-): Promise<NudgeMessage[]> {
+): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
   try {
     const isSpanish = language === 'es'
     const prompt =
@@ -207,18 +209,19 @@ async function generateLLMNudges(
     logger.info(
       `Generated ${nudges.length} LLM nudges for user ${userId} in ${language}`,
     )
-    return nudges
+    return { nudges, usedFallback: false }
   } catch (error) {
     logger.error(
       `Error generating LLM nudges for user ${userId}: ${String(error)}`,
     )
     // Fallback to predefined nudges if API fails
-    return getPredefinedNudges(language)
+    return { nudges: getPredefinedNudges(language), usedFallback: true }
   }
 }
 
 /**
  * Creates nudge notifications for a specific user
+ * NOTE: this creates 7 nudges, one for each day
  */
 async function createNudgesForUser(
   userId: string,
@@ -233,10 +236,12 @@ async function createNudgesForUser(
     const nudgeMessage = nudges[dayIndex]
 
     // Calculate target date (today + dayIndex)
+    // TODO: should we handle daylight saving transitions?
     const targetDate = new Date()
     targetDate.setDate(targetDate.getDate() + dayIndex)
 
     // Create a date for 1 PM in user's timezone
+    // NOTE: using 1PM as thats typically a good time for reminders
     const userLocalTime = new Date(
       targetDate.toLocaleString('en-US', {
         timeZone: userData.timeZone,
@@ -258,7 +263,7 @@ async function createNudgesForUser(
         title: nudgeMessage.title,
         body: nudgeMessage.body,
         timestamp: admin.firestore.Timestamp.fromDate(utcTime),
-        nudgeType, // Track whether this is 'predefined' or 'llm-generated'
+        nudgeType, // Track whether this is "predefined" or "llm-generated"
       })
 
     nudgesCreated++
@@ -343,16 +348,17 @@ export async function createNudgeNotifications(): Promise<void> {
         logger.info(
           `Creating LLM-generated nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment, language: ${userLanguage}`,
         )
-        const llmNudges = await generateLLMNudges(
+        const { nudges: llmNudges, usedFallback } = await generateLLMNudges(
           userId,
           userData,
           userLanguage,
         )
+        const nudgeType = usedFallback ? 'predefined' : 'llm-generated'
         const created = await createNudgesForUser(
           userId,
           userData,
           llmNudges,
-          'llm-generated',
+          nudgeType,
         )
         nudgesCreated += created
       }
