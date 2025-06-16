@@ -107,8 +107,8 @@ jobs:
     name: Deploy Firebase Project (Production US)
     if: needs.determineenvironment.outputs.environment == 'production'
     needs: [buildandtest, determineenvironment]
-    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     environment: production-us
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
       contents: read
     with:
@@ -123,8 +123,8 @@ jobs:
     name: Deploy Firebase Project (Production UK)
     if: needs.determineenvironment.outputs.environment == 'production'
     needs: [deployfirebase-production-us, determineenvironment]
-    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     environment: production-uk
+    uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
       contents: read
     with:
