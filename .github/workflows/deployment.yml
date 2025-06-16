@@ -23,7 +23,8 @@ on:
         options:
           - development
           - staging
-          - production
+          - production-us
+          - production-uk
   workflow_call:
     inputs:
       environment:
