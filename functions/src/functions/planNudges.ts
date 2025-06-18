@@ -304,10 +304,27 @@ export class NudgeService {
   }
 
   async createNudgeNotifications(): Promise<void> {
-    const usersSnapshot = await this.firestore
+    const regularUsersSnapshot = await this.firestore
       .collection('users')
       .where('type', '==', 'patient')
       .get()
+
+    const manualTriggerSnapshot = await this.firestore
+      .collection('users')
+      .where('triggerNudgeGeneration', '==', true)
+      .get()
+
+    const allUserDocs = new Map()
+
+    regularUsersSnapshot.docs.forEach((doc) => {
+      allUserDocs.set(doc.id, doc)
+    })
+
+    manualTriggerSnapshot.docs.forEach((doc) => {
+      allUserDocs.set(doc.id, doc)
+    })
+
+    const usersSnapshot = { docs: Array.from(allUserDocs.values()) }
 
     let usersProcessed = 0
     let nudgesCreated = 0
@@ -331,11 +348,16 @@ export class NudgeService {
         )
         const participantGroup = userData.participantGroup
         const userLanguage = this.getUserLanguage(userData)
+        const manualTrigger = userData.triggerNudgeGeneration === true
 
         let shouldCreatePredefinedNudges = false
         let shouldCreateLLMNudges = false
+        let isManualTrigger = false
 
-        if (participantGroup === 1 && daysSinceEnrollment === 7) {
+        if (manualTrigger) {
+          shouldCreateLLMNudges = true
+          isManualTrigger = true
+        } else if (participantGroup === 1 && daysSinceEnrollment === 7) {
           shouldCreatePredefinedNudges = true
         } else if (participantGroup === 1 && daysSinceEnrollment === 14) {
           shouldCreateLLMNudges = true
@@ -346,8 +368,12 @@ export class NudgeService {
         }
 
         if (shouldCreatePredefinedNudges) {
+          const triggerReason =
+            isManualTrigger ? 'manual trigger' : (
+              `group ${participantGroup}, ${daysSinceEnrollment} days since enrollment`
+            )
           logger.info(
-            `Creating pre-defined nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment, language: ${userLanguage}`,
+            `Creating pre-defined nudges for user ${userId} (${triggerReason}), language: ${userLanguage}`,
           )
           const predefinedNudges = this.getPredefinedNudges(userLanguage)
           const created = await this.createNudgesForUser(
@@ -360,8 +386,12 @@ export class NudgeService {
         }
 
         if (shouldCreateLLMNudges) {
+          const triggerReason =
+            isManualTrigger ? 'manual trigger' : (
+              `group ${participantGroup}, ${daysSinceEnrollment} days since enrollment`
+            )
           logger.info(
-            `Creating LLM-generated nudges for user ${userId}, group ${participantGroup}, ${daysSinceEnrollment} days since enrollment, language: ${userLanguage}`,
+            `Creating LLM-generated nudges for user ${userId} (${triggerReason}), language: ${userLanguage}`,
           )
           const { nudges: llmNudges, usedFallback } =
             await this.generateLLMNudges(userId, userData, userLanguage)
@@ -373,6 +403,16 @@ export class NudgeService {
             nudgeType,
           )
           nudgesCreated += created
+        }
+
+        if (
+          isManualTrigger &&
+          (shouldCreatePredefinedNudges || shouldCreateLLMNudges)
+        ) {
+          await this.firestore.collection('users').doc(userId).update({
+            triggerNudgeGeneration: false,
+          })
+          logger.info(`Reset manual trigger flag for user ${userId}`)
         }
       } catch (error) {
         logger.error(
