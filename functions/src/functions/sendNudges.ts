@@ -38,9 +38,6 @@ export class NotificationService {
     return this._messaging
   }
 
-  constructor() {
-  }
-
   // Methods
 
   async sendNotificationToUser(
