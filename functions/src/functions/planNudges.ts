@@ -11,10 +11,14 @@ import { logger } from 'firebase-functions'
 import { defineSecret } from 'firebase-functions/params'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 
-interface NudgeMessage {
+interface BaseNudgeMessage {
   title: string
   body: string
   isLLMGenerated: boolean
+}
+
+interface NudgeMessage extends BaseNudgeMessage {
+  generatedAt: admin.firestore.Timestamp
 }
 
 interface OpenAIResponse {
@@ -31,8 +35,8 @@ export class NudgeService {
   // Properties
 
   private _firestore?: admin.firestore.Firestore
-  private readonly predefinedNudgesEn: NudgeMessage[]
-  private readonly predefinedNudgesEs: NudgeMessage[]
+  private readonly predefinedNudgesEn: BaseNudgeMessage[]
+  private readonly predefinedNudgesEs: BaseNudgeMessage[]
 
   // Constructor
 
@@ -123,7 +127,13 @@ export class NudgeService {
   // Methods
 
   getPredefinedNudges(language: string): NudgeMessage[] {
-    return language === 'es' ? this.predefinedNudgesEs : this.predefinedNudgesEn
+    const generatedAt = admin.firestore.Timestamp.now()
+    const baseNudges =
+      language === 'es' ? this.predefinedNudgesEs : this.predefinedNudgesEn
+    return baseNudges.map((nudge) => ({
+      ...nudge,
+      generatedAt,
+    }))
   }
 
   getDaysSinceEnrollment(
@@ -226,9 +236,11 @@ export class NudgeService {
         throw new Error('Invalid response format from OpenAI API')
       }
 
+      const generatedAt = admin.firestore.Timestamp.now()
       const nudges: NudgeMessage[] = parsedNudges.map((nudge) => ({
         ...nudge,
         isLLMGenerated: true,
+        generatedAt,
       }))
 
       logger.info(
@@ -278,6 +290,7 @@ export class NudgeService {
           timestamp: admin.firestore.Timestamp.fromDate(utcTime),
           nudgeType,
           isLLMGenerated: nudgeMessage.isLLMGenerated,
+          generatedAt: nudgeMessage.generatedAt,
         })
 
       nudgesCreated++
