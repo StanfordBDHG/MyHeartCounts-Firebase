@@ -95,7 +95,7 @@ jobs:
     permissions:
       contents: read
     with:
-      customcommand: "npm run build"
+      customcommand: "npm run prepare"
       environment: ${{ needs.determineenvironment.outputs.environment }}
       arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
     secrets:
@@ -110,7 +110,7 @@ jobs:
     permissions:
       contents: read
     with:
-      customcommand: "npm run build"
+      customcommand: "npm run prepare"
       environment: production
       arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
@@ -125,7 +125,7 @@ jobs:
     permissions:
       contents: read
     with:
-      customcommand: "npm run build"
+      customcommand: "npm run prepare"
       environment: production
       arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
