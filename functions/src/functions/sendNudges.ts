@@ -14,6 +14,7 @@ interface NotificationBacklogItem {
   title: string
   body: string
   timestamp: admin.firestore.Timestamp
+  isLLMGenerated?: boolean
 }
 
 export class NotificationService {
@@ -45,6 +46,7 @@ export class NotificationService {
     title: string,
     body: string,
     fcmToken: string,
+    isLLMGenerated?: boolean,
   ): Promise<boolean> {
     try {
       const notificationMessage = {
@@ -63,6 +65,7 @@ export class NotificationService {
             title,
             body,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            isLLMGenerated: isLLMGenerated ?? false,
           })
 
         logger.info(`Sent notification to user ${userId}: ${title}`)
@@ -118,6 +121,7 @@ export class NotificationService {
                 backlogItem.title,
                 backlogItem.body,
                 userData.fcmToken,
+                backlogItem.isLLMGenerated,
               )
 
               if (sent) {
