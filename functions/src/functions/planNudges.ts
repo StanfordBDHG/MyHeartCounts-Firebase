@@ -346,10 +346,17 @@ export class NudgeService {
   }
 }
 
-const nudgeService = new NudgeService()
+let nudgeService: NudgeService | undefined
+
+function getNudgeService(): NudgeService {
+  if (!nudgeService) {
+    nudgeService = new NudgeService()
+  }
+  return nudgeService
+}
 
 export const createNudgeNotifications = () =>
-  nudgeService.createNudgeNotifications()
+  getNudgeService().createNudgeNotifications()
 
 export const onScheduleDailyNudgeCreation = onSchedule(
   {
@@ -361,7 +368,7 @@ export const onScheduleDailyNudgeCreation = onSchedule(
     logger.info('Starting daily nudge notification creation')
 
     try {
-      await nudgeService.createNudgeNotifications()
+      await getNudgeService().createNudgeNotifications()
       logger.info('Daily nudge notification creation complete')
     } catch (error) {
       logger.error(`Error in daily nudge creation: ${String(error)}`)
