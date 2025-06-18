@@ -23,8 +23,7 @@ on:
         options:
           - development
           - staging
-          - production-us
-          - production-uk
+          - production
   workflow_call:
     inputs:
       environment:
@@ -96,7 +95,7 @@ jobs:
     permissions:
       contents: read
     with:
-      customcommand: "npm run prepare"
+      customcommand: "npm run install"
       environment: ${{ needs.determineenvironment.outputs.environment }}
       arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
     secrets:
@@ -108,10 +107,11 @@ jobs:
     if: needs.determineenvironment.outputs.environment == 'production'
     needs: [buildandtest, determineenvironment]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    environment: production-us
     permissions:
       contents: read
     with:
-      customcommand: "npm run prepare"
+      customcommand: "npm run install"
       environment: production-us
       arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
@@ -123,10 +123,11 @@ jobs:
     if: needs.determineenvironment.outputs.environment == 'production'
     needs: [deployfirebase-production-us, determineenvironment]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
+    environment: production-uk
     permissions:
       contents: read
     with:
-      customcommand: "npm run prepare"
+      customcommand: "npm run install"
       environment: production-uk
       arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
