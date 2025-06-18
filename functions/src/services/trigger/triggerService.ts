@@ -207,8 +207,19 @@ export class TriggerServiceImpl implements TriggerService {
     before?: Document<FHIRQuestionnaireResponse>,
     after?: Document<FHIRQuestionnaireResponse>,
   ): Promise<void> {
-    // Empty implementation for compatibility
-    return
+    logger.debug(
+      `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId})`,
+    )
+
+    try {
+      if (after) {
+        await this.updateSymptomScore(userId, after)
+      }
+    } catch (error) {
+      logger.error(
+        `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
+      )
+    }
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
