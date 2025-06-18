@@ -29,14 +29,20 @@ const openaiApiKey = defineSecret('OPENAI_API_KEY')
 export class NudgeService {
   // Properties
 
-  private readonly firestore: admin.firestore.Firestore
+  private _firestore?: admin.firestore.Firestore
   private readonly predefinedNudgesEn: NudgeMessage[]
   private readonly predefinedNudgesEs: NudgeMessage[]
 
   // Constructor
 
+  private get firestore(): admin.firestore.Firestore {
+    if (!this._firestore) {
+      this._firestore = admin.firestore()
+    }
+    return this._firestore
+  }
+
   constructor() {
-    this.firestore = admin.firestore()
     this.predefinedNudgesEn = [
       {
         title: 'Get Moving This Week!',

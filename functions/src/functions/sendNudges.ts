@@ -19,14 +19,26 @@ interface NotificationBacklogItem {
 export class NotificationService {
   // Properties
 
-  private readonly firestore: admin.firestore.Firestore
-  private readonly messaging: admin.messaging.Messaging
+  private _firestore?: admin.firestore.Firestore
+  private _messaging?: admin.messaging.Messaging
 
   // Constructor
 
+  private get firestore(): admin.firestore.Firestore {
+    if (!this._firestore) {
+      this._firestore = admin.firestore()
+    }
+    return this._firestore
+  }
+
+  private get messaging(): admin.messaging.Messaging {
+    if (!this._messaging) {
+      this._messaging = admin.messaging()
+    }
+    return this._messaging
+  }
+
   constructor() {
-    this.firestore = admin.firestore()
-    this.messaging = admin.messaging()
   }
 
   // Methods
@@ -133,10 +145,17 @@ export class NotificationService {
   }
 }
 
-const notificationService = new NotificationService()
+let notificationService: NotificationService | undefined
+
+function getNotificationService(): NotificationService {
+  if (!notificationService) {
+    notificationService = new NotificationService()
+  }
+  return notificationService
+}
 
 export const processNotificationBacklog = () =>
-  notificationService.processNotificationBacklog()
+  getNotificationService().processNotificationBacklog()
 
 export const onScheduleNotificationProcessor = onSchedule(
   {
@@ -147,7 +166,7 @@ export const onScheduleNotificationProcessor = onSchedule(
     logger.info('Starting notification backlog processing')
 
     try {
-      await notificationService.processNotificationBacklog()
+      await getNotificationService().processNotificationBacklog()
       logger.info('Notification backlog processing complete')
     } catch (error) {
       logger.error(`Error in notification backlog processing: ${String(error)}`)
