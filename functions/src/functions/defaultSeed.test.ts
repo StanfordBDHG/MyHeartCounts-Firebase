@@ -73,20 +73,22 @@ describeWithEmulators('function: defaultSeed', (env) => {
       `user heartRate observation count`,
     ).to.have.length.greaterThanOrEqual(1)
 
+    // Questionnaire responses are no longer used
     const userQuestionnaireResponses = await env.collections
       .userQuestionnaireResponses(user.id)
       .get()
     expect(
       userQuestionnaireResponses.docs,
       'user questionnaire response count',
-    ).to.have.length.greaterThanOrEqual(1)
+    ).to.have.length(0)
 
+    // Symptom scores are derived from questionnaire responses, which are no longer used
     const userSymptomScores = await env.collections
-      .userQuestionnaireResponses(user.id)
+      .userSymptomScores(user.id)
       .get()
     expect(
       userSymptomScores.docs,
       'user symptom score count',
-    ).to.have.length.greaterThanOrEqual(1)
+    ).to.have.length(0)
   })
 })
