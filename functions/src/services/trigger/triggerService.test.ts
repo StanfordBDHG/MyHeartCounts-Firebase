@@ -141,7 +141,7 @@ describeWithEmulators('TriggerService', (env) => {
         },
       )
 
-      // This triggers symptom score calculation which should at least not throw errors
+      // This triggers questionnaire response processing which should at least not throw errors
     })
   })
 
@@ -420,7 +420,7 @@ describeWithEmulators('TriggerService', (env) => {
           }),
       }
 
-      // Call the method directly - it should update symptom scores
+      // Call the method directly - it should process questionnaire responses
       await triggerService.userQuestionnaireResponseWritten(
         patientId,
         responseRef.id,
@@ -428,13 +428,13 @@ describeWithEmulators('TriggerService', (env) => {
       )
 
       // Now test the error path
-      const originalUpdateSymptomScore = triggerService.updateSymptomScore
+      const originalProcessQuestionnaireResponse = triggerService.processQuestionnaireResponse
       let errorThrown = false
 
       // Replace with version that throws
-      triggerService.updateSymptomScore = async () => {
+      triggerService.processQuestionnaireResponse = async () => {
         errorThrown = true
-        throw new Error('Test error in updateSymptomScore')
+        throw new Error('Test error in processQuestionnaireResponse')
       }
 
       // Should catch the error
@@ -448,7 +448,7 @@ describeWithEmulators('TriggerService', (env) => {
       expect(errorThrown).to.be.true
 
       // Restore original method
-      triggerService.updateSymptomScore = originalUpdateSymptomScore
+      triggerService.processQuestionnaireResponse = originalProcessQuestionnaireResponse
     })
 
     it('should test private sendVitalsReminder method', async () => {

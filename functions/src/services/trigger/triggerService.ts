@@ -194,10 +194,7 @@ export class TriggerServiceImpl implements TriggerService {
     document: Document<FHIRQuestionnaireResponse>,
   ) {
     // Generic questionnaire response processing placeholder
-    // Add custom scoring logic here as needed
-    logger.debug(
-      `processQuestionnaireResponse for user ${userId}`,
-    )
+    logger.debug(`processQuestionnaireResponse for user ${userId}`)
   }
 
   // Added for compatibility
