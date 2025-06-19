@@ -17,6 +17,8 @@ import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 const originalFetch = global.fetch
 let mockFetchResponse: any = null
 let shouldMockFail = false // If possible this should not be neededm because this is *just* fallback behavior when the OpenAI API fails.
+let fetchCallCount = 0
+let maxFailures = 0
 
 function mockFetch(
   input: RequestInfo | URL,
@@ -26,8 +28,14 @@ function mockFetch(
     typeof input === 'string' &&
     input.startsWith('https://api.openai.com/')
   ) {
+    fetchCallCount++
+
     if (shouldMockFail) {
       return Promise.reject(new Error('Network error'))
+    }
+
+    if (maxFailures > 0 && fetchCallCount <= maxFailures) {
+      return Promise.reject(new Error('Temporary network error'))
     }
 
     if (mockFetchResponse?.invalidJson) {
@@ -80,6 +88,8 @@ describeWithEmulators('function: planNudges', (env) => {
     global.fetch = mockFetch
     mockFetchResponse = null
     shouldMockFail = false
+    fetchCallCount = 0
+    maxFailures = 0
   })
 
   afterEach(() => {
@@ -349,6 +359,72 @@ describeWithEmulators('function: planNudges', (env) => {
         .get()
 
       expect(backlogSnapshot.size).to.equal(7)
+
+      const firstNudge = backlogSnapshot.docs[0].data()
+      expect(firstNudge.nudgeType).to.equal('predefined')
+    })
+
+    it('retries LLM generation on failure and succeeds on second attempt', async () => {
+      maxFailures = 1
+
+      const enrollmentDate = new Date()
+      enrollmentDate.setDate(enrollmentDate.getDate() - 14)
+
+      const userId = 'test-user-retry-success'
+      await env.firestore
+        .collection('users')
+        .doc(userId)
+        .set({
+          type: 'patient',
+          timeZone: 'America/New_York',
+          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
+          participantGroup: 1,
+          userLanguage: 'en',
+        })
+
+      await createNudgeNotifications()
+
+      const backlogSnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .get()
+
+      expect(backlogSnapshot.size).to.equal(7)
+      expect(fetchCallCount).to.equal(2)
+
+      const firstNudge = backlogSnapshot.docs[0].data()
+      expect(firstNudge.nudgeType).to.equal('llm-generated')
+    })
+
+    it('retries LLM generation up to 3 times then falls back to predefined', async () => {
+      maxFailures = 3
+
+      const enrollmentDate = new Date()
+      enrollmentDate.setDate(enrollmentDate.getDate() - 14)
+
+      const userId = 'test-user-retry-fallback'
+      await env.firestore
+        .collection('users')
+        .doc(userId)
+        .set({
+          type: 'patient',
+          timeZone: 'America/New_York',
+          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
+          participantGroup: 1,
+          userLanguage: 'en',
+        })
+
+      await createNudgeNotifications()
+
+      const backlogSnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .get()
+
+      expect(backlogSnapshot.size).to.equal(7)
+      expect(fetchCallCount).to.equal(3)
 
       const firstNudge = backlogSnapshot.docs[0].data()
       expect(firstNudge.nudgeType).to.equal('predefined')

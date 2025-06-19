@@ -163,96 +163,110 @@ export class NudgeService {
     _userData: any,
     language: string,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
-    try {
-      const isSpanish = language === 'es'
-      const prompt =
-        isSpanish ?
-          `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca. Cada recordatorio debe:
-      - Ser alentador y positivo
-      - Enfocarse en diferentes tipos de actividades físicas y deportes
-      - Ser personalizado y atractivo
-      - Incluir una llamada clara a la acción
-      - Ser adecuado para alguien en un estudio de salud cardíaca
-      
-      Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
-      Formato de ejemplo:
-      [
-        {"title": "Impulso de Energía Matutino", "body": "¡Comienza tu día con una caminata de 15 minutos! Tu corazón amará el cardio suave."},
-        ...
-      ]
-      
-      Haz cada recordatorio único y enfócate en diferentes actividades como caminar, nadar, bailar, deportes de equipo, entrenamiento de fuerza, yoga, etc.`
-        : `Generate 7 motivational sports and exercise nudges for a heart health study participant. Each nudge should:
-      - Be encouraging and positive
-      - Focus on different types of physical activities and sports
-      - Be personalized and engaging
-      - Include a clear call to action
-      - Be suitable for someone in a heart health study
-      
-      Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields.
-      Example format:
-      [
-        {"title": "Morning Energy Boost", "body": "Start your day with a 15-minute walk! Your heart will love the gentle cardio."},
-        ...
-      ]
-      
-      Make each nudge unique and focus on different activities like walking, swimming, dancing, team sports, strength training, yoga, etc.`
+    const maxRetries = 3
+    let lastError: Error | null = null
 
-      const response = await fetch(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${openaiApiKey.value()}`,
-            'Content-Type': 'application/json',
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const isSpanish = language === 'es'
+        const prompt =
+          isSpanish ?
+            `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca. Cada recordatorio debe:
+        - Ser alentador y positivo
+        - Enfocarse en diferentes tipos de actividades físicas y deportes
+        - Ser personalizado y atractivo
+        - Incluir una llamada clara a la acción
+        - Ser adecuado para alguien en un estudio de salud cardíaca
+        
+        Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
+        Formato de ejemplo:
+        [
+          {"title": "Impulso de Energía Matutino", "body": "¡Comienza tu día con una caminata de 15 minutos! Tu corazón amará el cardio suave."},
+          ...
+        ]
+        
+        Haz cada recordatorio único y enfócate en diferentes actividades como caminar, nadar, bailar, deportes de equipo, entrenamiento de fuerza, yoga, etc.`
+          : `Generate 7 motivational sports and exercise nudges for a heart health study participant. Each nudge should:
+        - Be encouraging and positive
+        - Focus on different types of physical activities and sports
+        - Be personalized and engaging
+        - Include a clear call to action
+        - Be suitable for someone in a heart health study
+        
+        Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields.
+        Example format:
+        [
+          {"title": "Morning Energy Boost", "body": "Start your day with a 15-minute walk! Your heart will love the gentle cardio."},
+          ...
+        ]
+        
+        Make each nudge unique and focus on different activities like walking, swimming, dancing, team sports, strength training, yoga, etc.`
+
+        const response = await fetch(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${openaiApiKey.value()}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [
+                {
+                  role: 'user',
+                  content: prompt,
+                },
+              ],
+              max_tokens: 1000,
+              temperature: 0.7,
+            }),
           },
-          body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [
-              {
-                role: 'user',
-                content: prompt,
-              },
-            ],
-            max_tokens: 1000,
-            temperature: 0.7,
-          }),
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error(
-          `OpenAI API error: ${response.status} ${response.statusText}`,
         )
+
+        if (!response.ok) {
+          throw new Error(
+            `OpenAI API error: ${response.status} ${response.statusText}`,
+          )
+        }
+
+        const data: OpenAIResponse = await response.json()
+        const content = data.choices[0].message.content
+
+        const parsedNudges: Array<{ title: string; body: string }> =
+          JSON.parse(content)
+
+        if (!Array.isArray(parsedNudges) || parsedNudges.length !== 7) {
+          throw new Error('Invalid response format from OpenAI API')
+        }
+
+        const generatedAt = admin.firestore.Timestamp.now()
+        const nudges: NudgeMessage[] = parsedNudges.map((nudge) => ({
+          ...nudge,
+          isLLMGenerated: true,
+          generatedAt,
+        }))
+
+        logger.info(
+          `Generated ${nudges.length} LLM nudges for user ${userId} in ${language} (attempt ${attempt})`,
+        )
+        return { nudges, usedFallback: false }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        logger.warn(
+          `Attempt ${attempt}/${maxRetries} failed for LLM nudge generation for user ${userId}: ${String(error)}`,
+        )
+
+        if (attempt < maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt))
+        }
       }
-
-      const data: OpenAIResponse = await response.json()
-      const content = data.choices[0].message.content
-
-      const parsedNudges: Array<{ title: string; body: string }> =
-        JSON.parse(content)
-
-      if (!Array.isArray(parsedNudges) || parsedNudges.length !== 7) {
-        throw new Error('Invalid response format from OpenAI API')
-      }
-
-      const generatedAt = admin.firestore.Timestamp.now()
-      const nudges: NudgeMessage[] = parsedNudges.map((nudge) => ({
-        ...nudge,
-        isLLMGenerated: true,
-        generatedAt,
-      }))
-
-      logger.info(
-        `Generated ${nudges.length} LLM nudges for user ${userId} in ${language}`,
-      )
-      return { nudges, usedFallback: false }
-    } catch (error) {
-      logger.error(
-        `Error generating LLM nudges for user ${userId}: ${String(error)}`,
-      )
-      return { nudges: this.getPredefinedNudges(language), usedFallback: true }
     }
+
+    logger.error(
+      `All ${maxRetries} attempts failed for LLM nudge generation for user ${userId}. Final error: ${String(lastError)}`,
+    )
+    return { nudges: this.getPredefinedNudges(language), usedFallback: true }
   }
 
   async createNudgesForUser(
