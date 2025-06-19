@@ -82,13 +82,6 @@ describeWithEmulators('function: defaultSeed', (env) => {
       'user questionnaire response count',
     ).to.have.length(0)
 
-    // Symptom scores are derived from questionnaire responses, which are no longer used
-    const userSymptomScores = await env.collections
-      .userSymptomScores(user.id)
-      .get()
-    expect(
-      userSymptomScores.docs,
-      'user symptom score count',
-    ).to.have.length(0)
+    // Symptom scores functionality removed
   })
 })

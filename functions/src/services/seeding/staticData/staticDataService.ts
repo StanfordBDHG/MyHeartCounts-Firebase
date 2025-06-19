@@ -6,9 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  type CachingStrategy,
-} from '@stanfordbdhg/myheartcounts-models'
+import { type CachingStrategy } from '@stanfordbdhg/myheartcounts-models'
 import { z } from 'zod'
 import { type DatabaseService } from '../../database/databaseService.js'
 import { SeedingService } from '../seedingService.js'

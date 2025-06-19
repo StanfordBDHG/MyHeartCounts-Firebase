@@ -9,8 +9,6 @@
 import {
   FHIRQuestionnaireResponse,
   QuestionnaireReference,
-  type SymptomQuestionnaireResponse,
-  type SymptomScore,
   User,
   UserMessage,
   UserMessageType,

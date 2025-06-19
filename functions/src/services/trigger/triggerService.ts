@@ -25,7 +25,7 @@ export interface TriggerService {
   userEnrolled(user: Document<User>): Promise<void>
   userCreated(userId: string): Promise<void>
   userUpdated(userId: string): Promise<void>
-  updateSymptomScore(
+  processQuestionnaireResponse(
     userId: string,
     questionnaireResponse: Document<FHIRQuestionnaireResponse>,
   ): Promise<void>
@@ -170,7 +170,7 @@ export class TriggerServiceImpl implements TriggerService {
     document: Document<FHIRQuestionnaireResponse>,
   ) {
     try {
-      await this.updateSymptomScore(userId, document)
+      await this.processQuestionnaireResponse(userId, document)
     } catch (error) {
       logger.error(
         `TriggerService.userQuestionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
@@ -189,14 +189,14 @@ export class TriggerServiceImpl implements TriggerService {
 
   // Helpers - Implements TriggerService interface
 
-  async updateSymptomScore(
+  async processQuestionnaireResponse(
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
   ) {
-    // SymptomScore functionality removed
-    // Patient service was removed as part of the refactoring
+    // Generic questionnaire response processing placeholder
+    // Add custom scoring logic here as needed
     logger.debug(
-      `updateSymptomScore for user ${userId} called - functionality removed`,
+      `processQuestionnaireResponse for user ${userId}`,
     )
   }
 
@@ -213,7 +213,7 @@ export class TriggerServiceImpl implements TriggerService {
 
     try {
       if (after) {
-        await this.updateSymptomScore(userId, after)
+        await this.processQuestionnaireResponse(userId, after)
       }
     } catch (error) {
       logger.error(
