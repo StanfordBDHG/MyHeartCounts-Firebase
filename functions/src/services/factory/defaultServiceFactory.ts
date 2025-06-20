@@ -17,6 +17,12 @@ import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
+import { 
+  ExampleScoreCalculator,
+  ExampleScoringQuestionnaireResponseService,
+} from '../questionnaireResponse/exampleScoringService.js'
+import { MultiQuestionnaireResponseService } from '../questionnaireResponse/multiQuestionnaireResponseService.js'
+import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
 import {
@@ -70,6 +76,18 @@ export class DefaultServiceFactory implements ServiceFactory {
       ),
   )
 
+  private readonly questionnaireResponseService = new Lazy(
+    () =>
+      new MultiQuestionnaireResponseService([
+        new ExampleScoringQuestionnaireResponseService({
+          databaseService: this.databaseService.value,
+          messageService: this.messageService.value,
+          scoreCalculator: new ExampleScoreCalculator(),
+        }),
+        // Add more specific questionnaire response services here
+      ]),
+  )
+
   private readonly staticDataService = new Lazy(
     () => new StaticDataService(this.databaseService.value),
   )
@@ -110,6 +128,12 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   history(): HistoryService {
     return this.historyService.value
+  }
+
+  // Methods - Questionnaires
+
+  questionnaireResponse(): QuestionnaireResponseService {
+    return this.questionnaireResponseService.value
   }
 
   // Methods - Trigger

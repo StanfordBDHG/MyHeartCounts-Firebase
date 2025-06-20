@@ -193,8 +193,13 @@ export class TriggerServiceImpl implements TriggerService {
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
   ) {
-    // Generic questionnaire response processing placeholder
     logger.debug(`processQuestionnaireResponse for user ${userId}`)
+    const questionnaireResponseService = this.factory.questionnaireResponse()
+    await questionnaireResponseService.handle(
+      userId,
+      document,
+      { isNew: true }, // Default to new, can be refined based on context
+    )
   }
 
   // Added for compatibility
@@ -205,16 +210,30 @@ export class TriggerServiceImpl implements TriggerService {
     after?: Document<FHIRQuestionnaireResponse>,
   ): Promise<void> {
     logger.debug(
-      `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId})`,
+      `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId}): beforeData: ${before !== undefined ? 'exists' : 'undefined'}, afterData: ${after !== undefined ? 'exists' : 'undefined'}`,
     )
 
     try {
-      if (after) {
-        await this.processQuestionnaireResponse(userId, after)
+      if (after !== undefined) {
+        const questionnaireResponseService = this.factory.questionnaireResponse()
+        const handled = await questionnaireResponseService.handle(
+          userId,
+          {
+            id: questionnaireResponseId,
+            path: `users/${userId}/questionnaireResponses/${questionnaireResponseId}`,
+            lastUpdate: new Date(),
+            content: after.content,
+          },
+          { isNew: before === undefined },
+        )
+
+        logger.debug(
+          `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId}): Handled questionnaire response: ${handled}`,
+        )
       }
     } catch (error) {
       logger.error(
-        `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
+        `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId}): Error handling questionnaire response: ${String(error)}`,
       )
     }
   }
