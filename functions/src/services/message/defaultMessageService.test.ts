@@ -111,7 +111,7 @@ describe('DefaultMessageService', () => {
       expect(devicesQuerySnapshot.docs.length).to.equal(1)
 
       // Unregister the device
-      await messageService.unregisterDevice(userId, token, platform)
+      await messageService.unregisterDevice(token, platform)
 
       // The device should be gone
       devicesQuerySnapshot = await collectionsService.userDevices(userId).get()
@@ -120,11 +120,7 @@ describe('DefaultMessageService', () => {
 
     it('should do nothing if the device does not exist', async () => {
       // Unregister a non-existent device
-      await messageService.unregisterDevice(
-        'nonExistentUser',
-        'non-existent-token',
-        'iOS' as any,
-      )
+      await messageService.unregisterDevice('non-existent-token', 'iOS' as any)
 
       // No errors should be thrown
     })

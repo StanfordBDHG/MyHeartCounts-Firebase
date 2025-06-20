@@ -25,7 +25,7 @@ export interface TriggerService {
   userEnrolled(user: Document<User>): Promise<void>
   userCreated(userId: string): Promise<void>
   userUpdated(userId: string): Promise<void>
-  updateSymptomScore(
+  processQuestionnaireResponse(
     userId: string,
     questionnaireResponse: Document<FHIRQuestionnaireResponse>,
   ): Promise<void>
@@ -170,7 +170,7 @@ export class TriggerServiceImpl implements TriggerService {
     document: Document<FHIRQuestionnaireResponse>,
   ) {
     try {
-      await this.updateSymptomScore(userId, document)
+      await this.processQuestionnaireResponse(userId, document)
     } catch (error) {
       logger.error(
         `TriggerService.userQuestionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
@@ -189,15 +189,12 @@ export class TriggerServiceImpl implements TriggerService {
 
   // Helpers - Implements TriggerService interface
 
-  async updateSymptomScore(
+  async processQuestionnaireResponse(
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
   ) {
-    // SymptomScore functionality removed
-    // Patient service was removed as part of the refactoring
-    logger.debug(
-      `updateSymptomScore for user ${userId} called - functionality removed`,
-    )
+    // Generic questionnaire response processing placeholder
+    logger.debug(`processQuestionnaireResponse for user ${userId}`)
   }
 
   // Added for compatibility
@@ -207,8 +204,19 @@ export class TriggerServiceImpl implements TriggerService {
     before?: Document<FHIRQuestionnaireResponse>,
     after?: Document<FHIRQuestionnaireResponse>,
   ): Promise<void> {
-    // Empty implementation for compatibility
-    return
+    logger.debug(
+      `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId})`,
+    )
+
+    try {
+      if (after) {
+        await this.processQuestionnaireResponse(userId, after)
+      }
+    } catch (error) {
+      logger.error(
+        `TriggerService.questionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
+      )
+    }
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {

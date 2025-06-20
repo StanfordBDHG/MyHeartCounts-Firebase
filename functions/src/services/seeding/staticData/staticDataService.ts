@@ -6,10 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  type CachingStrategy,
-  fhirQuestionnaireConverter,
-} from '@stanfordbdhg/myheartcounts-models'
+import { type CachingStrategy } from '@stanfordbdhg/myheartcounts-models'
 import { z } from 'zod'
 import { type DatabaseService } from '../../database/databaseService.js'
 import { SeedingService } from '../seedingService.js'
@@ -36,18 +33,7 @@ export class StaticDataService extends SeedingService {
 
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   async updateQuestionnaires(strategy: CachingStrategy) {
-    await this.databaseService.runTransaction(
-      async (collections, transaction) => {
-        await this.deleteCollection(collections.questionnaires, transaction)
-        this.setCollection(
-          collections.questionnaires,
-          this.readJSONArray(
-            'questionnaires.json',
-            fhirQuestionnaireConverter.value.schema,
-          ),
-          transaction,
-        )
-      },
-    )
+    // No-op implementation - questionnaires are no longer used
+    return
   }
 }
