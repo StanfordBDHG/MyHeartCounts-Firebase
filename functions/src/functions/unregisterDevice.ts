@@ -21,10 +21,6 @@ export const unregisterDevice = validatedOnCall(
     const credential = factory.credential(request.auth)
     await factory
       .message()
-      .unregisterDevice(
-        credential.userId,
-        request.data.notificationToken,
-        request.data.platform,
-      )
+      .unregisterDevice(request.data.notificationToken, request.data.platform)
   },
 )

@@ -93,7 +93,6 @@ export class DefaultMessageService implements MessageService {
   }
 
   async unregisterDevice(
-    _: string,
     notificationToken: string,
     platform: UserDevicePlatform,
   ): Promise<void> {

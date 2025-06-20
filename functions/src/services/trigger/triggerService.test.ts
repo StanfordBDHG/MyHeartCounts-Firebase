@@ -428,7 +428,8 @@ describeWithEmulators('TriggerService', (env) => {
       )
 
       // Now test the error path
-      const originalProcessQuestionnaireResponse = triggerService.processQuestionnaireResponse
+      const originalProcessQuestionnaireResponse =
+        triggerService.processQuestionnaireResponse
       let errorThrown = false
 
       // Replace with version that throws
@@ -448,7 +449,8 @@ describeWithEmulators('TriggerService', (env) => {
       expect(errorThrown).to.be.true
 
       // Restore original method
-      triggerService.processQuestionnaireResponse = originalProcessQuestionnaireResponse
+      triggerService.processQuestionnaireResponse =
+        originalProcessQuestionnaireResponse
     })
 
     it('should test private sendVitalsReminder method', async () => {

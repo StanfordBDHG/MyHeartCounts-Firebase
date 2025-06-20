@@ -160,7 +160,6 @@ export class NudgeService {
 
   async generateLLMNudges(
     userId: string,
-    _userData: any,
     language: string,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
     const maxRetries = 3
@@ -408,7 +407,7 @@ export class NudgeService {
             `Creating LLM-generated nudges for user ${userId} (${triggerReason}), language: ${userLanguage}`,
           )
           const { nudges: llmNudges, usedFallback } =
-            await this.generateLLMNudges(userId, userData, userLanguage)
+            await this.generateLLMNudges(userId, userLanguage)
           const nudgeType = usedFallback ? 'predefined' : 'llm-generated'
           const created = await this.createNudgesForUser(
             userId,
