@@ -158,48 +158,121 @@ export class NudgeService {
     return Math.floor(timeDiff / (1000 * 60 * 60 * 24))
   }
 
+  async getRecentStepCount(userId: string): Promise<number | null> {
+    try {
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+      const stepCountSnapshot = await this.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('HealthObservations_HKQuantityTypeIdentifierStepCount')
+        .where(
+          'startDate',
+          '>=',
+          admin.firestore.Timestamp.fromDate(sevenDaysAgo),
+        )
+        .orderBy('startDate', 'desc')
+        .limit(7)
+        .get()
+
+      if (stepCountSnapshot.empty) {
+        return null
+      }
+
+      const totalSteps = stepCountSnapshot.docs.reduce((sum, doc) => {
+        const data = doc.data()
+        const stepValue = typeof data.value === 'number' ? data.value : 0
+        return sum + stepValue
+      }, 0)
+
+      return Math.round(totalSteps / stepCountSnapshot.size)
+    } catch (error) {
+      logger.warn(
+        `Failed to get step count for user ${userId}: ${String(error)}`,
+      )
+      return null
+    }
+  }
+
   async generateLLMNudges(
     userId: string,
     language: string,
+    userData: any,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
     const maxRetries = 3
     let lastError: Error | null = null
 
+    // Get personalization data
+    const recentStepCount = await this.getRecentStepCount(userId)
+    const educationLevel = userData.educationLevel
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const isSpanish = language === 'es'
+
+        // Build personalization context
+        const personalizationContext = []
+        if (recentStepCount !== null) {
+          personalizationContext.push(
+            isSpanish ?
+              `Promedio de pasos diarios recientes: ${recentStepCount}`
+            : `Recent daily step count average: ${recentStepCount}`,
+          )
+        }
+        if (educationLevel) {
+          personalizationContext.push(
+            isSpanish ?
+              `Nivel educativo: ${educationLevel}`
+            : `Education level: ${educationLevel}`,
+          )
+        }
+
+        const contextStr =
+          personalizationContext.length > 0 ?
+            isSpanish ?
+              `\n\nInformación del participante:\n${personalizationContext.map((ctx) => `- ${ctx}`).join('\n')}\n`
+            : `\n\nParticipant information:\n${personalizationContext.map((ctx) => `- ${ctx}`).join('\n')}\n`
+          : ''
+
         const prompt =
           isSpanish ?
-            `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca. Cada recordatorio debe:
-        - Ser alentador y positivo
-        - Enfocarse en diferentes tipos de actividades físicas y deportes
-        - Ser personalizado y atractivo
-        - Incluir una llamada clara a la acción
-        - Ser adecuado para alguien en un estudio de salud cardíaca
-        
-        Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
-        Formato de ejemplo:
-        [
-          {"title": "Impulso de Energía Matutino", "body": "¡Comienza tu día con una caminata de 15 minutos! Tu corazón amará el cardio suave."},
-          ...
-        ]
-        
-        Haz cada recordatorio único y enfócate en diferentes actividades como caminar, nadar, bailar, deportes de equipo, entrenamiento de fuerza, yoga, etc.`
-          : `Generate 7 motivational sports and exercise nudges for a heart health study participant. Each nudge should:
-        - Be encouraging and positive
-        - Focus on different types of physical activities and sports
-        - Be personalized and engaging
-        - Include a clear call to action
-        - Be suitable for someone in a heart health study
-        
-        Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields.
-        Example format:
-        [
-          {"title": "Morning Energy Boost", "body": "Start your day with a 15-minute walk! Your heart will love the gentle cardio."},
-          ...
-        ]
-        
-        Make each nudge unique and focus on different activities like walking, swimming, dancing, team sports, strength training, yoga, etc.`
+            `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca.${contextStr}
+Cada recordatorio debe:
+- Ser alentador y positivo
+- Enfocarse en diferentes tipos de actividades físicas y deportes
+- Ser personalizado y atractivo basado en la información del participante
+- Incluir una llamada clara a la acción
+- Ser adecuado para alguien en un estudio de salud cardíaca
+- Adaptar el lenguaje y las sugerencias al nivel educativo del participante
+- Incorporar referencias al conteo de pasos cuando sea relevante
+
+Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
+Formato de ejemplo:
+[
+  {"title": "Impulso de Energía Matutino", "body": "¡Comienza tu día con una caminata de 15 minutos! Tu corazón amará el cardio suave."},
+  ...
+]
+
+Haz cada recordatorio único y enfócate en diferentes actividades como caminar, nadar, bailar, deportes de equipo, entrenamiento de fuerza, yoga, etc.`
+          : `Generate 7 motivational sports and exercise nudges for a heart health study participant.${contextStr}
+Each nudge should:
+- Be encouraging and positive
+- Focus on different types of physical activities and sports
+- Be personalized and engaging based on the participant's information
+- Include a clear call to action
+- Be suitable for someone in a heart health study
+- Adapt language and suggestions to the participant's education level
+- Incorporate step count references when relevant
+
+Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields.
+Example format:
+[
+  {"title": "Morning Energy Boost", "body": "Start your day with a 15-minute walk! Your heart will love the gentle cardio."},
+  ...
+]
+
+Make each nudge unique and focus on different activities like walking, swimming, dancing, team sports, strength training, yoga, etc.`
 
         const response = await fetch(
           'https://api.openai.com/v1/chat/completions',
@@ -407,7 +480,7 @@ export class NudgeService {
             `Creating LLM-generated nudges for user ${userId} (${triggerReason}), language: ${userLanguage}`,
           )
           const { nudges: llmNudges, usedFallback } =
-            await this.generateLLMNudges(userId, userLanguage)
+            await this.generateLLMNudges(userId, userLanguage, userData)
           const nudgeType = usedFallback ? 'predefined' : 'llm-generated'
           const created = await this.createNudgesForUser(
             userId,

@@ -17,7 +17,7 @@ import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
-import { 
+import {
   ExampleScoreCalculator,
   ExampleScoringQuestionnaireResponseService,
 } from '../questionnaireResponse/exampleScoringService.js'

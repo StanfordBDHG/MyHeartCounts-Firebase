@@ -215,7 +215,8 @@ export class TriggerServiceImpl implements TriggerService {
 
     try {
       if (after !== undefined) {
-        const questionnaireResponseService = this.factory.questionnaireResponse()
+        const questionnaireResponseService =
+          this.factory.questionnaireResponse()
         const handled = await questionnaireResponseService.handle(
           userId,
           {

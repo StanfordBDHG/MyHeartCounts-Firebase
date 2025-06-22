@@ -6,12 +6,17 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { Score, type FHIRQuestionnaireResponse } from '@stanfordbdhg/myheartcounts-models'
-import type { Document } from '../database/databaseService.js'
+import {
+  Score,
+  type FHIRQuestionnaireResponse,
+} from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
-import type { DatabaseService } from '../database/databaseService.js'
-import type { MessageService } from '../message/messageService.js'
 import { QuestionnaireResponseService } from './questionnaireResponseService.js'
+import {
+  type Document,
+  type DatabaseService,
+} from '../database/databaseService.js'
+import type { MessageService } from '../message/messageService.js'
 
 export interface ScoreCalculator {
   calculate(answers: Record<string, number>): Score
@@ -20,19 +25,23 @@ export interface ScoreCalculator {
 export class ExampleScoreCalculator implements ScoreCalculator {
   calculate(answers: Record<string, number>): Score {
     const answerValues = Object.values(answers).filter((x) => x !== null)
-    
+
     // Transform answers from 1-5 scale to 0-100 scale
     const transformedAnswers = answerValues.map((x) => (100 * (x - 1)) / 4)
-    
+
     // Calculate overall score as average
     const overallScore = this.average(transformedAnswers)
-    
+
     // Example domain scores (could be more sophisticated)
     const domainScores = {
-      physical: this.average(transformedAnswers.slice(0, Math.ceil(transformedAnswers.length / 2))),
-      mental: this.average(transformedAnswers.slice(Math.ceil(transformedAnswers.length / 2))),
+      physical: this.average(
+        transformedAnswers.slice(0, Math.ceil(transformedAnswers.length / 2)),
+      ),
+      mental: this.average(
+        transformedAnswers.slice(Math.ceil(transformedAnswers.length / 2)),
+      ),
     }
-    
+
     return new Score({
       date: new Date(),
       overallScore: overallScore,
@@ -41,8 +50,9 @@ export class ExampleScoreCalculator implements ScoreCalculator {
   }
 
   private average(values: number[]): number {
-    return values.length > 0 ? 
-      values.reduce((sum, val) => sum + val, 0) / values.length : 0
+    return values.length > 0 ?
+        values.reduce((sum, val) => sum + val, 0) / values.length
+      : 0
   }
 }
 
@@ -112,12 +122,14 @@ export class ExampleScoringQuestionnaireResponseService extends QuestionnaireRes
     }
   }
 
-  private extractAnswers(response: FHIRQuestionnaireResponse): Record<string, number> {
+  private extractAnswers(
+    response: FHIRQuestionnaireResponse,
+  ): Record<string, number> {
     const answers: Record<string, number> = {}
-    
+
     // Example: Extract answers by linkId
     const questionLinkIds = ['question-1', 'question-2', 'question-3'] // Define your question IDs
-    
+
     for (const linkId of questionLinkIds) {
       try {
         const answer = this.extractCodingAnswer(linkId, response)
@@ -126,7 +138,7 @@ export class ExampleScoringQuestionnaireResponseService extends QuestionnaireRes
         logger.warn(`Failed to extract answer for ${linkId}: ${String(error)}`)
       }
     }
-    
+
     return answers
   }
 
@@ -149,10 +161,11 @@ export class ExampleScoringQuestionnaireResponseService extends QuestionnaireRes
     return parseInt(code, 10)
   }
 
-  private async getLatestScore(userId: string): Promise<Document<Score> | undefined> {
-    const result = await this.databaseService.getQuery<Score>(
-      (collections) =>
-        collections.userScores(userId).orderBy('date', 'desc').limit(1),
+  private async getLatestScore(
+    userId: string,
+  ): Promise<Document<Score> | undefined> {
+    const result = await this.databaseService.getQuery<Score>((collections) =>
+      collections.userScores(userId).orderBy('date', 'desc').limit(1),
     )
     return result.at(0)
   }
@@ -169,12 +182,14 @@ export class ExampleScoringQuestionnaireResponseService extends QuestionnaireRes
   }
 
   private isSignificantDecline(
-    previousScore: Document<Score>, 
+    previousScore: Document<Score>,
     currentScore: Score,
   ): boolean {
     // Define your business logic for significant decline
     const threshold = 20 // 20 point decline
-    return (previousScore.content.overallScore - currentScore.overallScore) > threshold
+    return (
+      previousScore.content.overallScore - currentScore.overallScore > threshold
+    )
   }
 
   private async handleScoreDecline(
@@ -186,7 +201,7 @@ export class ExampleScoringQuestionnaireResponseService extends QuestionnaireRes
     logger.warn(
       `Significant score decline detected for user ${userId}: ${previousScore.content.overallScore} -> ${currentScore.overallScore}`,
     )
-    
+
     // Example: Could send a message to the user or healthcare provider
     // await this.messageService.addMessage(userId, AlertMessage.createScoreDecline(...))
   }

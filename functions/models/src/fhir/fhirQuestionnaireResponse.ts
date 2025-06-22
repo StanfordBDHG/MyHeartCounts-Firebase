@@ -49,7 +49,8 @@ const fhirQuestionnaireResponseItemBaseConverter = new SchemaConverter({
           value.valueCoding ?
             fhirCodingConverter.value.encode(value.valueCoding)
           : null,
-        valueDate: value.valueDate ? dateConverter.encode(value.valueDate) : null,
+        valueDate:
+          value.valueDate ? dateConverter.encode(value.valueDate) : null,
         valueString: value.valueString ?? null,
         valueBoolean: value.valueBoolean ?? null,
         valueInteger: value.valueInteger ?? null,
@@ -222,7 +223,9 @@ export class FHIRQuestionnaireResponse extends FHIRResource {
           const childLinkIds = linkIdPath.slice(1)
           const resultValue: FHIRQuestionnaireResponseItem[] = []
           for (const child of item.item ?? []) {
-            resultValue.push(...this.responseItemsRecursive(childLinkIds, child))
+            resultValue.push(
+              ...this.responseItemsRecursive(childLinkIds, child),
+            )
           }
           return resultValue
         }

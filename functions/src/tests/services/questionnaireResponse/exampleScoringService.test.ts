@@ -6,7 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { FHIRQuestionnaireResponse, Score } from '@stanfordbdhg/myheartcounts-models'
+import {
+  FHIRQuestionnaireResponse,
+  Score,
+} from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import {
@@ -20,7 +23,7 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
       const calculator = new ExampleScoreCalculator()
       const answers = {
         'question-1': 5, // Max score
-        'question-2': 3, // Mid score  
+        'question-2': 3, // Mid score
         'question-3': 1, // Min score
       }
 
@@ -47,7 +50,7 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
       const mockDatabaseService = {} as any
       const mockMessageService = {} as any
       const mockCalculator = new ExampleScoreCalculator()
-      
+
       const service = new ExampleScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         messageService: mockMessageService,
@@ -66,7 +69,9 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
         }),
       }
 
-      const result = await service.handle('test-user', mockResponse, { isNew: true })
+      const result = await service.handle('test-user', mockResponse, {
+        isNew: true,
+      })
 
       expect(result).to.be.false
     })
@@ -78,7 +83,7 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
       } as any
       const mockMessageService = {} as any
       const mockCalculator = new ExampleScoreCalculator()
-      
+
       const service = new ExampleScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         messageService: mockMessageService,
@@ -97,7 +102,9 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
         }),
       }
 
-      const result = await service.handle('test-user', mockResponse, { isNew: true })
+      const result = await service.handle('test-user', mockResponse, {
+        isNew: true,
+      })
 
       expect(result).to.be.true
     })

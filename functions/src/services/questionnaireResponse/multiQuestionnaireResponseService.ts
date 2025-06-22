@@ -7,8 +7,8 @@
 //
 
 import type { FHIRQuestionnaireResponse } from '@stanfordbdhg/myheartcounts-models'
-import type { Document } from '../database/databaseService.js'
 import { QuestionnaireResponseService } from './questionnaireResponseService.js'
+import type { Document } from '../database/databaseService.js'
 
 export class MultiQuestionnaireResponseService extends QuestionnaireResponseService {
   private readonly components: QuestionnaireResponseService[]
