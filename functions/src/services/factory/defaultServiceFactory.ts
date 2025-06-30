@@ -18,8 +18,8 @@ import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
 import {
-  ExampleScoreCalculator,
-  ExampleScoringQuestionnaireResponseService,
+  DietScoreCalculator,
+  DietScoringQuestionnaireResponseService,
 } from '../questionnaireResponse/exampleScoringService.js'
 import { MultiQuestionnaireResponseService } from '../questionnaireResponse/multiQuestionnaireResponseService.js'
 import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
@@ -79,10 +79,10 @@ export class DefaultServiceFactory implements ServiceFactory {
   private readonly questionnaireResponseService = new Lazy(
     () =>
       new MultiQuestionnaireResponseService([
-        new ExampleScoringQuestionnaireResponseService({
+        new DietScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
           messageService: this.messageService.value,
-          scoreCalculator: new ExampleScoreCalculator(),
+          scoreCalculator: new DietScoreCalculator(),
         }),
         // Add more specific questionnaire response services here
       ]),

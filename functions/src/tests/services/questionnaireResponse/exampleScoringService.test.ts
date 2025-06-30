@@ -13,30 +13,35 @@ import {
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 import {
-  ExampleScoreCalculator,
-  ExampleScoringQuestionnaireResponseService,
+  DietScoreCalculator,
+  DietScoringQuestionnaireResponseService,
 } from '../../../services/questionnaireResponse/exampleScoringService.js'
 
-describe('ExampleScoringQuestionnaireResponseService', () => {
-  describe('ExampleScoreCalculator', () => {
+describe('DietScoringQuestionnaireResponseService', () => {
+  describe('DietScoreCalculator', () => {
     it('should calculate correct scores from answers', () => {
-      const calculator = new ExampleScoreCalculator()
+      const calculator = new DietScoreCalculator()
       const answers = {
-        'question-1': 5, // Max score
-        'question-2': 3, // Mid score
-        'question-3': 1, // Min score
+        '92a6518b-61dd-442c-8082-09c3457daada': true, // Fruits and vegetables daily
+        'bbf31b7d-ea50-45bf-88a9-5c5c21466ce8': false, // Multiple fruit varieties
+        '6616bfe1-d22f-488f-8ba6-0695cf19f634': true, // Multiple vegetable varieties
       }
 
       const score = calculator.calculate(answers)
 
       expect(score).to.be.instanceOf(Score)
-      expect(score.overallScore).to.be.approximately(50, 1) // Average of 100, 50, 0
-      expect(score.domainScores).to.have.property('physical')
-      expect(score.domainScores).to.have.property('mental')
+      expect(score.overallScore).to.be.greaterThan(0)
+      expect(score.domainScores).to.have.property('fruitsVegetables')
+      expect(score.domainScores).to.have.property('fat')
+      expect(score.domainScores).to.have.property('starchyFoods')
+      expect(score.domainScores).to.have.property('sugar')
+      expect(score.domainScores).to.have.property('fermentedFoods')
+      expect(score.domainScores).to.have.property('salt')
+      expect(score.domainScores).to.have.property('alcohol')
     })
 
     it('should handle empty answers', () => {
-      const calculator = new ExampleScoreCalculator()
+      const calculator = new DietScoreCalculator()
       const answers = {}
 
       const score = calculator.calculate(answers)
@@ -49,9 +54,9 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
     it('should return false for non-matching questionnaire IDs', async () => {
       const mockDatabaseService = {} as any
       const mockMessageService = {} as any
-      const mockCalculator = new ExampleScoreCalculator()
+      const mockCalculator = new DietScoreCalculator()
 
-      const service = new ExampleScoringQuestionnaireResponseService({
+      const service = new DietScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         messageService: mockMessageService,
         scoreCalculator: mockCalculator,
@@ -82,9 +87,9 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
         runTransaction: () => Promise.resolve(),
       } as any
       const mockMessageService = {} as any
-      const mockCalculator = new ExampleScoreCalculator()
+      const mockCalculator = new DietScoreCalculator()
 
-      const service = new ExampleScoringQuestionnaireResponseService({
+      const service = new DietScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         messageService: mockMessageService,
         scoreCalculator: mockCalculator,
@@ -97,7 +102,7 @@ describe('ExampleScoringQuestionnaireResponseService', () => {
         content: new FHIRQuestionnaireResponse({
           id: 'test-response',
           authored: new Date(),
-          questionnaire: 'example-questionnaire-id',
+          questionnaire: 'Diet',
           item: [],
         }),
       }
