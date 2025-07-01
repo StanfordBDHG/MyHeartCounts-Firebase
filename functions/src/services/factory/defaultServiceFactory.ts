@@ -20,7 +20,7 @@ import { type MessageService } from '../message/messageService.js'
 import {
   DietScoreCalculator,
   DietScoringQuestionnaireResponseService,
-} from '../questionnaireResponse/exampleScoringService.js'
+} from '../questionnaireResponse/dietScoringService.js'
 import { MultiQuestionnaireResponseService } from '../questionnaireResponse/multiQuestionnaireResponseService.js'
 import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'

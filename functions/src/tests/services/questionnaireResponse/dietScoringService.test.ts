@@ -15,7 +15,7 @@ import { describe, it } from 'mocha'
 import {
   DietScoreCalculator,
   DietScoringQuestionnaireResponseService,
-} from '../../../services/questionnaireResponse/exampleScoringService.js'
+} from '../../../services/questionnaireResponse/dietScoringService.js'
 
 describe('DietScoringQuestionnaireResponseService', () => {
   describe('DietScoreCalculator', () => {
