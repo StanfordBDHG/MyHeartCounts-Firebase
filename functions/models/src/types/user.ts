@@ -51,6 +51,7 @@ export class User extends UserRegistration {
     receivesRecommendationUpdates?: boolean
     language?: string
     timeZone?: string
+    participantGroup?: number
     dateOfEnrollment: Date
     lastActiveDate: Date
   }) {

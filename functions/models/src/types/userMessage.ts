@@ -19,6 +19,7 @@ export enum UserMessageType {
   weightGain = 'WeightGain',
   welcome = 'Welcome',
   vitals = 'Vitals',
+  questionnaire = 'Questionnaire',
   symptomQuestionnaire = 'SymptomQuestionnaire',
   preAppointment = 'PreAppointment',
   inactive = 'Inactive',
@@ -143,21 +144,34 @@ export class UserMessage {
     })
   }
 
-  static createSymptomQuestionnaire(input: {
+  static createQuestionnaire(input: {
     creationDate?: Date
     questionnaireReference: QuestionnaireReference
+    title?: string
+    description?: string
   }): UserMessage {
     return new UserMessage({
       creationDate: input.creationDate ?? new Date(),
       title: LocalizedText.raw({
-        en: 'Symptom Questionnaire',
+        en: input.title ?? 'Questionnaire',
       }),
       description: LocalizedText.raw({
-        en: 'Complete your Symptom Survey for your care team.',
+        en: input.description ?? 'Please complete this questionnaire.',
       }),
       action: input.questionnaireReference,
-      type: UserMessageType.symptomQuestionnaire,
+      type: UserMessageType.questionnaire,
       isDismissible: false,
+    })
+  }
+
+  static createSymptomQuestionnaire(input: {
+    creationDate?: Date
+    questionnaireReference: QuestionnaireReference
+  }): UserMessage {
+    return UserMessage.createQuestionnaire({
+      ...input,
+      title: 'Symptom Questionnaire',
+      description: 'Complete your Symptom Survey for your care team.',
     })
   }
 

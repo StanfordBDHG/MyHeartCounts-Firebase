@@ -1,7 +1,7 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University
+// SPDX-FileCopyrightText: 2025 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
@@ -73,20 +73,15 @@ describeWithEmulators('function: defaultSeed', (env) => {
       `user heartRate observation count`,
     ).to.have.length.greaterThanOrEqual(1)
 
+    // Questionnaire responses are no longer used
     const userQuestionnaireResponses = await env.collections
       .userQuestionnaireResponses(user.id)
       .get()
     expect(
       userQuestionnaireResponses.docs,
       'user questionnaire response count',
-    ).to.have.length.greaterThanOrEqual(1)
+    ).to.have.length(0)
 
-    const userSymptomScores = await env.collections
-      .userQuestionnaireResponses(user.id)
-      .get()
-    expect(
-      userSymptomScores.docs,
-      'user symptom score count',
-    ).to.have.length.greaterThanOrEqual(1)
+    // Symptom scores functionality removed
   })
 })
