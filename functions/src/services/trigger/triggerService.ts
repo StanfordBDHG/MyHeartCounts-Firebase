@@ -44,9 +44,6 @@ export interface TriggerService {
     after?: Document<FHIRQuestionnaireResponse>,
   ): Promise<void>
 
-  // Legacy methods (for backward compatibility)
-  everyMorning(): Promise<void>
-
   // Testing-only methods - exposed for coverage
   sendDailyReminders(): Promise<void>
   sendWeeklySymptomQuestionnaires(): Promise<void>
@@ -71,40 +68,17 @@ export class TriggerServiceImpl implements TriggerService {
   // Methods - Schedule
 
   async sendDailyReminders() {
-    // Read all patients whose latest blood pressure are more than 5 days old
-    const userIds: string[] = []
-    for (const userId of userIds) {
-      try {
-        // Vitals reminder functionality removed
-        logger.debug(`Would have sent vitals reminder to user ${userId}`)
-      } catch (error) {
-        logger.error(
-          `TriggerService.sendDailyReminders(): User ${userId}: ${String(error)}`,
-        )
-      }
-    }
-  }
-
-  // Helper method for sendDailyReminders
-  private async sendVitalsReminder(userId: string) {
-    // Functionality removed as part of refactoring
+    // Daily reminders functionality not currently implemented
     logger.debug(
-      `sendVitalsReminder for user ${userId} - functionality removed`,
+      'TriggerService.sendDailyReminders(): No daily reminders configured',
     )
   }
 
   async sendWeeklySymptomQuestionnaires() {
-    // Read all users
-    const userIds: string[] = []
-    for (const userId of userIds) {
-      try {
-        await this.sendSymptomQuestionnaireReminderIfNeeded(userId)
-      } catch (error) {
-        logger.error(
-          `TriggerService.sendWeeklySymptomQuestionnaires(): User ${userId}: ${String(error)}`,
-        )
-      }
-    }
+    // Weekly questionnaire functionality not currently implemented
+    logger.debug(
+      'TriggerService.sendWeeklySymptomQuestionnaires(): No users configured for weekly questionnaires',
+    )
   }
 
   // Implementation of interface methods
@@ -112,10 +86,6 @@ export class TriggerServiceImpl implements TriggerService {
   async userEnrolled(user: Document<User>): Promise<void> {
     logger.debug(`TriggerService.userEnrolled(${user.id})`)
     await this.userCreated(user.id)
-  }
-
-  async everyMorning(): Promise<void> {
-    logger.debug('TriggerService.everyMorning - deprecated')
   }
 
   async userObservationWritten(
@@ -240,22 +210,12 @@ export class TriggerServiceImpl implements TriggerService {
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
-    const needsQuestionnaire = await this.checkIfUserNeedsQuestionnaire(userId)
-    if (needsQuestionnaire) {
-      await this.factory.message().addMessage(
-        userId,
-        UserMessage.createSymptomQuestionnaire({
-          questionnaireReference: QuestionnaireReference.enUS,
-        }),
-        { notify: true },
-      )
-    }
-  }
-
-  private async checkIfUserNeedsQuestionnaire(
-    userId: string,
-  ): Promise<boolean> {
-    // Simplified implementation
-    return true
+    await this.factory.message().addMessage(
+      userId,
+      UserMessage.createSymptomQuestionnaire({
+        questionnaireReference: QuestionnaireReference.enUS,
+      }),
+      { notify: true },
+    )
   }
 }

@@ -29,30 +29,6 @@ describe('StaticDataService', () => {
     cleanupMocks()
   })
 
-  it('handles organizations update call without errors', async () => {
-    // This test just verifies the method can be called without errors
-    // since organizations are no longer supported in the current implementation
-    await staticDataService.updateOrganizations(CachingStrategy.expectCache)
-  })
-
-  it('actually creates questionnaires', async () => {
-    // No-op test - questionnaires are no longer used
-    await staticDataService.updateQuestionnaires(CachingStrategy.expectCache)
-    // Should complete without error
-  })
-
-  it('handles different caching strategies for questionnaires', async () => {
-    // No-op test - questionnaires are no longer used
-    // Test with different caching strategies to exercise all branches
-    await staticDataService.updateQuestionnaires(CachingStrategy.updateCache)
-    await staticDataService.updateQuestionnaires(CachingStrategy.ignoreCache)
-    await staticDataService.updateQuestionnaires(CachingStrategy.expectCache)
-    await staticDataService.updateQuestionnaires(
-      CachingStrategy.updateCacheIfNeeded,
-    )
-    // Should complete without error
-  })
-
   it('tests caching mechanism in SeedingService', async () => {
     // Get access to the service's internal methods by using type assertion
     const service = staticDataService as any

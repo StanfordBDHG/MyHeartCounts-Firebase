@@ -117,7 +117,6 @@ export class DefaultMessageService implements MessageService {
         }
       },
     )
-    return
   }
 
   // Methods - Messages

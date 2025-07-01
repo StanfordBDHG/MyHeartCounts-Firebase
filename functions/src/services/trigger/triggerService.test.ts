@@ -174,15 +174,6 @@ describeWithEmulators('TriggerService', (env) => {
     })
   })
 
-  describe('legacy methods', () => {
-    it('should handle everyMorning', async () => {
-      const triggerService = env.factory.trigger()
-
-      // This shouldn't throw an error
-      await triggerService.everyMorning()
-    })
-  })
-
   describe('helper methods', () => {
     it('should call updateStaticData', async () => {
       const triggerService = env.factory.trigger()
@@ -451,15 +442,6 @@ describeWithEmulators('TriggerService', (env) => {
       // Restore original method
       triggerService.processQuestionnaireResponse =
         originalProcessQuestionnaireResponse
-    })
-
-    it('should test private sendVitalsReminder method', async () => {
-      const triggerService = env.factory.trigger() as any
-
-      // This is a private method but we can access it in tests
-      await triggerService.sendVitalsReminder(patientId)
-
-      // Success is just not throwing an exception
     })
   })
 })

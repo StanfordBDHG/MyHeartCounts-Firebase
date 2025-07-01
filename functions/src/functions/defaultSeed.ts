@@ -62,8 +62,8 @@ async function _seedPatientCollections(input: {
   if (
     input.components.includes(UserDebugDataComponent.questionnaireResponses)
   ) {
-    promises.push(
-      input.debugData.seedUserQuestionnaireResponses(input.userId, input.date),
+    logger.info(
+      `Questionnaire responses seeding not currently implemented for user ${input.userId}`,
     )
   }
 

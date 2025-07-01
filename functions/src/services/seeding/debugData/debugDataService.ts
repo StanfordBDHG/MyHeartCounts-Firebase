@@ -204,12 +204,6 @@ export class DebugDataService extends SeedingService {
     )
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  async seedUserQuestionnaireResponses(userId: string, date: Date) {
-    // No-op implementation - questionnaires are no longer used
-    return
-  }
-
   // Helpers
 
   private async createUser(user: UserSeedingOptions): Promise<string> {

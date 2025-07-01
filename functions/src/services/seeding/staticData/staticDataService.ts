@@ -23,17 +23,5 @@ export class StaticDataService extends SeedingService {
     this.databaseService = databaseService
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  async updateOrganizations(strategy: CachingStrategy) {
-    // No-op implementation for compatibility
-    return
-  }
-
   // Methods
-
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  async updateQuestionnaires(strategy: CachingStrategy) {
-    // No-op implementation - questionnaires are no longer used
-    return
-  }
 }

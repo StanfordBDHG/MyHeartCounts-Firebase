@@ -73,10 +73,4 @@ describe('DebugDataService', () => {
     expect(messagesCol).to.exist
     expect(messagesCol?.size).to.be.greaterThan(0)
   })
-
-  it('can seed questionnaire responses', async () => {
-    // No-op test - questionnaires are no longer used
-    await service.seedUserQuestionnaireResponses('0', date)
-    // Should complete without error
-  })
 })
