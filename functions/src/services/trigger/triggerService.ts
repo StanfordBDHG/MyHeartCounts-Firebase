@@ -68,14 +68,12 @@ export class TriggerServiceImpl implements TriggerService {
   // Methods - Schedule
 
   async sendDailyReminders() {
-    // Daily reminders functionality not currently implemented
     logger.debug(
       'TriggerService.sendDailyReminders(): No daily reminders configured',
     )
   }
 
   async sendWeeklySymptomQuestionnaires() {
-    // Weekly questionnaire functionality not currently implemented
     logger.debug(
       'TriggerService.sendWeeklySymptomQuestionnaires(): No users configured for weekly questionnaires',
     )
