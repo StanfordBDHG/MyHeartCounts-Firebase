@@ -10,6 +10,7 @@ import {
   fhirObservationConverter,
   fhirQuestionnaireConverter,
   fhirQuestionnaireResponseConverter,
+  scoreConverter,
   userConverter,
   userDeviceConverter,
   userMessageConverter,
@@ -88,5 +89,13 @@ export class CollectionsService {
       .withConverter(
         new DatabaseConverter(fhirQuestionnaireResponseConverter.value),
       )
+  }
+
+  userScores(userId: string) {
+    return this.firestore
+      .collection('users')
+      .doc(userId)
+      .collection('scores')
+      .withConverter(new DatabaseConverter(scoreConverter))
   }
 }
