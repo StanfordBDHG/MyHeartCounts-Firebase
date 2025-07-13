@@ -8,14 +8,12 @@
 
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
-import { defineSecret } from 'firebase-functions/params'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-
-interface BaseNudgeMessage {
-  title: string
-  body: string
-  isLLMGenerated: boolean
-}
+import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
+import {
+  getPredefinedNudgeMessages,
+  type BaseNudgeMessage,
+} from './nudgeMessages.js'
 
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp
@@ -29,107 +27,22 @@ interface OpenAIResponse {
   }>
 }
 
-const openaiApiKey = defineSecret('OPENAI_API_KEY')
-
 export class NudgeService {
   // Properties
 
-  private _firestore?: admin.firestore.Firestore
-  private readonly predefinedNudgesEn: BaseNudgeMessage[]
-  private readonly predefinedNudgesEs: BaseNudgeMessage[]
+  private readonly firestore: admin.firestore.Firestore
 
   // Constructor
 
-  private get firestore(): admin.firestore.Firestore {
-    if (!this._firestore) {
-      this._firestore = admin.firestore()
-    }
-    return this._firestore
-  }
-
-  constructor() {
-    this.predefinedNudgesEn = [
-      {
-        title: 'Get Moving This Week!',
-        body: "Ready for the day? Let's start with some light exercise today. Even 10 minutes makes a difference!",
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Your Heart Loves Movement',
-        body: 'Time to get active! Try a brisk walk, dancing, or your favorite sport. Your heart will thank you.',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Build Your Fitness Streak',
-        body: 'Keep the momentum going! What physical activity will you choose today? Swimming, cycling, or maybe some yoga?',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Sports Challenge Day',
-        body: 'Challenge yourself today! Try a new sport or activity. Tennis, basketball, or even jumping rope - what sounds fun?',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Cardio Power Hour',
-        body: "Your heart is a muscle - let's strengthen it! Go for a jog, hit the gym, or play your favorite active game.",
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Team Up for Fitness',
-        body: 'Exercise is more fun with others! Invite a friend for a workout, join a sports team, or try a fitness class.',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Champion of this Week!',
-        body: "Amazing work staying active this week! You're building habits that will keep your heart strong. Keep it up!",
-        isLLMGenerated: false,
-      },
-    ]
-    this.predefinedNudgesEs = [
-      {
-        title: '¡A Moverse Esta Semana!',
-        body: '¿Listo para el día? Comencemos con algo de ejercicio ligero hoy. ¡Incluso 10 minutos hacen la diferencia!',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Tu Corazón Ama el Movimiento',
-        body: '¡Es hora de activarse! Prueba una caminata rápida, baila o practica tu deporte favorito. Tu corazón te lo agradecerá.',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Construye tu Racha de Ejercicio',
-        body: '¡Mantén el impulso! ¿Qué actividad física elegirás hoy? ¿Natación, ciclismo o tal vez algo de yoga?',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Día de Desafío Deportivo',
-        body: '¡Desafíate hoy! Prueba un nuevo deporte o actividad. Tenis, baloncesto o incluso saltar la cuerda, ¿qué te parece divertido?',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Hora de Poder Cardiovascular',
-        body: '¡Tu corazón es un músculo, fortalezcámoslo! Ve a trotar, ve al gimnasio o juega tu juego activo favorito.',
-        isLLMGenerated: false,
-      },
-      {
-        title: 'Equípate para el Ejercicio',
-        body: '¡El ejercicio es más divertido con otros! Invita a un amigo a entrenar, únete a un equipo deportivo o prueba una clase de fitness.',
-        isLLMGenerated: false,
-      },
-      {
-        title: '¡Campeón de Esta Semana!',
-        body: '¡Increíble trabajo manteniéndote activo esta semana! Estás creando hábitos que mantendrán tu corazón fuerte. ¡Sigue así!',
-        isLLMGenerated: false,
-      },
-    ]
+  constructor(firestore?: admin.firestore.Firestore) {
+    this.firestore = firestore ?? admin.firestore()
   }
 
   // Methods
 
   getPredefinedNudges(language: string): NudgeMessage[] {
     const generatedAt = admin.firestore.Timestamp.now()
-    const baseNudges =
-      language === 'es' ? this.predefinedNudgesEs : this.predefinedNudgesEn
+    const baseNudges = getPredefinedNudgeMessages(language)
     return baseNudges.map((nudge) => ({
       ...nudge,
       generatedAt,
@@ -279,7 +192,7 @@ Make each nudge unique and focus on different activities like walking, swimming,
           {
             method: 'POST',
             headers: {
-              Authorization: `Bearer ${openaiApiKey.value()}`,
+              Authorization: `Bearer ${getOpenaiApiKey()}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -529,7 +442,7 @@ export const onScheduleDailyNudgeCreation = onSchedule(
   {
     schedule: '0 8 * * *',
     timeZone: 'UTC',
-    secrets: [openaiApiKey],
+    secrets: [openaiApiKeyParam],
   },
   async () => {
     logger.info('Starting daily nudge notification creation')

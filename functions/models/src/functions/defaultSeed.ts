@@ -18,7 +18,6 @@ export enum DebugDataComponent {
 export enum UserDebugDataComponent {
   messages = 'messages',
   heartRateObservations = 'heartRateObservations',
-  questionnaireResponses = 'questionnaireResponses',
 }
 
 export const defaultSeedInputSchema = z.object({
