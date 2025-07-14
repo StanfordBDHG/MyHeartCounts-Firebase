@@ -22,6 +22,10 @@ import {
   DietScoringQuestionnaireResponseService,
 } from '../questionnaireResponse/dietScoringService.js'
 import { MultiQuestionnaireResponseService } from '../questionnaireResponse/multiQuestionnaireResponseService.js'
+import {
+  DefaultNicotineScoreCalculator,
+  NicotineScoringQuestionnaireResponseService,
+} from '../questionnaireResponse/nicotineScoringService.js'
 import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
@@ -81,6 +85,11 @@ export class DefaultServiceFactory implements ServiceFactory {
           databaseService: this.databaseService.value,
           messageService: this.messageService.value,
           scoreCalculator: new DietScoreCalculator(),
+        }),
+        new NicotineScoringQuestionnaireResponseService({
+          databaseService: this.databaseService.value,
+          messageService: this.messageService.value,
+          scoreCalculator: new DefaultNicotineScoreCalculator(),
         }),
         // Add more specific questionnaire response services here
       ]),
