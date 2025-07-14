@@ -1,7 +1,7 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University
+// SPDX-FileCopyrightText: 2025 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
@@ -23,9 +23,6 @@ export async function _updateStaticData(
 ) {
   const service = factory.staticData()
   const promises: Array<Promise<void>> = []
-  if (input.only.includes(StaticDataComponent.questionnaires)) {
-    promises.push(service.updateQuestionnaires(input.cachingStrategy))
-  }
   await Promise.all(promises)
 }
 

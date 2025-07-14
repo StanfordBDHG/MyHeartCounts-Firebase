@@ -13,12 +13,10 @@ import {
   fhirResourceConverter,
   type FHIRResourceInput,
 } from './baseTypes/fhirElement.js'
-import { symptomQuestionnaireLinkIds } from '../codes/symptomQuestionnaireLinkIds.js'
 import { dateConverter } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
 import { optionalish } from '../helpers/optionalish.js'
 import { SchemaConverter } from '../helpers/schemaConverter.js'
-import { type SymptomQuestionnaireResponse } from '../types/symptomQuestionnaireResponse.js'
 
 const fhirQuestionnaireResponseItemBaseConverter = new SchemaConverter({
   schema: z.object({
@@ -27,6 +25,17 @@ const fhirQuestionnaireResponseItemBaseConverter = new SchemaConverter({
         .object({
           valueCoding: optionalish(
             z.lazy(() => fhirCodingConverter.value.schema),
+          ),
+          valueDate: optionalish(dateConverter.schema),
+          valueString: optionalish(z.string()),
+          valueBoolean: optionalish(z.boolean()),
+          valueInteger: optionalish(z.number()),
+          valueDecimal: optionalish(z.number()),
+          valueQuantity: optionalish(
+            z.object({
+              value: optionalish(z.number()),
+              unit: optionalish(z.string()),
+            }),
           ),
         })
         .array(),
@@ -40,6 +49,13 @@ const fhirQuestionnaireResponseItemBaseConverter = new SchemaConverter({
           value.valueCoding ?
             fhirCodingConverter.value.encode(value.valueCoding)
           : null,
+        valueDate:
+          value.valueDate ? dateConverter.encode(value.valueDate) : null,
+        valueString: value.valueString ?? null,
+        valueBoolean: value.valueBoolean ?? null,
+        valueInteger: value.valueInteger ?? null,
+        valueDecimal: value.valueDecimal ?? null,
+        valueQuantity: value.valueQuantity ?? null,
       })) ?? null,
     linkId: object.linkId ?? null,
   }),
@@ -118,182 +134,12 @@ export const fhirQuestionnaireResponseConverter = new Lazy(
 )
 
 export class FHIRQuestionnaireResponse extends FHIRResource {
-  // Static Functions
-
-  static create(
-    input: SymptomQuestionnaireResponse,
-  ): FHIRQuestionnaireResponse {
-    const linkIds = symptomQuestionnaireLinkIds(input.questionnaire)
-
-    return new FHIRQuestionnaireResponse({
-      id: input.questionnaireResponse,
-      questionnaire: input.questionnaire,
-      authored: input.date,
-      item: [
-        {
-          linkId: linkIds.question1a,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer1a.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question1b,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer1b.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question1c,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer1c.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question2,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer2.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question3,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer3.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question4,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer4.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question5,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer5.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question6,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer6.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question7,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer7.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question8a,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer8a.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question8b,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer8b.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question8c,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer8c.toString(),
-              },
-            },
-          ],
-        },
-        {
-          linkId: linkIds.question9,
-          answer: [
-            {
-              valueCoding: {
-                code: input.answer9.toString(),
-              },
-            },
-          ],
-        },
-      ],
-    })
-  }
-
   // Stored Properties
 
   readonly resourceType: string = 'QuestionnaireResponse'
   readonly authored: Date
   readonly item?: FHIRQuestionnaireResponseItem[]
   readonly questionnaire: string
-
-  // Computed Properties
-
-  get symptomQuestionnaireResponse(): SymptomQuestionnaireResponse {
-    const linkIds = symptomQuestionnaireLinkIds(this.questionnaire)
-    return {
-      questionnaire: this.questionnaire,
-      questionnaireResponse: this.id ?? undefined,
-      date: this.authored,
-      answer1a: this.numericSingleAnswerForLink(linkIds.question1a),
-      answer1b: this.numericSingleAnswerForLink(linkIds.question1b),
-      answer1c: this.numericSingleAnswerForLink(linkIds.question1c),
-      answer2: this.numericSingleAnswerForLink(linkIds.question2),
-      answer3: this.numericSingleAnswerForLink(linkIds.question3),
-      answer4: this.numericSingleAnswerForLink(linkIds.question4),
-      answer5: this.numericSingleAnswerForLink(linkIds.question5),
-      answer6: this.numericSingleAnswerForLink(linkIds.question6),
-      answer7: this.numericSingleAnswerForLink(linkIds.question7),
-      answer8a: this.numericSingleAnswerForLink(linkIds.question8a),
-      answer8b: this.numericSingleAnswerForLink(linkIds.question8b),
-      answer8c: this.numericSingleAnswerForLink(linkIds.question8c),
-      answer9: this.numericSingleAnswerForLink(linkIds.question9),
-    }
-  }
 
   // Constructor
 
@@ -312,12 +158,95 @@ export class FHIRQuestionnaireResponse extends FHIRResource {
 
   // Methods
 
+  responseItem(linkIdPath: string[]): FHIRQuestionnaireResponseItem | null {
+    const items = this.responseItems(linkIdPath)
+    switch (items.length) {
+      case 0:
+        return null
+      case 1:
+        return items[0]
+      default:
+        throw new Error('Unexpected number of response items found.')
+    }
+  }
+
+  responseItems(linkIdPath: string[]): FHIRQuestionnaireResponseItem[] {
+    const resultValue: FHIRQuestionnaireResponseItem[] = []
+    for (const child of this.item ?? []) {
+      resultValue.push(...this.responseItemsRecursive(linkIdPath, child))
+    }
+    return resultValue
+  }
+
+  leafResponseItem(linkId: string): FHIRQuestionnaireResponseItem | null {
+    const items = this.leafResponseItems(linkId)
+    switch (items.length) {
+      case 0:
+        return null
+      case 1:
+        return items[0]
+      default:
+        throw new Error('Unexpected number of leaf response items found.')
+    }
+  }
+
+  leafResponseItems(linkId: string): FHIRQuestionnaireResponseItem[] {
+    const items: FHIRQuestionnaireResponseItem[] = []
+    for (const item of this.item ?? []) {
+      items.push(...this.leafResponseItemsRecursive(linkId, item))
+    }
+    return items
+  }
+
   numericSingleAnswerForLink(linkId: string): number {
     for (const item of this.item ?? []) {
       const answer = this.numericSingleAnswerForNestedItem(linkId, item)
       if (answer !== undefined) return answer
     }
     throw new Error(`No answer found in response for linkId ${linkId}.`)
+  }
+
+  private responseItemsRecursive(
+    linkIdPath: string[],
+    item: FHIRQuestionnaireResponseItem,
+  ): FHIRQuestionnaireResponseItem[] {
+    switch (linkIdPath.length) {
+      case 0:
+        break
+      case 1:
+        if (item.linkId === linkIdPath[0]) {
+          return [item]
+        }
+        break
+      default:
+        if (item.linkId === linkIdPath[0]) {
+          const childLinkIds = linkIdPath.slice(1)
+          const resultValue: FHIRQuestionnaireResponseItem[] = []
+          for (const child of item.item ?? []) {
+            resultValue.push(
+              ...this.responseItemsRecursive(childLinkIds, child),
+            )
+          }
+          return resultValue
+        }
+        break
+    }
+    return []
+  }
+
+  private leafResponseItemsRecursive(
+    linkId: string,
+    item: FHIRQuestionnaireResponseItem,
+  ): FHIRQuestionnaireResponseItem[] {
+    const children = item.item ?? []
+    if (children.length === 0 && item.linkId === linkId) {
+      return [item]
+    }
+    const items: FHIRQuestionnaireResponseItem[] = []
+    for (const child of item.item ?? []) {
+      items.push(...this.leafResponseItemsRecursive(linkId, child))
+    }
+    return items
   }
 
   private numericSingleAnswerForNestedItem(

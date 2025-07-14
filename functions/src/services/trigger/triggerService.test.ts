@@ -9,8 +9,6 @@
 import {
   FHIRQuestionnaireResponse,
   QuestionnaireReference,
-  type SymptomQuestionnaireResponse,
-  type SymptomScore,
   User,
   UserMessage,
   UserMessageType,
@@ -143,7 +141,7 @@ describeWithEmulators('TriggerService', (env) => {
         },
       )
 
-      // This triggers symptom score calculation which should at least not throw errors
+      // This triggers questionnaire response processing which should at least not throw errors
     })
   })
 
@@ -173,15 +171,6 @@ describeWithEmulators('TriggerService', (env) => {
           },
         },
       )
-    })
-  })
-
-  describe('legacy methods', () => {
-    it('should handle everyMorning', async () => {
-      const triggerService = env.factory.trigger()
-
-      // This shouldn't throw an error
-      await triggerService.everyMorning()
     })
   })
 
@@ -422,7 +411,7 @@ describeWithEmulators('TriggerService', (env) => {
           }),
       }
 
-      // Call the method directly - it should update symptom scores
+      // Call the method directly - it should process questionnaire responses
       await triggerService.userQuestionnaireResponseWritten(
         patientId,
         responseRef.id,
@@ -430,13 +419,14 @@ describeWithEmulators('TriggerService', (env) => {
       )
 
       // Now test the error path
-      const originalUpdateSymptomScore = triggerService.updateSymptomScore
+      const originalProcessQuestionnaireResponse =
+        triggerService.processQuestionnaireResponse
       let errorThrown = false
 
       // Replace with version that throws
-      triggerService.updateSymptomScore = async () => {
+      triggerService.processQuestionnaireResponse = async () => {
         errorThrown = true
-        throw new Error('Test error in updateSymptomScore')
+        throw new Error('Test error in processQuestionnaireResponse')
       }
 
       // Should catch the error
@@ -450,16 +440,8 @@ describeWithEmulators('TriggerService', (env) => {
       expect(errorThrown).to.be.true
 
       // Restore original method
-      triggerService.updateSymptomScore = originalUpdateSymptomScore
-    })
-
-    it('should test private sendVitalsReminder method', async () => {
-      const triggerService = env.factory.trigger() as any
-
-      // This is a private method but we can access it in tests
-      await triggerService.sendVitalsReminder(patientId)
-
-      // Success is just not throwing an exception
+      triggerService.processQuestionnaireResponse =
+        originalProcessQuestionnaireResponse
     })
   })
 })

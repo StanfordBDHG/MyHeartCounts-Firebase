@@ -20,7 +20,6 @@ export interface MessageService {
 
   registerDevice(userId: string, device: UserDevice): Promise<void>
   unregisterDevice(
-    userId: string,
     notificationToken: string,
     platform: UserDevicePlatform,
   ): Promise<void>

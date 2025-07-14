@@ -1,7 +1,7 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University
+// SPDX-FileCopyrightText: 2025 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
@@ -21,10 +21,6 @@ export const unregisterDevice = validatedOnCall(
     const credential = factory.credential(request.auth)
     await factory
       .message()
-      .unregisterDevice(
-        credential.userId,
-        request.data.notificationToken,
-        request.data.platform,
-      )
+      .unregisterDevice(request.data.notificationToken, request.data.platform)
   },
 )

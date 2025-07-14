@@ -1,7 +1,7 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University
+// SPDX-FileCopyrightText: 2025 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
@@ -58,13 +58,6 @@ async function _seedPatientCollections(input: {
   }
   if (input.components.includes(UserDebugDataComponent.messages)) {
     promises.push(input.debugData.seedUserMessages(input.userId, input.date))
-  }
-  if (
-    input.components.includes(UserDebugDataComponent.questionnaireResponses)
-  ) {
-    promises.push(
-      input.debugData.seedUserQuestionnaireResponses(input.userId, input.date),
-    )
   }
 
   await Promise.all(promises)

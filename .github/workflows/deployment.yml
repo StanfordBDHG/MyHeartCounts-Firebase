@@ -95,7 +95,7 @@ jobs:
     permissions:
       contents: read
     with:
-      customcommand: "npm run install"
+      customcommand: "npm run prepare"
       environment: ${{ needs.determineenvironment.outputs.environment }}
       arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
     secrets:
@@ -107,15 +107,14 @@ jobs:
     if: needs.determineenvironment.outputs.environment == 'production'
     needs: [buildandtest, determineenvironment]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
-    environment: production-us
     permissions:
       contents: read
     with:
-      customcommand: "npm run install"
-      environment: production-us
+      customcommand: "npm run prepare"
+      environment: production
       arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
-      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64_PRODUCTION_US }}
 
   # Deploy to UK after US succeeds
   deployfirebase-production-uk:
@@ -123,12 +122,11 @@ jobs:
     if: needs.determineenvironment.outputs.environment == 'production'
     needs: [deployfirebase-production-us, determineenvironment]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
-    environment: production-uk
     permissions:
       contents: read
     with:
-      customcommand: "npm run install"
-      environment: production-uk
+      customcommand: "npm run prepare"
+      environment: production
       arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
     secrets:
-      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+      GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64_PRODUCTION_UK }}

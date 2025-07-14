@@ -29,46 +29,6 @@ describe('StaticDataService', () => {
     cleanupMocks()
   })
 
-  it('handles organizations update call without errors', async () => {
-    // This test just verifies the method can be called without errors
-    // since organizations are no longer supported in the current implementation
-    await staticDataService.updateOrganizations(CachingStrategy.expectCache)
-  })
-
-  it('actually creates questionnaires', async () => {
-    const questionnaires = await firestore.collection('questionnaires').get()
-    expect(questionnaires.size).to.equal(0)
-
-    await staticDataService.updateQuestionnaires(CachingStrategy.expectCache)
-
-    const updatedQuestionnaires = await firestore
-      .collection('questionnaires')
-      .get()
-    expect(updatedQuestionnaires.size).to.be.greaterThan(0)
-  })
-
-  it('handles different caching strategies for questionnaires', async () => {
-    // Test with different caching strategies to exercise all branches
-    await staticDataService.updateQuestionnaires(CachingStrategy.updateCache)
-
-    // Should work with ignore cache strategy as well
-    await staticDataService.updateQuestionnaires(CachingStrategy.ignoreCache)
-
-    // And also with expect cache
-    await staticDataService.updateQuestionnaires(CachingStrategy.expectCache)
-
-    // Test updateCacheIfNeeded strategy
-    await staticDataService.updateQuestionnaires(
-      CachingStrategy.updateCacheIfNeeded,
-    )
-
-    // Final check that questionnaires were created
-    const updatedQuestionnaires = await firestore
-      .collection('questionnaires')
-      .get()
-    expect(updatedQuestionnaires.size).to.be.greaterThan(0)
-  })
-
   it('tests caching mechanism in SeedingService', async () => {
     // Get access to the service's internal methods by using type assertion
     const service = staticDataService as any

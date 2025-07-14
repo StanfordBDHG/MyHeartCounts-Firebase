@@ -1,0 +1,429 @@
+{
+  "resourceType": "Questionnaire",
+  "language": "en-US",
+  "title": "WHO-5",
+  "status": "draft",
+  "meta": {
+    "profile": [
+      "http://spezi.health/fhir/StructureDefinition/sdf-Questionnaire"
+    ],
+    "tag": [
+      {
+        "system": "urn:ietf:bcp:47",
+        "code": "en-US",
+        "display": "English"
+      }
+    ]
+  },
+  "useContext": [
+    {
+      "code": {
+        "system": "http://hl7.org/fhir/ValueSet/usage-context-type",
+        "code": "focus",
+        "display": "Clinical Focus"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.578.1.12.4.1.1.8655",
+            "display": "WHO-5"
+          }
+        ]
+      }
+    }
+  ],
+  "subjectType": [
+    "Patient"
+  ],
+  "item": [
+    {
+      "linkId": "1041166e-83d7-4800-81bf-1aec166b0384",
+      "type": "group",
+      "text": "Welcome to the World Health Organization-Five Well-Being Index (WHO-5)",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/ValueSet/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "required": false,
+      "item": [
+        {
+          "linkId": "23b8f1c4-f93c-4ca8-aee1-6ef683a67e1f",
+          "type": "display",
+          "text": "The WHO-5 is a self-report instrument measuring mental well-being. It consists of five statements relating to the past two weeks. ",
+          "required": false,
+          "_text": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/rendering-markdown",
+                "valueMarkdown": "GROUPING TEST Welcome to the **World Health Organization-Five Well-Being Index** (WHO-5)"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "eef3a036-f914-4f0f-8a53-5240369fa100",
+      "type": "group",
+      "text": "Please Indicate for each of the five statements which is closest to how you have been feeling over the last two weeks.",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/ValueSet/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "required": false,
+      "item": [
+        {
+          "linkId": "f641ae63-47d5-447e-8dd4-afe1685d4b1f",
+          "type": "choice",
+          "text": "Over the past two weeks, I have felt cheerful and in good spirits",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "5ff4e961-e8ee-4e76-92dd-a0abe1079a4a",
+                "code": "all-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "All of the Time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "f036be70-9001-403c-86f0-7da8ad0e5522",
+                "code": "most-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Most of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "9f2410ab-4681-4502-d430-f196672e46fe",
+                "code": "more-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "More than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "fd3caa39-7263-4c41-87f4-b687c3908672",
+                "code": "less-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Less than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "ad92f7dc-6084-46c8-ed64-93e85886c48e",
+                "code": "some-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Some of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "4d5e14ac-094e-4b31-b397-5e60b50a82d3",
+                "code": "at-no-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "At no time"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "a07c0c00-3f05-4273-f7fc-ca6a15686efe",
+          "type": "choice",
+          "text": "Over the past two weeks, I have felt calm and relaxed",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "5ff4e961-e8ee-4e76-92dd-a0abe1079a4a",
+                "code": "all-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "All of the Time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "f036be70-9001-403c-86f0-7da8ad0e5522",
+                "code": "most-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Most of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "9f2410ab-4681-4502-d430-f196672e46fe",
+                "code": "more-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "More than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "fd3caa39-7263-4c41-87f4-b687c3908672",
+                "code": "less-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Less than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "ad92f7dc-6084-46c8-ed64-93e85886c48e",
+                "code": "some-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Some of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "4d5e14ac-094e-4b31-b397-5e60b50a82d3",
+                "code": "at-no-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "At no time"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "76b48a80-9eb9-4a14-8a8d-a09e980d2be3",
+          "type": "choice",
+          "text": "Over the past two weeks, I have felt active and vigorous",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "5ff4e961-e8ee-4e76-92dd-a0abe1079a4a",
+                "code": "all-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "All of the Time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "f036be70-9001-403c-86f0-7da8ad0e5522",
+                "code": "most-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Most of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "9f2410ab-4681-4502-d430-f196672e46fe",
+                "code": "more-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "More than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "fd3caa39-7263-4c41-87f4-b687c3908672",
+                "code": "less-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Less than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "ad92f7dc-6084-46c8-ed64-93e85886c48e",
+                "code": "some-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Some of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "4d5e14ac-094e-4b31-b397-5e60b50a82d3",
+                "code": "at-no-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "At no time"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "23c4edfa-fdbe-4884-8d26-173599f7dffb",
+          "type": "choice",
+          "text": "Over the past two weeks, I woke up feeling fresh and rested",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "5ff4e961-e8ee-4e76-92dd-a0abe1079a4a",
+                "code": "all-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "All of the Time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "f036be70-9001-403c-86f0-7da8ad0e5522",
+                "code": "most-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Most of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "9f2410ab-4681-4502-d430-f196672e46fe",
+                "code": "more-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "More than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "fd3caa39-7263-4c41-87f4-b687c3908672",
+                "code": "less-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Less than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "ad92f7dc-6084-46c8-ed64-93e85886c48e",
+                "code": "some-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Some of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "4d5e14ac-094e-4b31-b397-5e60b50a82d3",
+                "code": "at-no-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "At no time"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "80c92e40-1223-4cd8-806c-896e0868703f",
+          "type": "choice",
+          "text": "Over the past two weeks, my daily life has been filled with things that interest me ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "5ff4e961-e8ee-4e76-92dd-a0abe1079a4a",
+                "code": "all-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "All of the Time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "f036be70-9001-403c-86f0-7da8ad0e5522",
+                "code": "most-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Most of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "9f2410ab-4681-4502-d430-f196672e46fe",
+                "code": "more-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "More than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "fd3caa39-7263-4c41-87f4-b687c3908672",
+                "code": "less-than-half-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Less than half of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "ad92f7dc-6084-46c8-ed64-93e85886c48e",
+                "code": "some-of-the-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "Some of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "4d5e14ac-094e-4b31-b397-5e60b50a82d3",
+                "code": "at-no-time",
+                "system": "urn:uuid:be70ecb9-67a8-45c9-9ba5-810a7d6dc6ff",
+                "display": "At no time"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "6e37f8bc-c5dd-4579-faaf-fa1cf894f231",
+      "type": "group",
+      "text": "Scoring:",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/ValueSet/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "required": false,
+      "item": [
+        {
+          "linkId": "33a710dd-1577-4538-858d-c57c601a4274",
+          "type": "display",
+          "text": "The raw score is calculated by totaling the scores on each of the five questions. The raw score ranges from zero to 25, zero representing worst possible mental well-being and 25 representing best possible mental well-being. ",
+          "required": false,
+          "_text": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/rendering-markdown",
+                "valueMarkdown": "**Scoring**: The World Health Organization-Five Well-Being Index (WHO-5) Scoring The raw score is calculated by totalling the scores on each of the five questions. The raw score ranges from zero to 25, zero representing worst possible mental well-being and 25 representing best possible mental well-being. To get a percentage score ranging from zero to 100, the raw score is multiplied by four. A percentage score of zero represents worst possible mental well-being; a score of 100 represents best possible mental well-being."
+              }
+            ]
+          }
+        },
+        {
+          "linkId": "b467c308-ac8f-4c10-ee89-8c22a710a6f0",
+          "type": "display",
+          "text": "To get a percentage score ranging from zero to 100, the raw score is multiplied by four. A percentage score of zero represents worst possible mental well-being; a score of 100 represents best possible mental well-being.",
+          "required": false
+        }
+      ]
+    },
+    {
+      "linkId": "c934e4b1-8195-45c7-868a-d0de72394379",
+      "type": "display",
+      "text": "Thank you for completing this survey!",
+      "required": false
+    }
+  ]
+}

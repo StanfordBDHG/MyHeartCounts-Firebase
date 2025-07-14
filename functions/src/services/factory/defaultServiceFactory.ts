@@ -17,6 +17,16 @@ import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
 import { DefaultMessageService } from '../message/defaultMessageService.js'
 import { type MessageService } from '../message/messageService.js'
+import {
+  DietScoreCalculator,
+  DietScoringQuestionnaireResponseService,
+} from '../questionnaireResponse/dietScoringService.js'
+import { MultiQuestionnaireResponseService } from '../questionnaireResponse/multiQuestionnaireResponseService.js'
+import {
+  DefaultNicotineScoreCalculator,
+  NicotineScoringQuestionnaireResponseService,
+} from '../questionnaireResponse/nicotineScoringService.js'
+import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
 import {
@@ -55,8 +65,6 @@ export class DefaultServiceFactory implements ServiceFactory {
       ),
   )
 
-  // HealthSummary service removed
-
   private readonly historyService = new Lazy(
     () => new DatabaseHistoryService(this.databaseService.value),
   )
@@ -70,11 +78,26 @@ export class DefaultServiceFactory implements ServiceFactory {
       ),
   )
 
+  private readonly questionnaireResponseService = new Lazy(
+    () =>
+      new MultiQuestionnaireResponseService([
+        new DietScoringQuestionnaireResponseService({
+          databaseService: this.databaseService.value,
+          messageService: this.messageService.value,
+          scoreCalculator: new DietScoreCalculator(),
+        }),
+        new NicotineScoringQuestionnaireResponseService({
+          databaseService: this.databaseService.value,
+          messageService: this.messageService.value,
+          scoreCalculator: new DefaultNicotineScoreCalculator(),
+        }),
+        // Add more specific questionnaire response services here
+      ]),
+  )
+
   private readonly staticDataService = new Lazy(
     () => new StaticDataService(this.databaseService.value),
   )
-
-  // SymptomScore calculator removed
 
   private readonly triggerService = new Lazy(() => new TriggerServiceImpl(this))
 
@@ -110,6 +133,12 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   history(): HistoryService {
     return this.historyService.value
+  }
+
+  // Methods - Questionnaires
+
+  questionnaireResponse(): QuestionnaireResponseService {
+    return this.questionnaireResponseService.value
   }
 
   // Methods - Trigger

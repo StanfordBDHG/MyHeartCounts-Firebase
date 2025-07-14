@@ -1,7 +1,7 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University
+// SPDX-FileCopyrightText: 2025 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
@@ -27,16 +27,9 @@ describeWithEmulators('function: updateStaticData', (env) => {
       cachingStrategy: CachingStrategy.expectCache,
     })
 
+    // Questionnaires are no longer used
     const questionnaires = await env.collections.questionnaires.get()
-    expect(questionnaires.docs).to.have.length(1)
-
-    // Verify questionnaires are created with basic structure
-    for (const questionnaire of questionnaires.docs) {
-      const data = questionnaire.data()
-      expect(data).to.have.property('resourceType', 'Questionnaire')
-      expect(data).to.have.property('title').that.is.a('string')
-      expect(data).to.have.property('status').that.is.a('string')
-    }
+    expect(questionnaires.docs).to.have.length(0)
   })
 })
 
