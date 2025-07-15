@@ -167,8 +167,9 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
-      '58C1E077-5BAF-491D-BEAC-48AA8B5D68D2', // Diet questionnaire UUID
+      'https://myheartcounts.stanford.edu/fhir/survey/dietScore',
     ]
+
     if (!targetQuestionnaireUrls.includes(response.content.questionnaire)) {
       return false
     }

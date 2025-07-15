@@ -195,7 +195,8 @@ describe('DietScoringQuestionnaireResponseService', () => {
         content: new FHIRQuestionnaireResponse({
           id: 'test-response',
           authored: new Date(),
-          questionnaire: '58C1E077-5BAF-491D-BEAC-48AA8B5D68D2',
+          questionnaire:
+            'https://myheartcounts.stanford.edu/fhir/survey/dietScore',
           item: [],
         }),
       }
