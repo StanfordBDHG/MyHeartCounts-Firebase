@@ -78,8 +78,9 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
-      '91EB378F-B851-46AC-865A-E0013CA95886', // Nicotine questionnaire UUID
+      'https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure',
     ]
+
     if (!targetQuestionnaireUrls.includes(response.content.questionnaire)) {
       return false
     }
