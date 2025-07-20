@@ -25,7 +25,7 @@ const deleteHealthSamplesInputSchema = z.object({
       }),
     )
     .min(1, 'At least one sample is required')
-    .max(100, 'Too many samples (max 100)'),
+    .max(50000, 'Too many samples (max 50,000)'),
   confirmation: z.literal(true, {
     errorMap: () => ({ message: 'Explicit confirmation required' }),
   }),
@@ -34,17 +34,11 @@ const deleteHealthSamplesInputSchema = z.object({
 type DeleteHealthSamplesInput = z.infer<typeof deleteHealthSamplesInputSchema>
 
 interface DeleteHealthSamplesOutput {
-  deletedSamples: Array<{
-    collection: UserObservationCollection
-    documentId: string
-    success: boolean
-    error?: string
-  }>
-  summary: {
-    totalRequested: number
-    totalDeleted: number
-    totalFailed: number
-  }
+  status: 'accepted' | 'processing'
+  jobId: string
+  totalSamples: number
+  estimatedDurationMinutes: number
+  message: string
 }
 
 export const deleteHealthSamples = validatedOnCall(
@@ -57,110 +51,203 @@ export const deleteHealthSamples = validatedOnCall(
 
     credential.check(UserRole.admin, UserRole.clinician, UserRole.user(userId))
 
+    const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`
+    const estimatedDurationMinutes = Math.ceil(samples.length / 1000) // ~1000 samples per minute
+
     logger.info(
-      `User '${credential.userId}' requested deletion of ${samples.length} health samples for user '${userId}'`,
+      `User '${credential.userId}' initiated async deletion job '${jobId}' for ${samples.length} health samples for user '${userId}'`,
       {
+        jobId,
         requestingUserId: credential.userId,
         targetUserId: userId,
         samplesCount: samples.length,
-        samples: samples.map((sample) => ({
-          collection: sample.collection,
-          documentId: sample.documentId,
-        })),
+        estimatedDurationMinutes,
       },
     )
 
-    const collections = new CollectionsService(admin.firestore())
-    const deletedSamples: DeleteHealthSamplesOutput['deletedSamples'] = []
-    let totalDeleted = 0
-    let totalFailed = 0
-
-    for (const sample of samples) {
-      try {
-        const doc = await collections
-          .userObservations(userId, sample.collection)
-          .doc(sample.documentId)
-          .get()
-
-        if (!doc.exists) {
-          totalFailed++
-          logger.warn(
-            `Health sample not found: '${sample.documentId}' in collection '${sample.collection}' for user '${userId}'`,
-            {
-              requestingUserId: credential.userId,
-              targetUserId: userId,
-              collection: sample.collection,
-              documentId: sample.documentId,
-            },
-          )
-
-          deletedSamples.push({
-            ...sample,
-            success: false,
-            error: 'Sample not found',
-          })
-          continue
-        }
-
-        await doc.ref.delete()
-        totalDeleted++
-
-        logger.info(
-          `Successfully deleted health sample '${sample.documentId}' from collection '${sample.collection}' for user '${userId}'`,
-          {
-            requestingUserId: credential.userId,
-            targetUserId: userId,
-            collection: sample.collection,
-            documentId: sample.documentId,
-          },
-        )
-
-        deletedSamples.push({
-          ...sample,
-          success: true,
-        })
-      } catch (error) {
-        totalFailed++
-        const errorMessage =
-          error instanceof Error ? error.message : String(error)
-
-        logger.error(
-          `Failed to delete health sample '${sample.documentId}' from collection '${sample.collection}' for user '${userId}': ${errorMessage}`,
-          {
-            requestingUserId: credential.userId,
-            targetUserId: userId,
-            collection: sample.collection,
-            documentId: sample.documentId,
-            error: errorMessage,
-          },
-        )
-
-        deletedSamples.push({
-          ...sample,
-          success: false,
-          error: errorMessage,
-        })
-      }
-    }
-
-    logger.info(
-      `Health sample deletion operation completed for user '${userId}': ${totalDeleted} succeeded, ${totalFailed} failed`,
-      {
-        requestingUserId: credential.userId,
-        targetUserId: userId,
-        totalRequested: samples.length,
-        totalDeleted,
-        totalFailed,
-      },
-    )
+    // Start async processing - don't await this
+    processHealthSamplesDeletion(
+      jobId,
+      credential.userId,
+      userId,
+      samples,
+    ).catch((error: unknown) => {
+      logger.error(
+        `Async deletion job '${jobId}' failed with error: ${String(error)}`,
+        {
+          jobId,
+          requestingUserId: credential.userId,
+          targetUserId: userId,
+          error: String(error),
+        },
+      )
+    })
 
     return {
-      deletedSamples,
-      summary: {
-        totalRequested: samples.length,
-        totalDeleted,
-        totalFailed,
-      },
+      status: 'accepted',
+      jobId,
+      totalSamples: samples.length,
+      estimatedDurationMinutes,
+      message: `Deletion job started. Processing ${samples.length} samples asynchronously.`,
     }
   },
 )
+
+async function processHealthSamplesDeletion(
+  jobId: string,
+  requestingUserId: string,
+  targetUserId: string,
+  samples: DeleteHealthSamplesInput['samples'],
+): Promise<void> {
+  const collections = new CollectionsService(admin.firestore())
+  const BATCH_SIZE = 500 // Process in batches to avoid timeout
+  let totalDeleted = 0
+  let totalFailed = 0
+
+  logger.info(
+    `Starting async deletion job '${jobId}': processing ${samples.length} samples in batches of ${BATCH_SIZE}`,
+    {
+      jobId,
+      requestingUserId,
+      targetUserId,
+      totalSamples: samples.length,
+      batchSize: BATCH_SIZE,
+    },
+  )
+
+  // Process samples in batches
+  for (let i = 0; i < samples.length; i += BATCH_SIZE) {
+    const batch = samples.slice(i, i + BATCH_SIZE)
+    const batchNumber = Math.floor(i / BATCH_SIZE) + 1
+    const totalBatches = Math.ceil(samples.length / BATCH_SIZE)
+
+    logger.info(
+      `Processing batch ${batchNumber}/${totalBatches} for job '${jobId}' (${batch.length} samples)`,
+      {
+        jobId,
+        requestingUserId,
+        targetUserId,
+        batchNumber,
+        totalBatches,
+        batchSize: batch.length,
+      },
+    )
+
+    const batchResults = await processBatch(
+      collections,
+      targetUserId,
+      batch,
+      jobId,
+      requestingUserId,
+    )
+
+    totalDeleted += batchResults.deleted
+    totalFailed += batchResults.failed
+
+    // Small delay between batches to avoid overwhelming the system
+    if (i + BATCH_SIZE < samples.length) {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+  }
+
+  logger.info(
+    `Async deletion job '${jobId}' completed: ${totalDeleted} deleted, ${totalFailed} failed out of ${samples.length} total`,
+    {
+      jobId,
+      requestingUserId,
+      targetUserId,
+      totalSamples: samples.length,
+      totalDeleted,
+      totalFailed,
+      successRate: ((totalDeleted / samples.length) * 100).toFixed(2) + '%',
+    },
+  )
+}
+
+async function processBatch(
+  collections: CollectionsService,
+  userId: string,
+  batch: DeleteHealthSamplesInput['samples'],
+  jobId: string,
+  requestingUserId: string,
+): Promise<{ deleted: number; failed: number }> {
+  let deleted = 0
+  let failed = 0
+
+  // Use Promise.allSettled for concurrent processing within batch
+  const promises = batch.map(async (sample) => {
+    try {
+      const doc = await collections
+        .userObservations(userId, sample.collection)
+        .doc(sample.documentId)
+        .get()
+
+      if (!doc.exists) {
+        logger.debug(
+          `Sample not found during job '${jobId}': '${sample.documentId}' in collection '${sample.collection}'`,
+          {
+            jobId,
+            requestingUserId,
+            targetUserId: userId,
+            collection: sample.collection,
+            documentId: sample.documentId,
+          },
+        )
+        return { success: false, sample }
+      }
+
+      await doc.ref.delete()
+
+      logger.debug(
+        `Deleted sample in job '${jobId}': '${sample.documentId}' from collection '${sample.collection}'`,
+        {
+          jobId,
+          requestingUserId,
+          targetUserId: userId,
+          collection: sample.collection,
+          documentId: sample.documentId,
+        },
+      )
+
+      return { success: true, sample }
+    } catch (error) {
+      logger.warn(
+        `Failed to delete sample in job '${jobId}': '${sample.documentId}' from collection '${sample.collection}': ${String(error)}`,
+        {
+          jobId,
+          requestingUserId,
+          targetUserId: userId,
+          collection: sample.collection,
+          documentId: sample.documentId,
+          error: String(error),
+        },
+      )
+      return { success: false, sample }
+    }
+  })
+
+  const results = await Promise.allSettled(promises)
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      if (result.value.success) {
+        deleted++
+      } else {
+        failed++
+      }
+    } else {
+      failed++
+      logger.error(
+        `Promise failed in batch processing for job '${jobId}': ${String(result.reason)}`,
+        {
+          jobId,
+          requestingUserId,
+          targetUserId: userId,
+          error: String(result.reason),
+        },
+      )
+    }
+  }
+
+  return { deleted, failed }
+}

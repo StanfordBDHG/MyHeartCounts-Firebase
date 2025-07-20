@@ -73,7 +73,7 @@ describeWithEmulators('function: deleteHealthSamples', (env) => {
       type: UserType.patient,
     })
 
-    const tooManySamples = Array.from({ length: 101 }, (_, i) => ({
+    const tooManySamples = Array.from({ length: 50001 }, (_, i) => ({
       collection: UserObservationCollection.heartRate,
       documentId: `test-id-${i}`,
     }))
@@ -96,7 +96,7 @@ describeWithEmulators('function: deleteHealthSamples', (env) => {
     )
   })
 
-  it('should handle non-existent samples gracefully', async () => {
+  it('should return async job response for deletion request', async () => {
     const userId = await env.createUser({
       type: UserType.patient,
     })
@@ -116,11 +116,11 @@ describeWithEmulators('function: deleteHealthSamples', (env) => {
       { uid: userId },
     )
 
-    expect(result.summary.totalRequested).to.equal(1)
-    expect(result.summary.totalDeleted).to.equal(0)
-    expect(result.summary.totalFailed).to.equal(1)
-    expect(result.deletedSamples[0].success).to.be.false
-    expect(result.deletedSamples[0].error).to.equal('Sample not found')
+    expect(result.status).to.equal('accepted')
+    expect(result.jobId).to.be.a('string')
+    expect(result.totalSamples).to.equal(1)
+    expect(result.estimatedDurationMinutes).to.be.a('number')
+    expect(result.message).to.include('Processing 1 samples asynchronously')
   })
 
   it('should deny access to other users samples', async () => {
@@ -169,7 +169,7 @@ describeWithEmulators('function: deleteHealthSamples', (env) => {
         samples: [
           {
             collection: UserObservationCollection.heartRate,
-            documentId: 'non-existent',
+            documentId: 'admin-test-sample',
           },
         ],
         confirmation: true,
@@ -183,10 +183,38 @@ describeWithEmulators('function: deleteHealthSamples', (env) => {
       },
     )
 
-    expect(result.summary.totalRequested).to.equal(1)
-    expect(result.summary.totalDeleted).to.equal(0)
-    expect(result.summary.totalFailed).to.equal(1)
-    expect(result.deletedSamples[0].success).to.be.false
-    expect(result.deletedSamples[0].error).to.equal('Sample not found')
+    expect(result.status).to.equal('accepted')
+    expect(result.jobId).to.be.a('string')
+    expect(result.totalSamples).to.equal(1)
+    expect(result.estimatedDurationMinutes).to.be.a('number')
+    expect(result.message).to.include('Processing 1 samples asynchronously')
+  })
+
+  it('should handle large batch deletion requests', async () => {
+    const userId = await env.createUser({
+      type: UserType.patient,
+    })
+
+    // Create a large batch of 1000 samples
+    const largeBatch = Array.from({ length: 1000 }, (_, i) => ({
+      collection: UserObservationCollection.heartRate,
+      documentId: `large-batch-sample-${i}`,
+    }))
+
+    const result = await env.call(
+      deleteHealthSamples,
+      {
+        userId,
+        samples: largeBatch,
+        confirmation: true,
+      },
+      { uid: userId },
+    )
+
+    expect(result.status).to.equal('accepted')
+    expect(result.jobId).to.be.a('string')
+    expect(result.totalSamples).to.equal(1000)
+    expect(result.estimatedDurationMinutes).to.equal(1) // 1000 samples = 1 minute
+    expect(result.message).to.include('Processing 1000 samples asynchronously')
   })
 })
