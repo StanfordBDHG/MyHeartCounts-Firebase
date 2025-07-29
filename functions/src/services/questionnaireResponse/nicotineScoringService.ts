@@ -11,6 +11,12 @@ import {
   type FHIRQuestionnaireResponse,
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
+import {
+  scoreToObservation,
+  getNicotineObservationConfig,
+  generateUUID,
+  type QuestionnaireObservationConfig,
+} from './fhirObservationConverter.js'
 import { QuestionnaireResponseService } from './questionnaireResponseService.js'
 import {
   type Document,
@@ -95,6 +101,9 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
 
       // Store new score
       await this.updateScore(userId, response.id, score)
+
+      // Store FHIR observation
+      await this.storeFHIRObservation(userId, response.id, score)
 
       // Implement business logic (e.g., decline detection)
       if (previousScore && this.isSignificantDecline(previousScore, score)) {
@@ -202,5 +211,30 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
 
     // Could send a message to the user or healthcare provider about smoking status changes
     // await this.messageService.addMessage(userId, AlertMessage.createNicotineScoreDecline(...))
+  }
+
+  private async storeFHIRObservation(
+    userId: string,
+    questionnaireResponseId: string,
+    score: Score,
+  ): Promise<void> {
+    const config = getNicotineObservationConfig()
+    const observationId = generateUUID()
+    const observation = scoreToObservation(
+      score,
+      config,
+      questionnaireResponseId,
+      observationId,
+    )
+
+    const collectionName =
+      'HealthObservations_MHCCustomSampleTypeNicotineExposure'
+
+    return this.databaseService.runTransaction((collections, transaction) => {
+      const ref = collections
+        .userHealthObservations(userId, collectionName)
+        .doc(observationId)
+      transaction.set(ref, observation)
+    })
   }
 }
