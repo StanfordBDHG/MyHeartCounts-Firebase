@@ -26,19 +26,25 @@ describe('processLiveHealthSamples', () => {
     it('should extract HKQuantityTypeIdentifier from filename', () => {
       const fileName = 'HKQuantityTypeIdentifierHeartRate_ABC123.json.zlib'
       const result = getCollectionNameFromFileName(fileName)
-      expect(result).to.equal('HealthObservations_HKQuantityTypeIdentifierHeartRate')
+      expect(result).to.equal(
+        'HealthObservations_HKQuantityTypeIdentifierHeartRate',
+      )
     })
 
     it('should extract HKCorrelationTypeIdentifier from filename', () => {
       const fileName = 'HKCorrelationTypeIdentifierBloodPressure_456.json.zlib'
       const result = getCollectionNameFromFileName(fileName)
-      expect(result).to.equal('HealthObservations_HKCorrelationTypeIdentifierBloodPressure')
+      expect(result).to.equal(
+        'HealthObservations_HKCorrelationTypeIdentifierBloodPressure',
+      )
     })
 
     it('should extract HKCategoryTypeIdentifier from filename', () => {
       const fileName = 'HKCategoryTypeIdentifierSleepAnalysis_789.json.zlib'
       const result = getCollectionNameFromFileName(fileName)
-      expect(result).to.equal('HealthObservations_HKCategoryTypeIdentifierSleepAnalysis')
+      expect(result).to.equal(
+        'HealthObservations_HKCategoryTypeIdentifierSleepAnalysis',
+      )
     })
 
     it('should return null for filename without HealthKit identifier', () => {
@@ -56,7 +62,9 @@ describe('processLiveHealthSamples', () => {
     it('should handle custom identifiers containing "Identifier"', () => {
       const fileName = 'CustomHealthIdentifierExample_999.json.zlib'
       const result = getCollectionNameFromFileName(fileName)
-      expect(result).to.equal('HealthObservations_CustomHealthIdentifierExample')
+      expect(result).to.equal(
+        'HealthObservations_CustomHealthIdentifierExample',
+      )
     })
   })
 
@@ -80,7 +88,8 @@ describe('processLiveHealthSamples', () => {
     }
 
     it('should validate correct liveHealthSamples path', () => {
-      const filePath = 'users/test-user-123/liveHealthSamples/HKQuantityTypeIdentifierHeartRate_ABC123.json.zlib'
+      const filePath =
+        'users/test-user-123/liveHealthSamples/HKQuantityTypeIdentifierHeartRate_ABC123.json.zlib'
       expect(isValidHealthSamplesPath(filePath)).to.be.true
     })
 
@@ -110,11 +119,14 @@ describe('processLiveHealthSamples', () => {
       return Array.isArray(data) && data.length > 0
     }
 
-    function extractObservationsFromData(data: unknown, userId: string): unknown[] | null {
+    function extractObservationsFromData(
+      data: unknown,
+      userId: string,
+    ): unknown[] | null {
       if (Array.isArray(data)) {
         return data
-      } 
-      
+      }
+
       if (data && typeof data === 'object' && 'data' in data) {
         const wrappedData = data as { data: unknown; userId?: string }
         if (Array.isArray(wrappedData.data)) {
@@ -125,7 +137,7 @@ describe('processLiveHealthSamples', () => {
           return wrappedData.data
         }
       }
-      
+
       return null
     }
 
@@ -151,20 +163,20 @@ describe('processLiveHealthSamples', () => {
     })
 
     it('should extract legacy wrapper format', () => {
-      const data = { 
-        userId: 'test-user', 
+      const data = {
+        userId: 'test-user',
         collection: 'heartRateObservations',
-        data: [{ id: 'obs-1' }, { id: 'obs-2' }]
+        data: [{ id: 'obs-1' }, { id: 'obs-2' }],
       }
       const result = extractObservationsFromData(data, 'test-user')
       expect(result).to.deep.equal(data.data)
     })
 
     it('should reject userId mismatch in legacy format', () => {
-      const data = { 
-        userId: 'different-user', 
+      const data = {
+        userId: 'different-user',
         collection: 'heartRateObservations',
-        data: [{ id: 'obs-1' }]
+        data: [{ id: 'obs-1' }],
       }
       const result = extractObservationsFromData(data, 'test-user')
       expect(result).to.be.null
@@ -172,25 +184,27 @@ describe('processLiveHealthSamples', () => {
   })
 
   describe('Observation processing', () => {
-    function getValidObservationsWithIds(observations: unknown[]): Array<{ observation: unknown; id: string }> {
+    function getValidObservationsWithIds(
+      observations: unknown[],
+    ): Array<{ observation: unknown; id: string }> {
       const validObservations: Array<{ observation: unknown; id: string }> = []
-      
+
       for (const observation of observations) {
         const observationData = observation as any
         const documentId = observationData?.id
-        
+
         if (documentId) {
           validObservations.push({ observation, id: documentId })
         }
       }
-      
+
       return validObservations
     }
 
     it('should extract observations with valid IDs', () => {
       const observations = [
         { id: 'obs-1', data: 'valid' },
-        { id: 'obs-2', data: 'valid' }
+        { id: 'obs-2', data: 'valid' },
       ]
       const result = getValidObservationsWithIds(observations)
       expect(result).to.have.length(2)
@@ -202,7 +216,7 @@ describe('processLiveHealthSamples', () => {
       const observations = [
         { id: 'obs-1', data: 'valid' },
         { data: 'no-id' }, // Missing ID
-        { id: 'obs-3', data: 'valid' }
+        { id: 'obs-3', data: 'valid' },
       ]
       const result = getValidObservationsWithIds(observations)
       expect(result).to.have.length(2)
