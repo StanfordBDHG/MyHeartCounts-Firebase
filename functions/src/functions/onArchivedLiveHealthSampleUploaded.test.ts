@@ -21,7 +21,7 @@ function getCollectionNameFromFileName(fileName: string): string | null {
   return null
 }
 
-describe('processLiveHealthSamples', () => {
+describe('onArchivedLiveHealthSampleUploaded', () => {
   describe('getCollectionNameFromFileName', () => {
     it('should extract HKQuantityTypeIdentifier from filename', () => {
       const fileName = 'HKQuantityTypeIdentifierHeartRate_ABC123.json.zlib'
