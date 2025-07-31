@@ -98,4 +98,12 @@ export class CollectionsService {
       .collection('scores')
       .withConverter(new DatabaseConverter(scoreConverter))
   }
+
+  userHealthObservations(userId: string, collectionName: string) {
+    return this.firestore
+      .collection('users')
+      .doc(userId)
+      .collection(collectionName)
+      .withConverter(new DatabaseConverter(fhirObservationConverter.value))
+  }
 }
