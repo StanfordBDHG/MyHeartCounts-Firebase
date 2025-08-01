@@ -11,6 +11,12 @@ import {
   type FHIRQuestionnaireResponse,
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
+import {
+  scoreToObservation,
+  getDietObservationConfig,
+  generateUUID,
+  type QuestionnaireObservationConfig,
+} from './fhirObservationConverter.js'
 import { QuestionnaireResponseService } from './questionnaireResponseService.js'
 import {
   type Document,
@@ -167,8 +173,9 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
-      '58C1E077-5BAF-491D-BEAC-48AA8B5D68D2', // Diet questionnaire UUID
+      'https://myheartcounts.stanford.edu/fhir/survey/dietScore',
     ]
+
     if (!targetQuestionnaireUrls.includes(response.content.questionnaire)) {
       return false
     }
@@ -183,6 +190,9 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
 
       // Store new score
       await this.updateScore(userId, response.id, score)
+
+      // Store FHIR observation
+      await this.storeFHIRObservation(userId, response.id, score)
 
       // Implement business logic (e.g., decline detection)
       if (previousScore && this.isSignificantDecline(previousScore, score)) {
@@ -326,5 +336,29 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
 
     // Could send a message to the user or healthcare provider about diet changes
     // await this.messageService.addMessage(userId, AlertMessage.createDietScoreDecline(...))
+  }
+
+  private async storeFHIRObservation(
+    userId: string,
+    questionnaireResponseId: string,
+    score: Score,
+  ): Promise<void> {
+    const config = getDietObservationConfig()
+    const observationId = generateUUID()
+    const observation = scoreToObservation(
+      score,
+      config,
+      questionnaireResponseId,
+      observationId,
+    )
+
+    const collectionName = 'HealthObservations_MHCCustomSampleTypeDietMEPAScore'
+
+    return this.databaseService.runTransaction((collections, transaction) => {
+      const ref = collections
+        .userHealthObservations(userId, collectionName)
+        .doc(observationId)
+      transaction.set(ref, observation)
+    })
   }
 }
