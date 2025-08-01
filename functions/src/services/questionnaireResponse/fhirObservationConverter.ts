@@ -94,7 +94,7 @@ export function getDietObservationConfig(): QuestionnaireObservationConfig {
     loincCode: '67504-6', // Nutrition assessment LOINC code
     customCode: 'MHCCustomSampleTypeDietMEPAScore',
     display: 'Diet MEPA Score',
-    unit: 'score',
+    unit: 'count',
     unitSystem: 'http://loinc.org',
   }
 }
@@ -104,7 +104,7 @@ export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
     loincCode: '72166-2', // Tobacco use status LOINC code
     customCode: 'MHCCustomSampleTypeNicotineExposure',
     display: 'Nicotine Exposure Score',
-    unit: 'score',
+    unit: 'count',
     unitSystem: 'http://loinc.org',
   }
 }
