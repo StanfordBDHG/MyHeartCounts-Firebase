@@ -86,7 +86,7 @@ jobs:
       checks: write
     secrets: inherit
 
-  # For non-production environments, use the original single deployment
+  # For non-production environments like staging and develeopment
   deployfirebase:
     name: Deploy Firebase Project
     if: needs.determineenvironment.outputs.environment != 'production'
@@ -105,14 +105,14 @@ jobs:
   deployfirebase-production-us:
     name: Deploy Firebase Project (Production US)
     if: needs.determineenvironment.outputs.environment == 'production'
-    needs: [buildandtest, determineenvironment]
+    needs: [buildandtest, determineenvironment, vars]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
       contents: read
     with:
       customcommand: "npm run prepare"
       environment: production
-      arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
+      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64_PRODUCTION_US }}
 
@@ -120,13 +120,13 @@ jobs:
   deployfirebase-production-uk:
     name: Deploy Firebase Project (Production UK)
     if: needs.determineenvironment.outputs.environment == 'production'
-    needs: [deployfirebase-production-us, determineenvironment]
+    needs: [deployfirebase-production-us, determineenvironment, vars]
     uses: StanfordBDHG/.github/.github/workflows/firebase-deploy.yml@v2
     permissions:
       contents: read
     with:
       customcommand: "npm run prepare"
       environment: production
-      arguments: '--project ${{ vars.FIREBASE_PROJECT_ID }}'
+      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64_PRODUCTION_UK }}
