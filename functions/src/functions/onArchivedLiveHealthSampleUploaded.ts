@@ -43,7 +43,6 @@ function getCollectionNameFromFileName(fileName: string): string | null {
 
 export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
   {
-    bucket: 'myheart-counts-development.firebasestorage.app',
     cpu: 2,
     memory: '1GiB',
     timeoutSeconds: 300,
