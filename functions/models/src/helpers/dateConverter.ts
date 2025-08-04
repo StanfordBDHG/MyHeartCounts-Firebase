@@ -30,9 +30,11 @@ export const dateConverter = new SchemaConverter({
         return z.NEVER
       }
     }),
-    z.object({
-      toDate: z.function().returns(z.date()),
-    }).transform((timestamp) => timestamp.toDate()),
+    z
+      .object({
+        toDate: z.function().returns(z.date()),
+      })
+      .transform((timestamp) => timestamp.toDate()),
     z.null().transform(() => new Date()),
   ]),
   encode: (object) => {
