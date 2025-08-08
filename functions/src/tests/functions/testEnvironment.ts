@@ -7,7 +7,7 @@
 //
 
 import http from 'http'
-import { Lazy, User, type UserType } from '@stanfordbdhg/myheartcounts-models'
+import { Lazy, User } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { type DocumentSnapshot, Timestamp } from 'firebase-admin/firestore'
@@ -126,9 +126,8 @@ export class EmulatorTestEnvironment {
 
   async createUser(
     options: {
-      type: UserType
+      admin?: boolean
       disabled?: boolean
-      clinician?: string
       dateOfEnrollment?: Date
       lastActiveDate?: Date
       receivesInactivityReminders?: boolean
@@ -139,10 +138,8 @@ export class EmulatorTestEnvironment {
     const authUser = await this.auth.createUser(options)
     await this.collections.users.doc(authUser.uid).set(
       new User({
-        type: options.type,
         disabled: options.disabled ?? false,
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
-        clinician: options.clinician,
         lastActiveDate: options.lastActiveDate ?? new Date(),
         receivesInactivityReminders:
           options.receivesInactivityReminders ?? true,
@@ -152,6 +149,19 @@ export class EmulatorTestEnvironment {
           options.receivesRecommendationUpdates ?? true,
       }),
     )
+
+    // Set custom claims for admin users
+    if (options.admin) {
+      await this.auth.setCustomUserClaims(authUser.uid, {
+        admin: true,
+        disabled: options.disabled ?? false,
+      })
+    } else {
+      await this.auth.setCustomUserClaims(authUser.uid, {
+        disabled: options.disabled ?? false,
+      })
+    }
+
     return authUser.uid
   }
 

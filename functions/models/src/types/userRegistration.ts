@@ -7,7 +7,6 @@
 //
 
 import { z } from 'zod'
-import { UserType } from './userType.js'
 import { dateConverter } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
 import { optionalish, optionalishDefault } from '../helpers/optionalish.js'
@@ -17,10 +16,8 @@ export const userRegistrationInputConverter = new Lazy(
   () =>
     new SchemaConverter({
       schema: z.object({
-        type: z.nativeEnum(UserType),
         disabled: optionalishDefault(z.boolean(), false),
         dateOfBirth: optionalish(dateConverter.schema),
-        clinician: optionalish(z.string()),
         receivesInactivityReminders: optionalish(z.boolean()),
         receivesQuestionnaireReminders: optionalish(z.boolean()),
         receivesRecommendationUpdates: optionalish(z.boolean()),
@@ -29,11 +26,9 @@ export const userRegistrationInputConverter = new Lazy(
         participantGroup: optionalish(z.number().int()),
       }),
       encode: (object) => ({
-        type: object.type,
         disabled: object.disabled,
         dateOfBirth:
           object.dateOfBirth ? dateConverter.encode(object.dateOfBirth) : null,
-        clinician: object.clinician ?? null,
         receivesInactivityReminders: object.receivesInactivityReminders ?? null,
         receivesQuestionnaireReminders:
           object.receivesQuestionnaireReminders ?? null,
@@ -57,8 +52,8 @@ export const userRegistrationConverter = new Lazy(
 )
 
 export const userClaimsSchema = z.object({
-  type: z.nativeEnum(UserType),
   disabled: optionalishDefault(z.boolean(), false),
+  admin: optionalish(z.boolean()),
 })
 
 export type UserClaims = z.output<typeof userClaimsSchema>
@@ -66,11 +61,9 @@ export type UserClaims = z.output<typeof userClaimsSchema>
 export class UserRegistration {
   // Stored Properties
 
-  readonly type: UserType
   readonly disabled: boolean
 
   readonly dateOfBirth?: Date
-  readonly clinician?: string
 
   readonly receivesInactivityReminders?: boolean
   readonly receivesQuestionnaireReminders?: boolean
@@ -84,7 +77,6 @@ export class UserRegistration {
 
   get claims(): UserClaims {
     return {
-      type: this.type,
       disabled: this.disabled,
     }
   }
@@ -92,10 +84,8 @@ export class UserRegistration {
   // Constructor
 
   constructor(input: {
-    type: UserType
     disabled: boolean
     dateOfBirth?: Date
-    clinician?: string
     receivesInactivityReminders?: boolean
     receivesQuestionnaireReminders?: boolean
     receivesRecommendationUpdates?: boolean
@@ -103,10 +93,8 @@ export class UserRegistration {
     timeZone?: string
     participantGroup?: number
   }) {
-    this.type = input.type
     this.disabled = input.disabled
     this.dateOfBirth = input.dateOfBirth
-    this.clinician = input.clinician
     this.receivesInactivityReminders = input.receivesInactivityReminders
     this.receivesQuestionnaireReminders = input.receivesQuestionnaireReminders
     this.receivesRecommendationUpdates = input.receivesRecommendationUpdates

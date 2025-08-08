@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { type DecodedIdToken } from 'firebase-admin/auth'
 import { https } from 'firebase-functions/v2'
@@ -17,88 +16,63 @@ import { Credential, UserRole, UserRoleType } from './credential.js'
 describe('Credential', () => {
   function createAuthData(
     userId: string,
-    type: UserType,
+    admin = false,
     disabled = false,
   ): AuthData {
     return {
       uid: userId,
       token: {
-        type: type,
+        admin,
         disabled,
       } as unknown as DecodedIdToken,
     } as AuthData
   }
 
-  const adminAuth = createAuthData('mockAdmin', UserType.admin)
-  const clinicianAuth = createAuthData('mockClinician', UserType.clinician)
-  const patientAuth = createAuthData('mockPatient', UserType.patient)
-  const disabledAuth = createAuthData('mockDisabled', UserType.patient, true)
+  const adminAuth = createAuthData('mockAdmin', true)
+  const regularUserAuth = createAuthData('mockUser', false)
+  const disabledUserAuth = createAuthData('mockDisabled', false, true)
 
   it('correctly understands whether a user is an admin', async () => {
     const credential = new Credential(adminAuth)
 
     await expectToNotThrow(() => credential.check(UserRole.admin))
 
-    await expectToThrow(
-      () => credential.check(UserRole.clinician),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient),
-      credential.permissionDeniedError(),
-    )
-
     await expectToNotThrow(() => credential.check(UserRole.user(adminAuth.uid)))
 
     await expectToThrow(
-      () => credential.check(UserRole.user(patientAuth.uid)),
+      () => credential.check(UserRole.user(regularUserAuth.uid)),
       credential.permissionDeniedError(),
     )
   })
 
-  it('correctly understands whether a user is a clinician', async () => {
-    const credential = new Credential(clinicianAuth)
+  it('correctly understands whether a user is a regular user', async () => {
+    const credential = new Credential(regularUserAuth)
 
     await expectToThrow(
       () => credential.check(UserRole.admin),
       credential.permissionDeniedError(),
     )
 
-    await expectToNotThrow(() => credential.check(UserRole.clinician))
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient),
-      credential.permissionDeniedError(),
-    )
-
     await expectToNotThrow(() =>
-      credential.check(UserRole.user(clinicianAuth.uid)),
+      credential.check(UserRole.user(regularUserAuth.uid)),
     )
 
     await expectToThrow(
-      () => credential.check(UserRole.user(patientAuth.uid)),
+      () => credential.check(UserRole.user(adminAuth.uid)),
       credential.permissionDeniedError(),
     )
   })
 
-  it('correctly understands whether a user is a patient', async () => {
-    const credential = new Credential(patientAuth)
+  it('correctly handles user access to their own data', async () => {
+    const credential = new Credential(regularUserAuth)
 
     await expectToThrow(
       () => credential.check(UserRole.admin),
       credential.permissionDeniedError(),
     )
 
-    await expectToThrow(
-      () => credential.check(UserRole.clinician),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToNotThrow(() => credential.check(UserRole.patient))
-
     await expectToNotThrow(() =>
-      credential.check(UserRole.user(patientAuth.uid)),
+      credential.check(UserRole.user(regularUserAuth.uid)),
     )
 
     await expectToThrow(
@@ -108,11 +82,11 @@ describe('Credential', () => {
   })
 
   it('handles disabled users correctly', async () => {
-    const credential = new Credential(disabledAuth)
+    const credential = new Credential(disabledUserAuth)
 
     // Attempt a check which should throw because user is disabled
     await expectToThrow(
-      () => credential.check(UserRole.patient),
+      () => credential.check(UserRole.user(disabledUserAuth.uid)),
       credential.disabledError(),
     )
   })
@@ -125,11 +99,11 @@ describe('Credential', () => {
   })
 
   it('correctly handles different user roles', async () => {
-    const credential = new Credential(patientAuth)
+    const credential = new Credential(regularUserAuth)
 
     // Should be able to authenticate as same user
     await expectToNotThrow(() =>
-      credential.check(UserRole.user(patientAuth.uid)),
+      credential.check(UserRole.user(regularUserAuth.uid)),
     )
 
     // Should reject if trying to authenticate as a different user
@@ -139,22 +113,20 @@ describe('Credential', () => {
     )
   })
 
-  it('handles clinician role correctly', async () => {
-    const credential = new Credential(clinicianAuth)
+  it('handles regular user credentials correctly', async () => {
+    const credential = new Credential(regularUserAuth)
 
-    // A clinician can access their own profile
-    await expectToNotThrow(() => credential.check(UserRole.clinician))
+    // A regular user can access their own profile
+    await expectToNotThrow(() =>
+      credential.check(UserRole.user(regularUserAuth.uid)),
+    )
 
     // Get user ID and check it's not null
-    expect(credential.userId).to.equal(clinicianAuth.uid)
+    expect(credential.userId).to.equal(regularUserAuth.uid)
 
-    // Get user type and check it matches
-    expect(credential.userType).to.equal(UserType.clinician)
-
-    // Test userHasType helper method
-    expect(credential.userHasType(UserType.clinician)).to.be.true
-    expect(credential.userHasType(UserType.admin)).to.be.false
-    expect(credential.userHasType(UserType.patient)).to.be.false
+    // Test admin status
+    expect(credential.isAdmin).to.be.false
+    expect(credential.isDisabled).to.be.false
   })
 
   it('handles admin role correctly', async () => {
@@ -166,13 +138,9 @@ describe('Credential', () => {
     // An admin should be able to access their own user record
     await expectToNotThrow(() => credential.check(UserRole.user(adminAuth.uid)))
 
-    // Get user type and check it matches
-    expect(credential.userType).to.equal(UserType.admin)
-
-    // Test userHasType helper method
-    expect(credential.userHasType(UserType.admin)).to.be.true
-    expect(credential.userHasType(UserType.clinician)).to.be.false
-    expect(credential.userHasType(UserType.patient)).to.be.false
+    // Test admin status
+    expect(credential.isAdmin).to.be.true
+    expect(credential.isDisabled).to.be.false
   })
 
   it('handles auth objects with incomplete data', async () => {
@@ -184,19 +152,9 @@ describe('Credential', () => {
 
     const credential = new Credential(incompleteAuth)
 
-    // With no type, should not pass any role check
+    // With no admin claim, should not pass admin role check
     await expectToThrow(
       () => credential.check(UserRole.admin),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.clinician),
-      credential.permissionDeniedError(),
-    )
-
-    await expectToThrow(
-      () => credential.check(UserRole.patient),
       credential.permissionDeniedError(),
     )
 
@@ -205,68 +163,70 @@ describe('Credential', () => {
       credential.check(UserRole.user(incompleteAuth.uid)),
     )
 
-    // User type should default to patient if not specified
-    expect(credential.userType).to.equal(UserType.patient)
+    // Admin status should default to false if not specified
+    expect(credential.isAdmin).to.be.false
+    expect(credential.isDisabled).to.be.false
   })
 
   it('correctly handles check with multiple roles', async () => {
-    const credential = new Credential(patientAuth)
+    const credential = new Credential(regularUserAuth)
 
     // Multiple role check should return the first matching role
     const result = credential.check(
       UserRole.admin,
-      UserRole.clinician,
-      UserRole.patient,
+      UserRole.user(regularUserAuth.uid),
       UserRole.user('someone-else'),
     )
 
-    // Should match the patient role
-    expect(result.type).to.equal(UserRoleType.patient)
+    // Should match the user role
+    expect(result.type).to.equal(UserRoleType.user)
   })
 
   it('rejects users with disabled flag', async () => {
     // Create a credential for a disabled user
-    const credential = new Credential(disabledAuth)
+    const credential = new Credential(disabledUserAuth)
 
     // Any role check should throw a disabled error
     await expectToThrow(
-      () => credential.check(UserRole.patient),
+      () => credential.check(UserRole.user(disabledUserAuth.uid)),
       credential.disabledError(),
     )
 
-    // Even checking own user should throw disabled error
+    // Even admin role check should throw disabled error for disabled admin
+    const disabledAdminAuth = createAuthData('disabledAdmin', true, true)
+    const disabledAdminCredential = new Credential(disabledAdminAuth)
     await expectToThrow(
-      () => credential.check(UserRole.user(disabledAuth.uid)),
+      () => disabledAdminCredential.check(UserRole.admin),
       credential.disabledError(),
     )
   })
 
   it('handles checkAsync method correctly', async () => {
-    const credential = new Credential(patientAuth)
+    const credential = new Credential(regularUserAuth)
 
     // Test the checkAsync method with simple promise
     const asyncResult = await credential.checkAsync(async () => [
-      UserRole.patient,
+      UserRole.user(regularUserAuth.uid),
     ])
 
-    // Should match the patient role
-    expect(asyncResult.type).to.equal(UserRoleType.patient)
+    // Should match the user role
+    expect(asyncResult.type).to.equal(UserRoleType.user)
 
     // Test with multiple role providers
     const multiResult = await credential.checkAsync(
       async () => [UserRole.admin], // This will not match
-      async () => [UserRole.patient, UserRole.user(patientAuth.uid)], // This will match
+      async () => [UserRole.user(regularUserAuth.uid)], // This will match
     )
 
-    // Should match the patient role from the second provider
-    expect(multiResult.type).to.equal(UserRoleType.patient)
+    // Should match the user role from the second provider
+    expect(multiResult.type).to.equal(UserRoleType.user)
 
     // Test with no matching roles - should throw
     await expectToThrow(
       () =>
         credential.checkAsync(
           async () => [UserRole.admin],
-          async () => [UserRole.clinician],
+          async () => [UserRole.user('different-user')],
         ),
       credential.permissionDeniedError(),
     )

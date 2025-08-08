@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { enableUser } from './enableUser.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
@@ -14,11 +13,11 @@ import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 describeWithEmulators('function: enableUser', (env) => {
   it('enables a disabled user', async () => {
     const adminId = await env.createUser({
-      type: UserType.admin,
+      admin: true,
     })
 
     const userId = await env.createUser({
-      type: UserType.patient,
+      admin: false,
       disabled: true,
     })
 
@@ -35,7 +34,7 @@ describeWithEmulators('function: enableUser', (env) => {
       {
         uid: adminId,
         token: {
-          type: UserType.admin,
+          admin: true,
           disabled: false,
         },
       },
@@ -49,11 +48,11 @@ describeWithEmulators('function: enableUser', (env) => {
 
   it('keeps enabled users enabled', async () => {
     const adminId = await env.createUser({
-      type: UserType.admin,
+      admin: true,
     })
 
     const userId = await env.createUser({
-      type: UserType.patient,
+      admin: false,
     })
 
     const userService = env.factory.user()
@@ -69,7 +68,7 @@ describeWithEmulators('function: enableUser', (env) => {
       {
         uid: adminId,
         token: {
-          type: UserType.admin,
+          admin: true,
           disabled: false,
         },
       },

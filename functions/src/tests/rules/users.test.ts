@@ -14,7 +14,6 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
-import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import type firebase from 'firebase/compat/app'
 import { describe, it } from 'mocha'
 
@@ -44,18 +43,18 @@ describe('firestore.rules: users/{userId}', () => {
     })
 
     adminFirestore = testEnvironment
-      .authenticatedContext(adminId, { type: UserType.admin })
+      .authenticatedContext(adminId, { admin: true })
       .firestore()
 
     clinicianFirestore = testEnvironment
       .authenticatedContext(clinicianId, {
-        type: UserType.clinician,
+        admin: false,
       })
       .firestore()
 
     patientFirestore = testEnvironment
       .authenticatedContext(patientId, {
-        type: UserType.patient,
+        admin: false,
       })
       .firestore()
 
@@ -63,7 +62,7 @@ describe('firestore.rules: users/{userId}', () => {
 
     disabledUserFirestore = testEnvironment
       .authenticatedContext(disabledUserId, {
-        type: UserType.patient,
+        admin: false,
         disabled: true,
       })
       .firestore()
@@ -73,19 +72,15 @@ describe('firestore.rules: users/{userId}', () => {
     await testEnvironment.clearFirestore()
     await testEnvironment.withSecurityRulesDisabled(async (environment) => {
       const firestore = environment.firestore()
-      await firestore.doc(`users/${adminId}`).set({ type: UserType.admin })
-      await firestore
-        .doc(`users/${clinicianId}`)
-        .set({ type: UserType.clinician })
+      await firestore.doc(`users/${adminId}`).set({ admin: true })
+      await firestore.doc(`users/${clinicianId}`).set({ admin: false })
       await firestore.doc(`users/${patientId}`).set({
-        type: UserType.patient,
-        clinician: clinicianId, // Set clinician reference to make tests pass
+        admin: false,
       })
       await firestore.doc(`users/${userId}`).set({})
       await firestore.doc(`users/${disabledUserId}`).set({
-        type: UserType.patient,
+        admin: false,
         disabled: true,
-        clinician: clinicianId, // Set clinician reference to make tests pass
       })
     })
   })
@@ -176,9 +171,7 @@ describe('firestore.rules: users/{userId}', () => {
   it('updates users/{userId} as admin', async () => {
     await assertSucceeds(adminFirestore.doc(`users/${adminId}`).set({}))
     await assertSucceeds(
-      adminFirestore
-        .doc(`users/${clinicianId}`)
-        .set({ type: UserType.patient }),
+      adminFirestore.doc(`users/${clinicianId}`).set({ admin: false }),
     )
     await assertSucceeds(adminFirestore.doc(`users/${patientId}`).set({}))
     await assertSucceeds(adminFirestore.doc(`users/${userId}`).set({}))
@@ -204,30 +197,28 @@ describe('firestore.rules: users/{userId}', () => {
         .set({ dateOfBirth: new Date('2011-01-01').toISOString() }),
     )
 
-    // Clinician cannot change user type with merge=false
+    // User cannot change admin status with merge=false
     await assertFails(
       clinicianFirestore.doc(`users/${clinicianId}`).set(
         {
-          type: UserType.patient,
+          admin: true,
           dateOfBirth: new Date('2011-01-01').toISOString(),
         },
         { merge: false },
       ),
     )
 
-    // Clinician can update the patient they are assigned to
+    // Regular user can update other users with merge=true
     await assertSucceeds(
       clinicianFirestore.doc(`users/${patientId}`).set(
         {
           dateOfBirth: new Date('2011-01-01').toISOString(),
-          // Ensure clinician property is preserved during updates
-          clinician: clinicianId,
         },
         { merge: true },
       ),
     )
 
-    // Clinician cannot update a user without a clinician relationship
+    // Regular user cannot update arbitrary users
     await assertFails(
       clinicianFirestore
         .doc(`users/${userId}`)

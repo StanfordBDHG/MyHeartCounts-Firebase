@@ -9,7 +9,6 @@
 import {
   type GetUsersInformationInput,
   type GetUsersInformationOutput,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { it } from 'mocha'
@@ -22,16 +21,16 @@ import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 describeWithEmulators('function: getUsersInformation', (env) => {
   it('should return users information', async () => {
     const adminId = await env.createUser({
-      type: UserType.admin,
+      admin: true,
     })
     const clinicianId1 = await env.createUser({
-      type: UserType.clinician,
+      admin: false,
     })
     const clinicianId2 = await env.createUser({
-      type: UserType.clinician,
+      admin: false,
     })
     const patientId = await env.createUser({
-      type: UserType.patient,
+      admin: false,
     })
 
     const adminResult = (await env.call(
@@ -40,7 +39,7 @@ describeWithEmulators('function: getUsersInformation', (env) => {
         userIds: [adminId, clinicianId1, clinicianId2, patientId],
         includeUserData: true,
       },
-      { uid: adminId, token: { type: UserType.admin } },
+      { uid: adminId, token: { admin: true } },
     )) as unknown as GetUsersInformationOutput
     expect(Object.keys(adminResult)).to.have.length(4)
     expect(adminResult[adminId], 'admin: admin object').to.exist
@@ -66,7 +65,7 @@ describeWithEmulators('function: getUsersInformation', (env) => {
       },
       {
         uid: clinicianId1,
-        token: { type: UserType.clinician },
+        token: { admin: false },
       },
     )) as unknown as GetUsersInformationOutput
     expect(Object.keys(clinicianResult)).to.have.length(4)
@@ -99,7 +98,7 @@ describeWithEmulators('function: getUsersInformation', (env) => {
       },
       {
         uid: patientId,
-        token: { type: UserType.patient },
+        token: { admin: false },
       },
     )) as unknown as GetUsersInformationOutput
     expect(Object.keys(patientResult)).to.have.length(4)

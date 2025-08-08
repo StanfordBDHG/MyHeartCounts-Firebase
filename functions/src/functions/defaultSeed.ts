@@ -11,7 +11,6 @@ import {
   defaultSeedInputSchema,
   type DefaultSeedOutput,
   UserDebugDataComponent,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
 import { type z } from 'zod'
@@ -79,40 +78,19 @@ export async function _defaultSeed(
     const userIds = await debugDataService.seedUsers()
     const userService = factory.user()
 
-    const allPatients = await userService.getAllPatients()
+    const allUsers = await userService.getAllUsers()
 
     for (const userId of userIds) {
       try {
         const user = await userService.getUser(userId)
-        if (user?.content.type === UserType.patient) {
-          await _seedPatientCollections({
-            debugData: debugDataService,
-            trigger: triggerService,
-            userId,
-            components: data.onlyUserCollections,
-            date: data.date,
-          })
-        } else if (user?.content.type === UserType.clinician) {
-          const clinicianPatients = allPatients.filter(
-            (patient) => patient.content.clinician === user?.id,
-          )
-          const patients = await Promise.all(
-            clinicianPatients.map(async (patient) => {
-              const patientAuth = await userService.getAuth(patient.id)
-              return {
-                name: patientAuth.displayName,
-                id: patient.id,
-              }
-            }),
-          )
-          await _seedClinicianCollections({
-            debugData: debugDataService,
-            trigger: triggerService,
-            userId,
-            components: data.onlyUserCollections,
-            patients,
-          })
-        }
+        // Seed collections for all users since we no longer have patient/clinician distinction
+        await _seedPatientCollections({
+          debugData: debugDataService,
+          trigger: triggerService,
+          userId,
+          components: data.onlyUserCollections,
+          date: data.date,
+        })
       } catch (error) {
         logger.error(`Failed to seed user ${userId}: ${String(error)}`)
       }

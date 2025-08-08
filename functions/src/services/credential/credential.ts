@@ -9,15 +9,12 @@
 import {
   type UserClaims,
   userClaimsSchema,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { https, logger } from 'firebase-functions/v2'
 import { type AuthData } from 'firebase-functions/v2/tasks'
 
 export enum UserRoleType {
   admin = 'admin',
-  clinician = 'clinician',
-  patient = 'patient',
   user = 'user',
 }
 
@@ -53,16 +50,6 @@ export class UserRole {
   // Static Properties
 
   static readonly admin = new UserRole(UserRoleType.admin, undefined, undefined)
-  static readonly clinician = new UserRole(
-    UserRoleType.clinician,
-    undefined,
-    undefined,
-  )
-  static readonly patient = new UserRole(
-    UserRoleType.patient,
-    undefined,
-    undefined,
-  )
   static user(userId: string): UserRole {
     return new UserRole(UserRoleType.user, undefined, userId)
   }
@@ -74,14 +61,14 @@ export class Credential {
   readonly userId: string
   private readonly claims: Partial<UserClaims>
 
-  // Public getters for testing
-  get userType(): UserType {
-    return this.claims.type ?? UserType.patient
+  // Public getter for testing disabled status
+  get isDisabled(): boolean {
+    return this.claims.disabled === true
   }
 
-  // Helper method for testing
-  userHasType(type: UserType): boolean {
-    return this.userType === type
+  // Public getter for admin status
+  get isAdmin(): boolean {
+    return this.claims.admin === true
   }
 
   // Constructor
@@ -141,13 +128,7 @@ export class Credential {
 
     switch (role.type) {
       case UserRoleType.admin: {
-        return this.claims.type === UserType.admin
-      }
-      case UserRoleType.clinician: {
-        return this.claims.type === UserType.clinician
-      }
-      case UserRoleType.patient: {
-        return this.claims.type === UserType.patient
+        return this.claims.admin === true
       }
       case UserRoleType.user: {
         return this.userId === role.userId

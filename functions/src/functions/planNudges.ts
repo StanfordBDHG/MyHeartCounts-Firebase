@@ -303,10 +303,7 @@ Make each nudge unique and focus on different activities like walking, swimming,
   }
 
   async createNudgeNotifications(): Promise<void> {
-    const regularUsersSnapshot = await this.firestore
-      .collection('users')
-      .where('type', '==', 'patient')
-      .get()
+    const regularUsersSnapshot = await this.firestore.collection('users').get()
 
     const manualTriggerSnapshot = await this.firestore
       .collection('users')

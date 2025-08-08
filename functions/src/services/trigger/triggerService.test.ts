@@ -12,7 +12,6 @@ import {
   User,
   UserMessage,
   UserMessageType,
-  UserType,
   UserObservationCollection,
   FHIRObservationStatus,
   CodingSystem,
@@ -30,7 +29,7 @@ describeWithEmulators('TriggerService', (env) => {
 
   beforeEach(async () => {
     patientId = await env.createUser({
-      type: UserType.patient,
+      admin: false,
     })
   })
 

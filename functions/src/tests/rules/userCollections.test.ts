@@ -13,7 +13,6 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
-import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import type firebase from 'firebase/compat/app'
 import { describe, it } from 'mocha'
 
@@ -40,18 +39,18 @@ describe('firestore.rules: users/{userId}/{collectionName}/{documentId}', () => 
     })
 
     adminFirestore = testEnvironment
-      .authenticatedContext(adminId, { type: UserType.admin })
+      .authenticatedContext(adminId, { admin: true })
       .firestore()
 
     clinicianFirestore = testEnvironment
       .authenticatedContext(clinicianId, {
-        type: UserType.clinician,
+        admin: false,
       })
       .firestore()
 
     patientFirestore = testEnvironment
       .authenticatedContext(patientId, {
-        type: UserType.patient,
+        admin: false,
       })
       .firestore()
 
@@ -62,13 +61,10 @@ describe('firestore.rules: users/{userId}/{collectionName}/{documentId}', () => 
     await testEnvironment.clearFirestore()
     await testEnvironment.withSecurityRulesDisabled(async (environment) => {
       const firestore = environment.firestore()
-      await firestore.doc(`users/${adminId}`).set({ type: UserType.admin })
-      await firestore
-        .doc(`users/${clinicianId}`)
-        .set({ type: UserType.clinician })
+      await firestore.doc(`users/${adminId}`).set({ admin: true })
+      await firestore.doc(`users/${clinicianId}`).set({ admin: false })
       await firestore.doc(`users/${patientId}`).set({
-        type: UserType.patient,
-        clinician: clinicianId, // Set clinician reference to make tests pass
+        admin: false,
       })
       await firestore.doc(`users/${userId}`).set({})
     })
