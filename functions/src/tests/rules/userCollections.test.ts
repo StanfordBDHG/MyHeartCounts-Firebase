@@ -87,7 +87,7 @@ describe('firestore.rules: users/{userId}/{collectionName}/{documentId}', () => 
 
     await assertFails(clinicianFirestore.collection(adminPath).get())
     await assertSucceeds(clinicianFirestore.collection(clinicianPath).get())
-    await assertSucceeds(clinicianFirestore.collection(patientPath).get())
+    await assertFails(clinicianFirestore.collection(patientPath).get())
     await assertFails(clinicianFirestore.collection(userPath).get())
 
     await assertFails(patientFirestore.collection(adminPath).get())

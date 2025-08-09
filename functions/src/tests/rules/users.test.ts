@@ -99,10 +99,10 @@ describe('firestore.rules: users/{userId}', () => {
 
     await assertFails(clinicianFirestore.doc(`users/${adminId}`).get())
     await assertSucceeds(clinicianFirestore.doc(`users/${clinicianId}`).get())
-    await assertSucceeds(clinicianFirestore.doc(`users/${patientId}`).get())
+    await assertFails(clinicianFirestore.doc(`users/${patientId}`).get())
     await assertFails(clinicianFirestore.doc(`users/${userId}`).get())
-    await assertSucceeds(clinicianFirestore.doc(`users/${unknownId}`).get())
-    await assertSucceeds(
+    await assertFails(clinicianFirestore.doc(`users/${unknownId}`).get())
+    await assertFails(
       clinicianFirestore.doc(`users/${disabledUserId}`).get(),
     )
 
@@ -177,7 +177,7 @@ describe('firestore.rules: users/{userId}', () => {
     await assertSucceeds(adminFirestore.doc(`users/${userId}`).set({}))
   })
 
-  it('updates users/{userId} as clinician', async () => {
+  it('updates users/{userId} as regular user', async () => {
     await assertFails(clinicianFirestore.doc(`users/${adminId}`).set({}))
 
     // Clinician can update their own document with merge=true
@@ -208,8 +208,8 @@ describe('firestore.rules: users/{userId}', () => {
       ),
     )
 
-    // Regular user can update other users with merge=true
-    await assertSucceeds(
+    // Regular user cannot update other users with merge=true
+    await assertFails(
       clinicianFirestore.doc(`users/${patientId}`).set(
         {
           dateOfBirth: new Date('2011-01-01').toISOString(),
