@@ -29,7 +29,7 @@ export interface UserService {
   finishUserEnrollment(user: Document<User>): Promise<void>
   disableUser(userId: string): Promise<void>
   enableUser(userId: string): Promise<void>
-  getAllPatients(): Promise<Array<Document<User>>>
+  getAllUsers(): Promise<Array<Document<User>>>
   getUser(userId: string): Promise<Document<User> | undefined>
   updateLastActiveDate(userId: string): Promise<void>
   deleteUser(userId: string): Promise<void>

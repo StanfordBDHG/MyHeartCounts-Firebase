@@ -88,10 +88,7 @@ export class NotificationService {
   async processNotificationBacklog(): Promise<void> {
     const now = new Date()
 
-    const usersSnapshot = await this.firestore
-      .collection('users')
-      .where('type', '==', 'patient')
-      .get()
+    const usersSnapshot = await this.firestore.collection('users').get()
 
     let totalProcessed = 0
     let totalSent = 0

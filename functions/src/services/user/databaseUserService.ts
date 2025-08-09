@@ -12,7 +12,6 @@ import {
   dateConverter,
   User,
   type UserAuth,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type Auth } from 'firebase-admin/auth'
 import { type UserRecord } from 'firebase-functions/v1/auth'
@@ -96,7 +95,6 @@ export class DatabaseUserService implements UserService {
 
         const userRef = collections.users.doc(userId)
         const userData = new User({
-          type: UserType.patient,
           disabled: false,
           receivesInactivityReminders: true,
           receivesQuestionnaireReminders: true,
@@ -177,9 +175,9 @@ export class DatabaseUserService implements UserService {
     await this.updateClaims(userId)
   }
 
-  async getAllPatients(): Promise<Array<Document<User>>> {
-    return this.databaseService.getQuery<User>((collections) =>
-      collections.users.where('type', '==', UserType.patient),
+  async getAllUsers(): Promise<Array<Document<User>>> {
+    return this.databaseService.getQuery<User>(
+      (collections) => collections.users,
     )
   }
 

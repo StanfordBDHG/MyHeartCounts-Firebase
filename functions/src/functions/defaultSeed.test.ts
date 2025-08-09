@@ -11,7 +11,6 @@ import {
   DebugDataComponent,
   StaticDataComponent,
   UserDebugDataComponent,
-  UserType,
   UserObservationCollection,
 } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
@@ -42,9 +41,7 @@ describeWithEmulators('function: defaultSeed', (env) => {
     expect(users.docs, 'user count').to.have.length.greaterThan(0)
     // We don't check for exactly 8 users since the number might change in future updates
 
-    const user = users.docs.find(
-      (userDoc) => userDoc.data().type === UserType.patient,
-    )
+    const user = users.docs.find((userDoc) => !userDoc.data().disabled)
     expect(user).to.exist
 
     if (user === undefined) expect.fail('user is undefined')

@@ -54,7 +54,7 @@ export const deleteHealthSamples = validatedOnCall(
     const credential = factory.credential(request.auth)
     const { userId, samples } = request.data
 
-    credential.check(UserRole.admin, UserRole.clinician, UserRole.user(userId))
+    credential.check(UserRole.admin, UserRole.user(userId))
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`
     const estimatedDurationMinutes = Math.ceil(samples.length / 1000) // ~1000 samples per minute

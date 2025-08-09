@@ -6,10 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  UserType,
-  UserObservationCollection,
-} from '@stanfordbdhg/myheartcounts-models'
+import { UserObservationCollection } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import type { https } from 'firebase-functions/v2'
 import { deleteHealthSamples } from './deleteHealthSamples.js'
@@ -21,7 +18,7 @@ describeWithEmulators(
   (env) => {
     it('should require confirmation', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       await expectError(
@@ -49,7 +46,7 @@ describeWithEmulators(
 
     it('should validate empty samples array', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       await expectError(
@@ -72,7 +69,7 @@ describeWithEmulators(
 
     it('should validate too many samples', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       const tooManySamples = Array.from({ length: 50001 }, (_, i) => ({
@@ -100,7 +97,7 @@ describeWithEmulators(
 
     it('should return async job response for entered-in-error marking', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       const result = await env.call(
@@ -129,10 +126,10 @@ describeWithEmulators(
 
     it('should deny access to other users samples', async () => {
       const userId1 = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
       const userId2 = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       await expectError(
@@ -160,10 +157,10 @@ describeWithEmulators(
 
     it('should allow admin to delete any users samples', async () => {
       const adminId = await env.createUser({
-        type: UserType.admin,
+        admin: true,
       })
       const userId = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       const result = await env.call(
@@ -181,7 +178,7 @@ describeWithEmulators(
         {
           uid: adminId,
           token: {
-            type: UserType.admin,
+            admin: true,
             disabled: false,
           },
         },
@@ -198,7 +195,7 @@ describeWithEmulators(
 
     it('should handle large batch marking requests', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
+        admin: false,
       })
 
       // Create a large batch of 1000 samples

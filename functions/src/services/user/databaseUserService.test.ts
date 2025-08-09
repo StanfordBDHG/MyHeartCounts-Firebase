@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType, type UserAuth } from '@stanfordbdhg/myheartcounts-models'
+import { type UserAuth } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { describe } from 'mocha'
@@ -71,7 +71,6 @@ describe('DatabaseUserService', () => {
       expect(userData).to.exist
       expect(userData?.dateOfEnrollment).to.exist
       expect(userData?.claims).to.deep.equal({
-        type: UserType.patient,
         disabled: false,
       })
     })
@@ -149,8 +148,8 @@ describe('DatabaseUserService', () => {
         isSingleSignOn: false,
       })
 
-      const patients = await userService.getAllPatients()
-      expect(patients.length).to.be.greaterThan(0)
+      const users = await userService.getAllUsers()
+      expect(users.length).to.be.greaterThan(0)
     })
 
     it('deletes a user', async () => {

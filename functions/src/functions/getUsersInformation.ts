@@ -30,11 +30,7 @@ export const getUsersInformation = validatedOnCall(
       try {
         const userData = await userService.getUser(userId)
 
-        credential.check(
-          UserRole.admin,
-          UserRole.clinician,
-          UserRole.user(userId),
-        )
+        credential.check(UserRole.admin, UserRole.user(userId))
 
         const user = await userService.getAuth(userId)
         result[userId] = {

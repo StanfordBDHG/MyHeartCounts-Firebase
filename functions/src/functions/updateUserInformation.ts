@@ -22,11 +22,7 @@ export const updateUserInformation = validatedOnCall(
     const credential = factory.credential(request.auth)
     const userService = factory.user()
 
-    credential.check(
-      UserRole.admin,
-      UserRole.clinician,
-      UserRole.user(request.data.userId),
-    )
+    credential.check(UserRole.admin, UserRole.user(request.data.userId))
 
     await userService.updateAuth(request.data.userId, request.data.data.auth)
   },
