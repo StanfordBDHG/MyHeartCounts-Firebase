@@ -51,8 +51,6 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
     const filePath = event.data.name
     const bucket = event.data.bucket
 
-    logger.info(`Processing file: ${filePath} in bucket: ${bucket}`)
-
     if (!filePath.includes('/liveHealthSamples/')) {
       logger.info(`Skipping file ${filePath} - not in liveHealthSamples folder`)
       return
