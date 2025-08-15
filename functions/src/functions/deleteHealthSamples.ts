@@ -6,10 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  UserObservationCollection,
-  FHIRObservationStatus,
-} from '@stanfordbdhg/myheartcounts-models'
+import { FHIRObservationStatus } from '@stanfordbdhg/myheartcounts-models'
 import admin from 'firebase-admin'
 import { https, logger } from 'firebase-functions/v2'
 import { z } from 'zod'
@@ -20,23 +17,12 @@ import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const markHealthSamplesEnteredInErrorInputSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
-  samples: z
-    .array(
-      z.object({
-        collection: z.nativeEnum(UserObservationCollection),
-        documentId: z.string().min(1, 'Document ID is required'),
-      }),
-    )
-    .min(1, 'At least one sample is required')
-    .max(50000, 'Too many samples (max 50,000)'),
-  confirmation: z.literal(true, {
-    errorMap: () => ({ message: 'Explicit confirmation required' }),
-  }),
+  collection: z.string().min(1, 'Collection name is required'),
+  documentIds: z
+    .array(z.string().min(1, 'Document ID is required'))
+    .min(1, 'At least one document ID is required')
+    .max(50000, 'Too many document IDs (max 50,000)'),
 })
-
-type MarkHealthSamplesEnteredInErrorInput = z.infer<
-  typeof markHealthSamplesEnteredInErrorInputSchema
->
 
 interface MarkHealthSamplesEnteredInErrorOutput {
   status: 'accepted' | 'processing'
@@ -52,20 +38,21 @@ export const deleteHealthSamples = validatedOnCall(
   async (request): Promise<MarkHealthSamplesEnteredInErrorOutput> => {
     const factory = getServiceFactory()
     const credential = factory.credential(request.auth)
-    const { userId, samples } = request.data
+    const { userId, collection, documentIds } = request.data
 
     credential.check(UserRole.admin, UserRole.clinician, UserRole.user(userId))
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`
-    const estimatedDurationMinutes = Math.ceil(samples.length / 1000) // ~1000 samples per minute
+    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000) // ~1000 samples per minute
 
     logger.info(
-      `User '${credential.userId}' initiated async entered-in-error marking job '${jobId}' for ${samples.length} health samples for user '${userId}'`,
+      `User '${credential.userId}' initiated async entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
       {
         jobId,
         requestingUserId: credential.userId,
         targetUserId: userId,
-        samplesCount: samples.length,
+        collection,
+        samplesCount: documentIds.length,
         estimatedDurationMinutes,
       },
     )
@@ -75,7 +62,8 @@ export const deleteHealthSamples = validatedOnCall(
       jobId,
       credential.userId,
       userId,
-      samples,
+      collection,
+      documentIds,
     ).catch((error: unknown) => {
       logger.error(
         `Async entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
@@ -83,6 +71,7 @@ export const deleteHealthSamples = validatedOnCall(
           jobId,
           requestingUserId: credential.userId,
           targetUserId: userId,
+          collection,
           error: String(error),
         },
       )
@@ -91,9 +80,9 @@ export const deleteHealthSamples = validatedOnCall(
     return {
       status: 'accepted',
       jobId,
-      totalSamples: samples.length,
+      totalSamples: documentIds.length,
       estimatedDurationMinutes,
-      message: `Marking job started. Processing ${samples.length} samples as entered-in-error asynchronously.`,
+      message: `Marking job started. Processing ${documentIds.length} samples as entered-in-error asynchronously.`,
     }
   },
 )
@@ -102,7 +91,8 @@ async function processHealthSamplesEnteredInError(
   jobId: string,
   requestingUserId: string,
   targetUserId: string,
-  samples: MarkHealthSamplesEnteredInErrorInput['samples'],
+  collection: string,
+  documentIds: string[],
 ): Promise<void> {
   const collections = new CollectionsService(admin.firestore())
   const BATCH_SIZE = 500 // Process in batches to avoid timeout
@@ -110,21 +100,22 @@ async function processHealthSamplesEnteredInError(
   let totalFailed = 0
 
   logger.info(
-    `Starting async entered-in-error marking job '${jobId}': processing ${samples.length} samples in batches of ${BATCH_SIZE}`,
+    `Starting async entered-in-error marking job '${jobId}': processing ${documentIds.length} samples in collection '${collection}' in batches of ${BATCH_SIZE}`,
     {
       jobId,
       requestingUserId,
       targetUserId,
-      totalSamples: samples.length,
+      collection,
+      totalSamples: documentIds.length,
       batchSize: BATCH_SIZE,
     },
   )
 
   // Process samples in batches
-  for (let i = 0; i < samples.length; i += BATCH_SIZE) {
-    const batch = samples.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < documentIds.length; i += BATCH_SIZE) {
+    const batch = documentIds.slice(i, i + BATCH_SIZE)
     const batchNumber = Math.floor(i / BATCH_SIZE) + 1
-    const totalBatches = Math.ceil(samples.length / BATCH_SIZE)
+    const totalBatches = Math.ceil(documentIds.length / BATCH_SIZE)
 
     logger.info(
       `Processing batch ${batchNumber}/${totalBatches} for job '${jobId}' (${batch.length} samples)`,
@@ -141,6 +132,7 @@ async function processHealthSamplesEnteredInError(
     const batchResults = await processBatch(
       collections,
       targetUserId,
+      collection,
       batch,
       jobId,
       requestingUserId,
@@ -150,21 +142,22 @@ async function processHealthSamplesEnteredInError(
     totalFailed += batchResults.failed
 
     // Small delay between batches to avoid overwhelming the system
-    if (i + BATCH_SIZE < samples.length) {
+    if (i + BATCH_SIZE < documentIds.length) {
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
   }
 
   logger.info(
-    `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalFailed} failed out of ${samples.length} total`,
+    `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalFailed} failed out of ${documentIds.length} total`,
     {
       jobId,
       requestingUserId,
       targetUserId,
-      totalSamples: samples.length,
+      collection,
+      totalSamples: documentIds.length,
       totalMarked,
       totalFailed,
-      successRate: ((totalMarked / samples.length) * 100).toFixed(2) + '%',
+      successRate: ((totalMarked / documentIds.length) * 100).toFixed(2) + '%',
     },
   )
 }
@@ -172,7 +165,8 @@ async function processHealthSamplesEnteredInError(
 async function processBatch(
   collections: CollectionsService,
   userId: string,
-  batch: MarkHealthSamplesEnteredInErrorInput['samples'],
+  collection: string,
+  batch: string[],
   jobId: string,
   requestingUserId: string,
 ): Promise<{ marked: number; failed: number }> {
@@ -180,25 +174,27 @@ async function processBatch(
   let failed = 0
 
   // Use Promise.allSettled for concurrent processing within batch
-  const promises = batch.map(async (sample) => {
+  const promises = batch.map(async (documentId) => {
     try {
-      const doc = await collections
-        .userObservations(userId, sample.collection)
-        .doc(sample.documentId)
+      const doc = await collections.firestore
+        .collection('users')
+        .doc(userId)
+        .collection(collection)
+        .doc(documentId)
         .get()
 
       if (!doc.exists) {
         logger.debug(
-          `Sample not found during job '${jobId}': '${sample.documentId}' in collection '${sample.collection}'`,
+          `Sample not found during job '${jobId}': '${documentId}' in collection '${collection}'`,
           {
             jobId,
             requestingUserId,
             targetUserId: userId,
-            collection: sample.collection,
-            documentId: sample.documentId,
+            collection,
+            documentId,
           },
         )
-        return { success: false, sample }
+        return { success: false, documentId }
       }
 
       // Mark as entered-in-error instead of deleting (FHIR compliant)
@@ -207,30 +203,30 @@ async function processBatch(
       })
 
       logger.debug(
-        `Marked sample as entered-in-error in job '${jobId}': '${sample.documentId}' from collection '${sample.collection}'`,
+        `Marked sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}'`,
         {
           jobId,
           requestingUserId,
           targetUserId: userId,
-          collection: sample.collection,
-          documentId: sample.documentId,
+          collection,
+          documentId,
         },
       )
 
-      return { success: true, sample }
+      return { success: true, documentId }
     } catch (error) {
       logger.warn(
-        `Failed to mark sample as entered-in-error in job '${jobId}': '${sample.documentId}' from collection '${sample.collection}': ${String(error)}`,
+        `Failed to mark sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}': ${String(error)}`,
         {
           jobId,
           requestingUserId,
           targetUserId: userId,
-          collection: sample.collection,
-          documentId: sample.documentId,
+          collection,
+          documentId,
           error: String(error),
         },
       )
-      return { success: false, sample }
+      return { success: false, documentId }
     }
   })
 

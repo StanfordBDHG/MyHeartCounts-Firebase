@@ -6,10 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  UserType,
-  UserObservationCollection,
-} from '@stanfordbdhg/myheartcounts-models'
+import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import type { https } from 'firebase-functions/v2'
 import { deleteHealthSamples } from './deleteHealthSamples.js'
@@ -19,32 +16,24 @@ import { expectError } from '../tests/helpers.js'
 describeWithEmulators(
   'function: deleteHealthSamples (FHIR compliant)',
   (env) => {
-    it('should require confirmation', async () => {
+    it('should accept requests without confirmation parameter', async () => {
       const userId = await env.createUser({
         type: UserType.patient,
       })
 
-      await expectError(
-        () =>
-          env.call(
-            deleteHealthSamples,
-            {
-              userId,
-              samples: [
-                {
-                  collection: UserObservationCollection.heartRate,
-                  documentId: 'test-id',
-                },
-              ],
-              confirmation: false,
-            },
-            { uid: userId },
-          ),
-        (error) => {
-          const httpsError = error as https.HttpsError
-          expect(httpsError.code).to.equal('invalid-argument')
+      const result = await env.call(
+        deleteHealthSamples,
+        {
+          userId,
+          collection: 'heartRateObservations',
+          documentIds: ['test-id'],
         },
+        { uid: userId },
       )
+
+      expect(result.status).to.equal('accepted')
+      expect(result.jobId).to.be.a('string')
+      expect(result.totalSamples).to.equal(1)
     })
 
     it('should validate empty samples array', async () => {
@@ -58,8 +47,8 @@ describeWithEmulators(
             deleteHealthSamples,
             {
               userId,
-              samples: [],
-              confirmation: true,
+              collection: 'heartRateObservations',
+              documentIds: [],
             },
             { uid: userId },
           ),
@@ -75,10 +64,10 @@ describeWithEmulators(
         type: UserType.patient,
       })
 
-      const tooManySamples = Array.from({ length: 50001 }, (_, i) => ({
-        collection: UserObservationCollection.heartRate,
-        documentId: `test-id-${i}`,
-      }))
+      const tooManyDocumentIds = Array.from(
+        { length: 50001 },
+        (_, i) => `test-id-${i}`,
+      )
 
       await expectError(
         () =>
@@ -86,8 +75,8 @@ describeWithEmulators(
             deleteHealthSamples,
             {
               userId,
-              samples: tooManySamples,
-              confirmation: true,
+              collection: 'heartRateObservations',
+              documentIds: tooManyDocumentIds,
             },
             { uid: userId },
           ),
@@ -107,13 +96,8 @@ describeWithEmulators(
         deleteHealthSamples,
         {
           userId,
-          samples: [
-            {
-              collection: UserObservationCollection.heartRate,
-              documentId: 'non-existent',
-            },
-          ],
-          confirmation: true,
+          collection: 'heartRateObservations',
+          documentIds: ['non-existent'],
         },
         { uid: userId },
       )
@@ -141,13 +125,8 @@ describeWithEmulators(
             deleteHealthSamples,
             {
               userId: userId2,
-              samples: [
-                {
-                  collection: UserObservationCollection.heartRate,
-                  documentId: 'test-id',
-                },
-              ],
-              confirmation: true,
+              collection: 'heartRateObservations',
+              documentIds: ['test-id'],
             },
             { uid: userId1 },
           ),
@@ -170,13 +149,8 @@ describeWithEmulators(
         deleteHealthSamples,
         {
           userId,
-          samples: [
-            {
-              collection: UserObservationCollection.heartRate,
-              documentId: 'admin-test-sample',
-            },
-          ],
-          confirmation: true,
+          collection: 'heartRateObservations',
+          documentIds: ['admin-test-sample'],
         },
         {
           uid: adminId,
@@ -201,18 +175,18 @@ describeWithEmulators(
         type: UserType.patient,
       })
 
-      // Create a large batch of 1000 samples
-      const largeBatch = Array.from({ length: 1000 }, (_, i) => ({
-        collection: UserObservationCollection.heartRate,
-        documentId: `large-batch-sample-${i}`,
-      }))
+      // Create a large batch of 1000 document IDs
+      const largeBatchDocumentIds = Array.from(
+        { length: 1000 },
+        (_, i) => `large-batch-sample-${i}`,
+      )
 
       const result = await env.call(
         deleteHealthSamples,
         {
           userId,
-          samples: largeBatch,
-          confirmation: true,
+          collection: 'heartRateObservations',
+          documentIds: largeBatchDocumentIds,
         },
         { uid: userId },
       )
