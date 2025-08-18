@@ -1,111 +1,34 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{databaseId}/documents {
-    function valueExists(object, property) {
-      return (property in object) && object[property] != null;
-    }
-
-    function isEqualOptional(object0, property0, object1, property1) {
-      return valueExists(object0, property0)
-        ? (valueExists(object1, property1) && object0[property0] == object1[property1])
-        : !valueExists(object1, property1);
-    }
-
     function isAuthenticated() {
-      return request.auth != null 
-        && ('type' in request.auth.token)
-        && (
-          !valueExists(request.auth.token, 'disabled')
-          || request.auth.token.disabled == false
-        );
+      return request.auth != null;
     }
-
-    function isAdmin() {
-      return isAuthenticated()
-        && request.auth.token.type == 'admin';
-    }
-
-    function isClinician() {
-      return isAuthenticated()
-        && request.auth.token.type == 'clinician';
-    }
-
+  
     function isUser(userId) {
       return isAuthenticated()
         && request.auth.uid == userId;
     }
 
-    function getUser(userId) {
-      return get(/databases/$(databaseId)/documents/users/$(userId));
-    }
-
-
     match /questionnaires/{questionnaireId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow write: if false;
     }
 
     match /users/{userId} {
-      function securityRelatedFieldsDidNotChange() {
-        return isEqualOptional(request.resource.data, 'type', resource.data, 'type')
-          && isEqualOptional(request.resource.data, 'disabled', resource.data, 'disabled');
-      }
 
-      function isAllowedUpdateWithinClinicianScope() {
-        return valueExists(resource.data, 'type') ? 
-          (
-            resource.data.type in ['patient'] && isClinician() && 
-            resource.data.clinician == request.auth.uid
-          ) : false;
-      }
+      allow read: if isUser(userId);
 
-      allow read: if isAdmin()
-        || (request.auth != null && request.auth.uid == userId)
-        || (resource == null && isAuthenticated())
-        || (resource != null && isClinician() && resource.data.type == 'patient' && 
-            valueExists(resource.data, 'clinician') && resource.data.clinician == request.auth.uid);
+      allow create: if isUser(userId);
 
-      // Allow creation of user documents when the auth UID matches
-      allow create: if isAdmin()
-        || (request.auth != null && request.auth.uid == userId);
-
-      allow update: if isAdmin()
-        || (securityRelatedFieldsDidNotChange() && (isUser(userId) || isAllowedUpdateWithinClinicianScope()));
-
-      allow delete: if isAdmin();
+      allow update: if isUser(userId);
     }
 
     match /users/{userId}/{collectionName}/{documentId} {
-      function isClinicianForThisPatient() {
-        let userDoc = getUser(userId);
-        return (userDoc.data != null)
-          && userDoc.data.type == 'patient'
-          && valueExists(userDoc.data, 'clinician')
-          && userDoc.data.clinician == request.auth.uid
-          && isClinician();
-      }
 
-      function isPatientWritableCollectionName() {
-        // Regex pattern for observation collections
-        // This matches any collection ending with "Observations" or "ObservationSeries"
-        // and requires at least one character before these suffixes
-        // ...also allows HealthObservations_[a-zA-Z]+ collections
-        return collectionName.matches('^[A-Za-z]+(Observations|ObservationSeries)$')
-          || collectionName.matches('^HealthObservations_[a-zA-Z]+$')
-          || collectionName in ['questionnaireResponses', 'workouts'];
-      }
+      allow read: if isUser(userId);
 
-      function isClinicianWritableCollectionName() {
-        return isPatientWritableCollectionName();
-      }
-
-      allow read: if isAdmin()
-        || (request.auth != null && request.auth.uid == userId)
-        || isClinicianForThisPatient();
-
-      allow write: if isAdmin() 
-        || (isUser(userId) && isPatientWritableCollectionName())
-        || (isClinicianForThisPatient() && isClinicianWritableCollectionName());
+      allow write: if isUser(userId);
     }
   }
   match /feedback/{id} {
