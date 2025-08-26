@@ -9,6 +9,7 @@
 import {
   Score,
   type FHIRQuestionnaireResponse,
+  type FHIRObservation,
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
 import {
@@ -99,9 +100,6 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       // Get previous score for comparison (optional)
       const previousScore = await this.getLatestScore(userId)
 
-      // Store new score
-      await this.updateScore(userId, response.id, score)
-
       // Store FHIR observation
       await this.storeFHIRObservation(userId, response.id, score)
 
@@ -169,20 +167,34 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   private async getLatestScore(
     userId: string,
   ): Promise<Document<Score> | undefined> {
-    const result = await this.databaseService.getQuery<Score>((collections) =>
-      collections.userScores(userId).orderBy('date', 'desc').limit(1),
+    const collectionName =
+      'HealthObservations_MHCCustomSampleTypeNicotineExposure'
+    const result = await this.databaseService.getQuery<FHIRObservation>(
+      (collections) =>
+        collections
+          .userHealthObservations(userId, collectionName)
+          .orderBy('effectiveDateTime', 'desc')
+          .limit(1),
     )
-    return result.at(0)
+
+    const latestObservation = result.at(0)
+    if (!latestObservation) return undefined
+
+    // Convert FHIR observation back to Score
+    const score = this.observationToScore(latestObservation.content)
+    return {
+      id: latestObservation.id,
+      content: score,
+      path: latestObservation.path,
+      lastUpdate: latestObservation.lastUpdate,
+    }
   }
 
-  private async updateScore(
-    userId: string,
-    scoreId: string,
-    score: Score,
-  ): Promise<void> {
-    return this.databaseService.runTransaction((collections, transaction) => {
-      const ref = collections.userScores(userId).doc(scoreId)
-      transaction.set(ref, score)
+  private observationToScore(observation: FHIRObservation): Score {
+    return new Score({
+      overallScore: observation.valueQuantity?.value ?? 0,
+      date: observation.effectiveDateTime ?? new Date(),
+      domainScores: {},
     })
   }
 
