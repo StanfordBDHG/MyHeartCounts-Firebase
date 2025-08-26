@@ -6,14 +6,12 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { FHIRObservationStatus } from '@stanfordbdhg/myheartcounts-models'
-import admin from 'firebase-admin'
 import { https, logger } from 'firebase-functions/v2'
 import { z } from 'zod'
 import { validatedOnCall } from './helpers.js'
 import { UserRole } from '../services/credential/credential.js'
-import { CollectionsService } from '../services/database/collections.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+import { HealthSampleDeletionService } from '../services/healthSamples/healthSampleDeletionService.js'
 
 const markHealthSamplesEnteredInErrorInputSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
@@ -58,24 +56,27 @@ export const deleteHealthSamples = validatedOnCall(
     )
 
     // Start async processing - don't await this ...
-    processHealthSamplesEnteredInError(
-      jobId,
-      credential.userId,
-      userId,
-      collection,
-      documentIds,
-    ).catch((error: unknown) => {
-      logger.error(
-        `Async entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
-        {
-          jobId,
-          requestingUserId: credential.userId,
-          targetUserId: userId,
-          collection,
-          error: String(error),
-        },
+    const deletionService = new HealthSampleDeletionService()
+    deletionService
+      .processHealthSamplesEnteredInError(
+        jobId,
+        credential.userId,
+        userId,
+        collection,
+        documentIds,
       )
-    })
+      .catch((error: unknown) => {
+        logger.error(
+          `Async entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
+          {
+            jobId,
+            requestingUserId: credential.userId,
+            targetUserId: userId,
+            collection,
+            error: String(error),
+          },
+        )
+      })
 
     return {
       status: 'accepted',
@@ -86,172 +87,3 @@ export const deleteHealthSamples = validatedOnCall(
     }
   },
 )
-
-async function processHealthSamplesEnteredInError(
-  jobId: string,
-  requestingUserId: string,
-  targetUserId: string,
-  collection: string,
-  documentIds: string[],
-): Promise<void> {
-  const collections = new CollectionsService(admin.firestore())
-  const BATCH_SIZE = 500 // Process in batches to avoid timeout
-  let totalMarked = 0
-  let totalFailed = 0
-
-  logger.info(
-    `Starting async entered-in-error marking job '${jobId}': processing ${documentIds.length} samples in collection '${collection}' in batches of ${BATCH_SIZE}`,
-    {
-      jobId,
-      requestingUserId,
-      targetUserId,
-      collection,
-      totalSamples: documentIds.length,
-      batchSize: BATCH_SIZE,
-    },
-  )
-
-  // Process samples in batches
-  for (let i = 0; i < documentIds.length; i += BATCH_SIZE) {
-    const batch = documentIds.slice(i, i + BATCH_SIZE)
-    const batchNumber = Math.floor(i / BATCH_SIZE) + 1
-    const totalBatches = Math.ceil(documentIds.length / BATCH_SIZE)
-
-    logger.info(
-      `Processing batch ${batchNumber}/${totalBatches} for job '${jobId}' (${batch.length} samples)`,
-      {
-        jobId,
-        requestingUserId,
-        targetUserId,
-        batchNumber,
-        totalBatches,
-        batchSize: batch.length,
-      },
-    )
-
-    const batchResults = await processBatch(
-      collections,
-      targetUserId,
-      collection,
-      batch,
-      jobId,
-      requestingUserId,
-    )
-
-    totalMarked += batchResults.marked
-    totalFailed += batchResults.failed
-
-    // Small delay between batches to avoid overwhelming the system
-    if (i + BATCH_SIZE < documentIds.length) {
-      await new Promise((resolve) => setTimeout(resolve, 100))
-    }
-  }
-
-  logger.info(
-    `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalFailed} failed out of ${documentIds.length} total`,
-    {
-      jobId,
-      requestingUserId,
-      targetUserId,
-      collection,
-      totalSamples: documentIds.length,
-      totalMarked,
-      totalFailed,
-      successRate: ((totalMarked / documentIds.length) * 100).toFixed(2) + '%',
-    },
-  )
-}
-
-async function processBatch(
-  collections: CollectionsService,
-  userId: string,
-  collection: string,
-  batch: string[],
-  jobId: string,
-  requestingUserId: string,
-): Promise<{ marked: number; failed: number }> {
-  let marked = 0
-  let failed = 0
-
-  // Use Promise.allSettled for concurrent processing within batch
-  const promises = batch.map(async (documentId) => {
-    try {
-      const doc = await collections.firestore
-        .collection('users')
-        .doc(userId)
-        .collection(collection)
-        .doc(documentId)
-        .get()
-
-      if (!doc.exists) {
-        logger.debug(
-          `Sample not found during job '${jobId}': '${documentId}' in collection '${collection}'`,
-          {
-            jobId,
-            requestingUserId,
-            targetUserId: userId,
-            collection,
-            documentId,
-          },
-        )
-        return { success: false, documentId }
-      }
-
-      // Mark as entered-in-error instead of deleting (FHIR compliant)
-      await doc.ref.update({
-        status: FHIRObservationStatus.entered_in_error,
-      })
-
-      logger.debug(
-        `Marked sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}'`,
-        {
-          jobId,
-          requestingUserId,
-          targetUserId: userId,
-          collection,
-          documentId,
-        },
-      )
-
-      return { success: true, documentId }
-    } catch (error) {
-      logger.warn(
-        `Failed to mark sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}': ${String(error)}`,
-        {
-          jobId,
-          requestingUserId,
-          targetUserId: userId,
-          collection,
-          documentId,
-          error: String(error),
-        },
-      )
-      return { success: false, documentId }
-    }
-  })
-
-  const results = await Promise.allSettled(promises)
-
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      if (result.value.success) {
-        marked++
-      } else {
-        failed++
-      }
-    } else {
-      failed++
-      logger.error(
-        `Promise failed in batch processing for job '${jobId}': ${String(result.reason)}`,
-        {
-          jobId,
-          requestingUserId,
-          targetUserId: userId,
-          error: String(result.reason),
-        },
-      )
-    }
-  }
-
-  return { marked, failed }
-}
