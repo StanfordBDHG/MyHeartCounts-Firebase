@@ -14,7 +14,6 @@ import {
   userConverter,
   userDeviceConverter,
   userMessageConverter,
-  type UserObservationCollection,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type Firestore } from 'firebase-admin/firestore'
 import { DatabaseConverter } from './databaseConverter.js'
@@ -71,14 +70,6 @@ export class CollectionsService {
       .doc(userId)
       .collection('messages')
       .withConverter(new DatabaseConverter(userMessageConverter.value))
-  }
-
-  userObservations(userId: string, collection: UserObservationCollection) {
-    return this.firestore
-      .collection('users')
-      .doc(userId)
-      .collection(collection)
-      .withConverter(new DatabaseConverter(fhirObservationConverter.value))
   }
 
   userQuestionnaireResponses(userId: string) {

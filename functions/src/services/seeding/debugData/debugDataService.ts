@@ -16,7 +16,6 @@ import {
   UserMessage,
   type UserSeedingOptions,
   userSeedingOptionsSchema,
-  UserObservationCollection,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type Auth } from 'firebase-admin/auth'
 import { type CollectionReference } from 'firebase-admin/firestore'
@@ -196,10 +195,7 @@ export class DebugDataService extends SeedingService {
 
     await this.replaceCollection(
       (collections) =>
-        collections.userObservations(
-          userId,
-          UserObservationCollection.heartRate,
-        ),
+        collections.userHealthObservations(userId, 'heartRateObservations'),
       values,
     )
   }
