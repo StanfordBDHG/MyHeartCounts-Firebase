@@ -33,6 +33,5 @@ service cloud.firestore {
   }
   match /feedback/{id} {
     allow read: if false;
-    allow write: if isAuthenticated();
   }
 }
