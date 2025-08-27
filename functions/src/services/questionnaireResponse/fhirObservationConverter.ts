@@ -109,7 +109,3 @@ export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
     unitSystem: 'http://loinc.org',
   }
 }
-
-export function generateUUID(): string {
-  return randomUUID()
-}

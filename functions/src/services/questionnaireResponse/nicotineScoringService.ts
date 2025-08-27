@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { randomUUID } from 'crypto'
 import {
   Score,
   type FHIRQuestionnaireResponse,
@@ -15,7 +16,6 @@ import { logger } from 'firebase-functions'
 import {
   scoreToObservation,
   getNicotineObservationConfig,
-  generateUUID,
   type QuestionnaireObservationConfig,
 } from './fhirObservationConverter.js'
 import { QuestionnaireResponseService } from './questionnaireResponseService.js'
@@ -231,7 +231,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     score: Score,
   ): Promise<void> {
     const config = getNicotineObservationConfig()
-    const observationId = generateUUID()
+    const observationId = randomUUID()
     const observation = scoreToObservation(
       score,
       config,
