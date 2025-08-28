@@ -12,7 +12,6 @@ import {
   StaticDataComponent,
   UserDebugDataComponent,
   UserType,
-  UserObservationCollection,
 } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { _defaultSeed } from './defaultSeed.js'
@@ -66,7 +65,7 @@ describeWithEmulators('function: defaultSeed', (env) => {
 
     // Only test heart rate observations
     const heartRateObservations = await env.collections
-      .userObservations(user.id, UserObservationCollection.heartRate)
+      .userHealthObservations(user.id, 'heartRateObservations')
       .get()
     expect(
       heartRateObservations.docs,

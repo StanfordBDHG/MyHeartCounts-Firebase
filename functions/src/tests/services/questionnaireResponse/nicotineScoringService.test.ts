@@ -127,7 +127,8 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
         content: new FHIRQuestionnaireResponse({
           id: 'test-response',
           authored: new Date(),
-          questionnaire: '91EB378F-B851-46AC-865A-E0013CA95886',
+          questionnaire:
+            'https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure',
           item: [
             {
               linkId: 'a77ec6ab-8f37-4db4-8c5b-19a0d10964b9',
@@ -173,8 +174,14 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
         content: new FHIRQuestionnaireResponse({
           id: 'test-response',
           authored: new Date(),
-          questionnaire: '91EB378F-B851-46AC-865A-E0013CA95886',
-          item: [], // No items - should return false
+          questionnaire:
+            'https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure',
+          item: [
+            {
+              linkId: 'a77ec6ab-8f37-4db4-8c5b-19a0d10964b9',
+              answer: [], // No answer - should return false
+            },
+          ],
         }),
       }
 

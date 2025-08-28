@@ -6,11 +6,18 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { randomUUID } from 'crypto'
 import {
   Score,
   type FHIRQuestionnaireResponse,
+  type FHIRObservation,
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
+import {
+  scoreToObservation,
+  getNicotineObservationConfig,
+  type QuestionnaireObservationConfig,
+} from './fhirObservationConverter.js'
 import { QuestionnaireResponseService } from './questionnaireResponseService.js'
 import {
   type Document,
@@ -78,8 +85,9 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
-      '91EB378F-B851-46AC-865A-E0013CA95886', // Nicotine questionnaire UUID
+      'https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure',
     ]
+
     if (!targetQuestionnaireUrls.includes(response.content.questionnaire)) {
       return false
     }
@@ -92,8 +100,8 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       // Get previous score for comparison (optional)
       const previousScore = await this.getLatestScore(userId)
 
-      // Store new score
-      await this.updateScore(userId, response.id, score)
+      // Store FHIR observation
+      await this.storeFHIRObservation(userId, response.id, score)
 
       // Implement business logic (e.g., decline detection)
       if (previousScore && this.isSignificantDecline(previousScore, score)) {
@@ -159,20 +167,34 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   private async getLatestScore(
     userId: string,
   ): Promise<Document<Score> | undefined> {
-    const result = await this.databaseService.getQuery<Score>((collections) =>
-      collections.userScores(userId).orderBy('date', 'desc').limit(1),
+    const collectionName =
+      'HealthObservations_MHCCustomSampleTypeNicotineExposure'
+    const result = await this.databaseService.getQuery<FHIRObservation>(
+      (collections) =>
+        collections
+          .userHealthObservations(userId, collectionName)
+          .orderBy('effectiveDateTime', 'desc')
+          .limit(1),
     )
-    return result.at(0)
+
+    const latestObservation = result.at(0)
+    if (!latestObservation) return undefined
+
+    // Convert FHIR observation back to Score
+    const score = this.observationToScore(latestObservation.content)
+    return {
+      id: latestObservation.id,
+      content: score,
+      path: latestObservation.path,
+      lastUpdate: latestObservation.lastUpdate,
+    }
   }
 
-  private async updateScore(
-    userId: string,
-    scoreId: string,
-    score: Score,
-  ): Promise<void> {
-    return this.databaseService.runTransaction((collections, transaction) => {
-      const ref = collections.userScores(userId).doc(scoreId)
-      transaction.set(ref, score)
+  private observationToScore(observation: FHIRObservation): Score {
+    return new Score({
+      overallScore: observation.valueQuantity?.value ?? 0,
+      date: observation.effectiveDateTime ?? new Date(),
+      domainScores: {},
     })
   }
 
@@ -201,5 +223,30 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
 
     // Could send a message to the user or healthcare provider about smoking status changes
     // await this.messageService.addMessage(userId, AlertMessage.createNicotineScoreDecline(...))
+  }
+
+  private async storeFHIRObservation(
+    userId: string,
+    questionnaireResponseId: string,
+    score: Score,
+  ): Promise<void> {
+    const config = getNicotineObservationConfig()
+    const observationId = randomUUID()
+    const observation = scoreToObservation(
+      score,
+      config,
+      questionnaireResponseId,
+      observationId,
+    )
+
+    const collectionName =
+      'HealthObservations_MHCCustomSampleTypeNicotineExposure'
+
+    return this.databaseService.runTransaction((collections, transaction) => {
+      const ref = collections
+        .userHealthObservations(userId, collectionName)
+        .doc(observationId)
+      transaction.set(ref, observation)
+    })
   }
 }
