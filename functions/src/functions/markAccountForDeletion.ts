@@ -26,12 +26,12 @@ export const markAccountForDeletion = validatedOnCall(
     const factory = getServiceFactory()
     const credential = factory.credential(request.auth)
     const userService = factory.user()
-    
+
     const userId = request.auth?.uid
     if (!userId) {
       throw new https.HttpsError(
         'unauthenticated',
-        'User must be authenticated'
+        'User must be authenticated',
       )
     }
 
@@ -39,30 +39,27 @@ export const markAccountForDeletion = validatedOnCall(
 
     const user = await userService.getUser(userId)
     if (!user) {
-      throw new https.HttpsError(
-        'not-found',
-        'User account not found'
-      )
+      throw new https.HttpsError('not-found', 'User account not found')
     }
 
     if (user.content.disabled) {
       throw new https.HttpsError(
         'failed-precondition',
-        'Cannot mark disabled account for deletion'
+        'Cannot mark disabled account for deletion',
       )
     }
 
     const markedAt = new Date()
     await userService.markAccountForDeletion(userId, markedAt)
-    
+
     logger.info(`User ${userId} successfully marked their account for deletion`)
-    
-    return { 
+
+    return {
       success: true,
-      markedAt: markedAt.toISOString()
+      markedAt: markedAt.toISOString(),
     }
   },
   {
-    invoker: 'public'
-  }
+    invoker: 'public',
+  },
 )

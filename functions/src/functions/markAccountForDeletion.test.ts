@@ -42,7 +42,6 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
     expect(result.success).to.be.true
     expect(result.markedAt).to.be.a('string')
     expect(new Date(result.markedAt)).to.be.instanceOf(Date)
-
   })
 
   it('prevents unauthenticated users from marking accounts', async () => {
@@ -52,7 +51,9 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
     } catch (error) {
       expect(error).to.be.instanceOf(https.HttpsError)
       expect((error as https.HttpsError).code).to.equal('unauthenticated')
-      expect((error as https.HttpsError).message).to.contain('User is not authenticated')
+      expect((error as https.HttpsError).message).to.contain(
+        'User is not authenticated',
+      )
     }
   })
 
@@ -113,7 +114,9 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
     } catch (error) {
       expect(error).to.be.instanceOf(https.HttpsError)
       expect((error as https.HttpsError).code).to.equal('already-exists')
-      expect((error as https.HttpsError).message).to.contain('already marked for deletion')
+      expect((error as https.HttpsError).message).to.contain(
+        'already marked for deletion',
+      )
     }
   })
 
@@ -162,7 +165,9 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
     } catch (error) {
       expect(error).to.be.instanceOf(https.HttpsError)
       expect((error as https.HttpsError).code).to.equal('not-found')
-      expect((error as https.HttpsError).message).to.contain('User account not found')
+      expect((error as https.HttpsError).message).to.contain(
+        'User account not found',
+      )
     }
   })
 
