@@ -13,7 +13,7 @@ import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const storage = new Storage()
 
-async function deleteUserStorageFiles(userId: string): Promise<void> {
+export async function deleteUserStorageFiles(userId: string): Promise<void> {
   const bucketName = process.env.GCLOUD_PROJECT
   if (!bucketName) {
     logger.error('GCLOUD_PROJECT environment variable not set')
@@ -43,7 +43,7 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
   }
 }
 
-async function processUserDeletions(): Promise<void> {
+export async function processUserDeletions(): Promise<void> {
   const factory = getServiceFactory()
   const userService = factory.user()
 
