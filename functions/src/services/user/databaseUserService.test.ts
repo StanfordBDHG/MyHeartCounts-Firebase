@@ -181,5 +181,35 @@ describe('DatabaseUserService', () => {
       // Just test that the method doesn't throw
       await userService.deleteExpiredAccounts()
     })
+
+    it('marks account for deletion', async () => {
+      const userId = 'userToMarkForDeletion'
+
+      // First create a user
+      await userService.enrollUserDirectly(userId, {
+        isSingleSignOn: false,
+      })
+
+      let user = await userService.getUser(userId)
+      expect(user).to.exist
+      expect((user?.content as any).toBeDeleted).to.be.undefined
+
+      // Mark for deletion
+      const markedAt = new Date()
+      await userService.markAccountForDeletion(userId, markedAt)
+
+      // Verify the user was marked for deletion
+      user = await userService.getUser(userId)
+      expect(user).to.exist
+      expect((user?.content as any).toBeDeleted).to.be.true
+      expect((user?.content as any).deletionRequest).to.exist
+      expect((user?.content as any).deletionRequest.requestedBy).to.equal(userId)
+      expect((user?.content as any).deletionRequest.status).to.equal('pending')
+      
+      // Check timestamp is correct (within reasonable range)
+      const requestedAt = new Date((user?.content as any).deletionRequest.requestedAt.seconds * 1000)
+      const timeDiff = Math.abs(requestedAt.getTime() - markedAt.getTime())
+      expect(timeDiff).to.be.lessThan(1000) // Within 1 second
+    })
   })
 })
