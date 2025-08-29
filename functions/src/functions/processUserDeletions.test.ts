@@ -6,10 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { Storage } from '@google-cloud/storage'
 import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
-import { stub, restore, SinonStub } from 'sinon'
-import { Storage } from '@google-cloud/storage'
+import { stub, restore, type SinonStub } from 'sinon'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
 describe('function: processUserDeletions', () => {
@@ -48,15 +48,18 @@ describe('function: processUserDeletions', () => {
         { name: 'users/testuser/file2.pdf', delete: stub().resolves() },
         { name: 'users/testuser/folder/file3.txt', delete: stub().resolves() },
       ]
-      
+
       getFilesStub.resolves([mockFiles])
 
-      const { deleteUserStorageFiles } = await import('./processUserDeletions.js')
+      const { deleteUserStorageFiles } = await import(
+        './processUserDeletions.js'
+      )
 
       await deleteUserStorageFiles('testuser')
 
       expect(storageStub.calledOnceWith('test-project.appspot.com')).to.be.true
-      expect(getFilesStub.calledOnceWith({ prefix: 'users/testuser/' })).to.be.true
+      expect(getFilesStub.calledOnceWith({ prefix: 'users/testuser/' })).to.be
+        .true
       expect(mockFiles[0].delete.calledOnce).to.be.true
       expect(mockFiles[1].delete.calledOnce).to.be.true
       expect(mockFiles[2].delete.calledOnce).to.be.true
@@ -65,7 +68,9 @@ describe('function: processUserDeletions', () => {
     it('handles empty file list', async () => {
       getFilesStub.resolves([[]])
 
-      const { deleteUserStorageFiles } = await import('./processUserDeletions.js')
+      const { deleteUserStorageFiles } = await import(
+        './processUserDeletions.js'
+      )
 
       await deleteUserStorageFiles('testuser')
 
@@ -76,7 +81,9 @@ describe('function: processUserDeletions', () => {
     it('throws error when storage operation fails', async () => {
       getFilesStub.rejects(new Error('Storage error'))
 
-      const { deleteUserStorageFiles } = await import('./processUserDeletions.js')
+      const { deleteUserStorageFiles } = await import(
+        './processUserDeletions.js'
+      )
 
       try {
         await deleteUserStorageFiles('testuser')
@@ -88,13 +95,18 @@ describe('function: processUserDeletions', () => {
 
     it('handles file deletion failures', async () => {
       const mockFiles = [
-        { name: 'users/testuser/file1.jpg', delete: stub().rejects(new Error('Delete failed')) },
+        {
+          name: 'users/testuser/file1.jpg',
+          delete: stub().rejects(new Error('Delete failed')),
+        },
         { name: 'users/testuser/file2.pdf', delete: stub().resolves() },
       ]
-      
+
       getFilesStub.resolves([mockFiles])
 
-      const { deleteUserStorageFiles } = await import('./processUserDeletions.js')
+      const { deleteUserStorageFiles } = await import(
+        './processUserDeletions.js'
+      )
 
       try {
         await deleteUserStorageFiles('testuser')

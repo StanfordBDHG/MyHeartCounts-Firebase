@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { Storage } from '@google-cloud/storage'
 import { logger } from 'firebase-functions/v2'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { Storage } from '@google-cloud/storage'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const storage = new Storage()
@@ -25,17 +25,17 @@ export async function deleteUserStorageFiles(userId: string): Promise<void> {
 
   try {
     const [files] = await bucket.getFiles({ prefix })
-    
+
     if (files.length === 0) {
       logger.info(`No storage files found for user ${userId}`)
       return
     }
 
     logger.info(`Deleting ${files.length} storage files for user ${userId}`)
-    
-    const deletePromises = files.map(file => file.delete())
+
+    const deletePromises = files.map((file) => file.delete())
     await Promise.all(deletePromises)
-    
+
     logger.info(`Successfully deleted storage files for user ${userId}`)
   } catch (error) {
     logger.error(`Failed to delete storage files for user ${userId}:`, error)
@@ -49,7 +49,9 @@ export async function processUserDeletions(): Promise<void> {
 
   try {
     const users = await userService.getAllPatients()
-    const usersToDelete = users.filter(user => (user.content as any).toBeDeleted === true)
+    const usersToDelete = users.filter(
+      (user) => (user.content as any).toBeDeleted === true,
+    )
 
     if (usersToDelete.length === 0) {
       logger.info('No users marked for deletion found')
@@ -88,5 +90,5 @@ export const processUserDeletionsScheduled = onSchedule(
     logger.info('Starting scheduled user deletion process')
     await processUserDeletions()
     logger.info('Completed scheduled user deletion process')
-  }
+  },
 )
