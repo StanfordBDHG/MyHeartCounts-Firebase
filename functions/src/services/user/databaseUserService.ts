@@ -197,13 +197,18 @@ export class DatabaseUserService implements UserService {
     })
   }
 
-  async markAccountForDeletion(userId: string): Promise<void> {
+  async markAccountForDeletion(userId: string, markedAt: Date): Promise<void> {
     await this.databaseService.runTransaction((collections, transaction) => {
       transaction.update(collections.users.doc(userId), {
         toBeDeleted: true,
+        deletionRequest: {
+          requestedAt: dateConverter.encode(markedAt),
+          requestedBy: userId,
+          status: 'pending'
+        }
       })
     })
-    logger.info(`User ${userId} marked their account for deletion`)
+    logger.info(`User ${userId} marked their account for deletion at ${markedAt.toISOString()}`)
   }
 
   async deleteUser(userId: string): Promise<void> {
