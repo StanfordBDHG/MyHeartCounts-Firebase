@@ -197,6 +197,36 @@ export class DatabaseUserService implements UserService {
     })
   }
 
+  async markAccountForDeletion(userId: string, markedAt: Date): Promise<void> {
+    await this.databaseService.runTransaction(
+      async (collections, transaction) => {
+        // Get raw document without converter to check toBeDeleted field
+        const rawUserRef = collections.firestore.collection('users').doc(userId)
+        const userDoc = await transaction.get(rawUserRef)
+        const userData = userDoc.data()
+
+        if (userData && (userData as any).toBeDeleted) {
+          throw new https.HttpsError(
+            'already-exists',
+            'Account is already marked for deletion',
+          )
+        }
+
+        transaction.update(rawUserRef, {
+          toBeDeleted: true,
+          deletionRequest: {
+            requestedAt: dateConverter.encode(markedAt),
+            requestedBy: userId,
+            status: 'pending',
+          },
+        })
+      },
+    )
+    logger.info(
+      `User ${userId} marked their account for deletion at ${markedAt.toISOString()}`,
+    )
+  }
+
   async deleteUser(userId: string): Promise<void> {
     await this.databaseService.bulkWrite(async (collections, writer) => {
       await collections.firestore.recursiveDelete(

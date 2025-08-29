@@ -32,6 +32,7 @@ export interface UserService {
   getAllPatients(): Promise<Array<Document<User>>>
   getUser(userId: string): Promise<Document<User> | undefined>
   updateLastActiveDate(userId: string): Promise<void>
+  markAccountForDeletion(userId: string, markedAt: Date): Promise<void>
   deleteUser(userId: string): Promise<void>
   deleteExpiredAccounts(): Promise<void>
 }

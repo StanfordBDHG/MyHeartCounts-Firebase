@@ -181,5 +181,34 @@ describe('DatabaseUserService', () => {
       // Just test that the method doesn't throw
       await userService.deleteExpiredAccounts()
     })
+
+    it('marks account for deletion', async () => {
+      const userId = 'userToMarkForDeletion'
+
+      // First create a user
+      await userService.enrollUserDirectly(userId, {
+        isSingleSignOn: false,
+      })
+
+      const user = await userService.getUser(userId)
+      expect(user).to.exist
+
+      // Mark for deletion - this should not throw
+      const markedAt = new Date()
+      await userService.markAccountForDeletion(userId, markedAt)
+
+      // Verify calling again throws an error (duplicate check)
+      try {
+        await userService.markAccountForDeletion(userId, new Date())
+        expect.fail(
+          'Should have thrown an error for duplicate deletion request',
+        )
+      } catch (error) {
+        expect(error).to.be.instanceOf(Error)
+        expect((error as any).message).to.contain(
+          'Account is already marked for deletion',
+        )
+      }
+    })
   })
 })

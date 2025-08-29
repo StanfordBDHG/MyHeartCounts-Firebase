@@ -93,6 +93,10 @@ export class MockUserService implements UserService {
     return
   }
 
+  async markAccountForDeletion(userId: string, markedAt: Date): Promise<void> {
+    return
+  }
+
   async deleteUser(userId: string): Promise<void> {
     return
   }
