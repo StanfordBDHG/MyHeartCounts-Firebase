@@ -197,6 +197,15 @@ export class DatabaseUserService implements UserService {
     })
   }
 
+  async markAccountForDeletion(userId: string): Promise<void> {
+    await this.databaseService.runTransaction((collections, transaction) => {
+      transaction.update(collections.users.doc(userId), {
+        toBeDeleted: true,
+      })
+    })
+    logger.info(`User ${userId} marked their account for deletion`)
+  }
+
   async deleteUser(userId: string): Promise<void> {
     await this.databaseService.bulkWrite(async (collections, writer) => {
       await collections.firestore.recursiveDelete(

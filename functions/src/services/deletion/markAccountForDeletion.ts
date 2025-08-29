@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { logger } from 'firebase-functions'
-import { https, onCall } from 'firebase-functions/v2/https'
-import { getServiceFactory } from '../../services/factory/getServiceFactory.js'
+import { https, logger } from 'firebase-functions/v2'
+import { onCall } from 'firebase-functions/v2/https'
+import { getServiceFactory } from '../factory/getServiceFactory.js'
 
 export const markAccountForDeletion = onCall(
   { invoker: 'public' },
@@ -25,15 +25,9 @@ export const markAccountForDeletion = onCall(
 
     try {
       const factory = getServiceFactory()
-      const databaseService = factory.database()
+      const userService = factory.user()
 
-      await databaseService.runTransaction((collections, transaction) => {
-        transaction.update(collections.users.doc(userId), {
-          toBeDeleted: true,
-        })
-      })
-
-      logger.info(`User ${userId} marked their account for deletion`)
+      await userService.markAccountForDeletion(userId)
       
       return { success: true }
     } catch (error) {
