@@ -27,18 +27,16 @@ export const markAccountForDeletion = validatedOnCall(
     const credential = factory.credential(request.auth)
     const userService = factory.user()
     
-    // Only allow users to mark their own account
     const userId = request.auth?.uid
     if (!userId) {
       throw new https.HttpsError(
         'unauthenticated',
-        'User must be authenticated to request account deletion'
+        'User must be authenticated'
       )
     }
 
     credential.check(UserRole.user(userId))
 
-    // Check if user exists and get current state
     const user = await userService.getUser(userId)
     if (!user) {
       throw new https.HttpsError(
@@ -47,16 +45,6 @@ export const markAccountForDeletion = validatedOnCall(
       )
     }
 
-    // Check if account is already marked for deletion
-    if ((user.content as any).toBeDeleted) {
-      logger.info(`User ${userId} attempted to mark already-deleted account`)
-      throw new https.HttpsError(
-        'already-exists',
-        'Account is already marked for deletion'
-      )
-    }
-
-    // Check if user is disabled
     if (user.content.disabled) {
       throw new https.HttpsError(
         'failed-precondition',
