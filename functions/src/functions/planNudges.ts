@@ -9,6 +9,7 @@
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
+import OpenAI from 'openai'
 import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
 import {
   getPredefinedNudgeMessages,
@@ -17,14 +18,6 @@ import {
 
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp
-}
-
-interface OpenAIResponse {
-  choices: Array<{
-    message: {
-      content: string
-    }
-  }>
 }
 
 export class NudgeService {
@@ -256,39 +249,62 @@ Example format:
   ...
 ] Each nudge should be personalized to the following information: ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
 
-        const response = await fetch(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${getOpenaiApiKey()}`,
-              'Content-Type': 'application/json',
+        const openai = new OpenAI({
+          apiKey: getOpenaiApiKey(),
+        })
+
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o-2024-08-06',
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
             },
-            body: JSON.stringify({
-              model: 'gpt-3.5-turbo',
-              messages: [
-                {
-                  role: 'user',
-                  content: prompt,
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'nudge_messages',
+              schema: {
+                type: 'object',
+                properties: {
+                  nudges: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        title: {
+                          type: 'string',
+                          description:
+                            'Short summary/call to action for the push notification',
+                        },
+                        body: {
+                          type: 'string',
+                          description:
+                            'Motivational message content for the push notification',
+                        },
+                      },
+                      required: ['title', 'body'],
+                      additionalProperties: false,
+                    },
+                    minItems: 7,
+                    maxItems: 7,
+                    description: 'Exactly 7 nudge messages',
+                  },
                 },
-              ],
-              max_tokens: 1000,
-              temperature: 0.7,
-            }),
+                required: ['nudges'],
+                additionalProperties: false,
+              },
+            },
           },
+          max_tokens: 1000,
+          temperature: 0.7,
+        })
+
+        const parsedContent = JSON.parse(
+          response.choices[0].message.content ?? '{}',
         )
-
-        if (!response.ok) {
-          throw new Error(
-            `OpenAI API error: ${response.status} ${response.statusText}`,
-          )
-        }
-
-        const data: OpenAIResponse = await response.json()
-        const content = data.choices[0].message.content
-
-        const parsedNudges: Array<{ title: string; body: string }> =
-          JSON.parse(content)
+        const parsedNudges = parsedContent.nudges
 
         if (!Array.isArray(parsedNudges) || parsedNudges.length !== 7) {
           throw new Error('Invalid response format from OpenAI API')
