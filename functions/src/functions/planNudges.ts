@@ -124,68 +124,127 @@ export class NudgeService {
       try {
         const isSpanish = language === 'es'
 
-        // Build personalization context
-        const personalizationContext = []
-        if (recentStepCount !== null) {
-          personalizationContext.push(
-            isSpanish ?
-              `Promedio de pasos diarios recientes: ${recentStepCount}`
-            : `Recent daily step count average: ${recentStepCount}`,
+        // Build detailed personalization context
+        const genderIdentity = userData.genderIdentity || 'female'
+        const dateOfBirth = userData.dateOfBirth
+        const disease = userData.disease
+        const stateOfChange = userData.stateOfChange
+        const educationLevel = userData.educationLevel
+
+        // Calculate age from dateOfBirth
+        let ageContext = ''
+        if (dateOfBirth) {
+          const birthDate =
+            dateOfBirth instanceof Date ? dateOfBirth : new Date(dateOfBirth)
+          const currentAge = Math.floor(
+            (new Date().getTime() - birthDate.getTime()) /
+              (365.25 * 24 * 60 * 60 * 1000),
           )
-        }
-        if (educationLevel) {
-          personalizationContext.push(
-            isSpanish ?
-              `Nivel educativo: ${educationLevel}`
-            : `Education level: ${educationLevel}`,
-          )
+
+          if (currentAge < 35) {
+            ageContext = `This participant is ${currentAge} years old and should be prompted to think about the short-term benefits of exercise on their mood, energy, and health.`
+          } else if (currentAge <= 50) {
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions.`
+          } else if (currentAge <= 65) {
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.`
+          } else {
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).`
+          }
         }
 
-        const contextStr =
-          personalizationContext.length > 0 ?
-            isSpanish ?
-              `\n\nInformación del participante:\n${personalizationContext.map((ctx) => `- ${ctx}`).join('\n')}\n`
-            : `\n\nParticipant information:\n${personalizationContext.map((ctx) => `- ${ctx}`).join('\n')}\n`
-          : ''
+        // Build gender context
+        let genderContext = ''
+        if (genderIdentity === 'male') {
+          genderContext =
+            'This participant is male and may respond better to prompts about playing sports or doing individual activities (i.e., cycling, running/treadmill, walks in the neighborhood, going to the gym)'
+        } else {
+          genderContext =
+            'This participant is female and may respond better to prompts about group fitness classes and activities with friends. [DEFAULTS TO FEMALE]'
+        }
+
+        // Build disease context
+        let diseaseContext = ''
+        if (disease) {
+          switch (disease) {
+            case 'Heart failure':
+              diseaseContext =
+                'This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.'
+              break
+            case 'Pulmonary arterial hypertension':
+              diseaseContext =
+                'This participant has pulmonary arterial hypertension (PAH), a condition characterized by high blood pressure in the arteries of the lungs, which makes the right side of the heart work harder to pump blood. PAH is a progressive disease that increases the risk of heart failure, reduced physical capacity, and early mortality. While it cannot be cured, treatments and lifestyle strategies such as regular physical activity can improve exercise tolerance, heart function, and overall quality of life.'
+              break
+            case 'Diabetes':
+              diseaseContext =
+                'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
+              break
+            case 'ACHD (simple)':
+              diseaseContext =
+                'This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.'
+              break
+            case 'ACHD (complex)':
+              diseaseContext =
+                'This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.'
+              break
+          }
+        }
+
+        // Build stage of change context
+        let stageContext = ''
+        if (stateOfChange) {
+          switch (stateOfChange) {
+            case 'Precontemplation':
+              stageContext =
+                'This person is in the pre-contemplation stage of exercise change. This person does not plan to start exercising in the next six months and does not consider their current behavior a problem.'
+              break
+            case 'Contemplation':
+              stageContext =
+                'This person is in the contemplation stage of changing their exercise. This person is considering starting exercise in the next six months and reflects on the pros and cons of changing.'
+              break
+            case 'Preparation':
+              stageContext =
+                'This person is in the preparation stage of changing their exercise habits. This person is ready to begin exercising in the next 30 days and has begun taking small steps.'
+              break
+            case 'Action':
+              stageContext =
+                'This person is in the action stage of exercise change. This person has recently started exercising (within the last six months) and is building a new, healthy routine.'
+              break
+            case 'Maintenance':
+              stageContext =
+                'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages.'
+              break
+          }
+        }
+
+        // Build education level context
+        let educationContext = ''
+        if (educationLevel) {
+          switch (educationLevel) {
+            case 'Highschool':
+              educationContext =
+                "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level."
+              break
+            case 'collage':
+              educationContext =
+                'This person is more highly educated and has some form of higher education. Please write the prompts at the 12th grade reading comprehension level.'
+              break
+          }
+        }
 
         const prompt =
           isSpanish ?
-            `Genera 7 recordatorios motivacionales de deportes y ejercicio para un participante en un estudio de salud cardíaca.${contextStr}
-Cada recordatorio debe:
-- Ser alentador y positivo
-- Enfocarse en diferentes tipos de actividades físicas y deportes
-- Ser personalizado y atractivo basado en la información del participante
-- Incluir una llamada clara a la acción
-- Ser adecuado para alguien en un estudio de salud cardíaca
-- Adaptar el lenguaje y las sugerencias al nivel educativo del participante
-- Incorporar referencias al conteo de pasos cuando sea relevante
-
-Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
+            `Escribe 7 mensajes motivacionales que tengan la longitud adecuada para una notificación push usando un tono calmado, alentador y profesional, como el de un entrenador de salud para motivar a un usuario de smartphone a aumentar sus niveles de actividad física. Este mensaje se envía por la mañana para que el usuario tenga todo el día para aumentar sus niveles de actividad física. También crea un título para cada notificación push que sea un resumen corto/llamada a la acción de la notificación push que la acompaña. Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body".
 Formato de ejemplo:
 [
   {"title": "Impulso de Energía Matutino", "body": "¡Comienza tu día con una caminata de 15 minutos! Tu corazón amará el cardio suave."},
   ...
-]
-
-Haz cada recordatorio único y enfócate en diferentes actividades como caminar, nadar, bailar, deportes de equipo, entrenamiento de fuerza, yoga, etc.`
-          : `Generate 7 motivational sports and exercise nudges for a heart health study participant.${contextStr}
-Each nudge should:
-- Be encouraging and positive
-- Focus on different types of physical activities and sports
-- Be personalized and engaging based on the participant's information
-- Include a clear call to action
-- Be suitable for someone in a heart health study
-- Adapt language and suggestions to the participant's education level
-- Incorporate step count references when relevant
-
-Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields.
+] Cada mensaje debe estar personalizado para la siguiente información: ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
+          : `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields.
 Example format:
 [
   {"title": "Morning Energy Boost", "body": "Start your day with a 15-minute walk! Your heart will love the gentle cardio."},
   ...
-]
-
-Make each nudge unique and focus on different activities like walking, swimming, dancing, team sports, strength training, yoga, etc.`
+] Each nudge should be personalized to the following information: ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
 
         const response = await fetch(
           'https://api.openai.com/v1/chat/completions',
