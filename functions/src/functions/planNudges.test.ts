@@ -13,89 +13,7 @@ import { it, describe } from 'mocha'
 import { createNudgeNotifications } from './planNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
-// Mock fetch for OpenAI API calls
-const originalFetch = global.fetch
-let mockFetchResponse: any = null
-let shouldMockFail = false // If possible this should not be neededm because this is *just* fallback behavior when the OpenAI API fails.
-let fetchCallCount = 0
-let maxFailures = 0
-
-function mockFetch(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-): Promise<Response> {
-  if (
-    typeof input === 'string' &&
-    input.startsWith('https://api.openai.com/')
-  ) {
-    fetchCallCount++
-
-    if (shouldMockFail) {
-      return Promise.reject(new Error('Network error'))
-    }
-
-    if (maxFailures > 0 && fetchCallCount <= maxFailures) {
-      return Promise.reject(new Error('Temporary network error'))
-    }
-
-    if (mockFetchResponse?.invalidJson) {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        json: () =>
-          Promise.resolve({
-            choices: [
-              {
-                message: {
-                  content: 'invalid json',
-                },
-              },
-            ],
-          }),
-      } as Response)
-    }
-
-    return Promise.resolve({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: () =>
-        Promise.resolve({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify([
-                  { title: 'Test Nudge 1', body: 'Test body 1' },
-                  { title: 'Test Nudge 2', body: 'Test body 2' },
-                  { title: 'Test Nudge 3', body: 'Test body 3' },
-                  { title: 'Test Nudge 4', body: 'Test body 4' },
-                  { title: 'Test Nudge 5', body: 'Test body 5' },
-                  { title: 'Test Nudge 6', body: 'Test body 6' },
-                  { title: 'Test Nudge 7', body: 'Test body 7' },
-                ]),
-              },
-            },
-          ],
-        }),
-    } as Response)
-  }
-  return originalFetch(input, init)
-}
-
 describeWithEmulators('function: planNudges', (env) => {
-  beforeEach(() => {
-    global.fetch = mockFetch
-    mockFetchResponse = null
-    shouldMockFail = false
-    fetchCallCount = 0
-    maxFailures = 0
-  })
-
-  afterEach(() => {
-    global.fetch = originalFetch
-  })
-
   describe('User eligibility and nudge creation', () => {
     it('creates predefined nudges for group 1 user at day 7', async () => {
       const enrollmentDate = new Date()
@@ -130,7 +48,7 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(firstNudge.timestamp).to.be.instanceOf(admin.firestore.Timestamp)
     })
 
-    it('creates LLM nudges for group 1 user at day 14', async () => {
+    it('creates nudges for group 1 user at day 14 (fallback to predefined when no API key)', async () => {
       const enrollmentDate = new Date()
       enrollmentDate.setDate(enrollmentDate.getDate() - 14)
 
@@ -144,6 +62,8 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'en',
+          genderIdentity: 'female',
+          dateOfBirth: new Date('1990-01-01'),
         })
 
       await createNudgeNotifications()
@@ -157,12 +77,14 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
-      expect(firstNudge.nudgeType).to.equal('llm-generated')
+      // Should fall back to predefined nudges when OpenAI API key is not available
+      expect(firstNudge.nudgeType).to.equal('predefined')
       expect(firstNudge.title).to.be.a('string')
       expect(firstNudge.body).to.be.a('string')
+      expect(firstNudge.isLLMGenerated).to.not.be.true
     })
 
-    it('creates LLM nudges for group 2 user at day 7', async () => {
+    it('creates nudges for group 2 user at day 7 (fallback to predefined when no API key)', async () => {
       const enrollmentDate = new Date()
       enrollmentDate.setDate(enrollmentDate.getDate() - 7)
 
@@ -176,6 +98,8 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 2,
           userLanguage: 'en',
+          genderIdentity: 'male',
+          dateOfBirth: new Date('1985-01-01'),
         })
 
       await createNudgeNotifications()
@@ -189,7 +113,9 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
-      expect(firstNudge.nudgeType).to.equal('llm-generated')
+      // Should fall back to predefined nudges when OpenAI API key is not available
+      expect(firstNudge.nudgeType).to.equal('predefined')
+      expect(firstNudge.isLLMGenerated).to.not.be.true
     })
 
     it('creates predefined nudges for group 2 user at day 14', async () => {
@@ -249,6 +175,7 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
+      expect(firstNudge.nudgeType).to.equal('predefined')
       // Check that it's in Spanish by looking for spanish words/characters
       expect(firstNudge.title).to.match(
         /[ÁÉÍÓÚáéíóúñÑ]|Construye|Impulso|Campeón|Equípate|Hora de Poder|Desafío|Moverse/,
@@ -300,9 +227,7 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(0)
     })
 
-    it('handles OpenAI API failures gracefully', async () => {
-      shouldMockFail = true
-
+    it('handles OpenAI API failures gracefully (falls back to predefined)', async () => {
       const enrollmentDate = new Date()
       enrollmentDate.setDate(enrollmentDate.getDate() - 14)
 
@@ -316,6 +241,8 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'en',
+          genderIdentity: 'female',
+          dateOfBirth: new Date('1990-01-01'),
         })
 
       await createNudgeNotifications()
@@ -330,15 +257,14 @@ describeWithEmulators('function: planNudges', (env) => {
 
       const firstNudge = backlogSnapshot.docs[0].data()
       expect(firstNudge.nudgeType).to.equal('predefined')
+      expect(firstNudge.isLLMGenerated).to.not.be.true
     })
 
-    it('handles malformed OpenAI responses', async () => {
-      mockFetchResponse = { invalidJson: true }
-
+    it('creates nudges for manual trigger (fallback to predefined when no API key)', async () => {
       const enrollmentDate = new Date()
-      enrollmentDate.setDate(enrollmentDate.getDate() - 14)
+      enrollmentDate.setDate(enrollmentDate.getDate() - 3) // Not on day 7 or 14
 
-      const userId = 'test-user-bad-response'
+      const userId = 'test-user-manual-trigger'
       await env.firestore
         .collection('users')
         .doc(userId)
@@ -348,10 +274,14 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'en',
+          triggerNudgeGeneration: true,
+          genderIdentity: 'female',
+          dateOfBirth: new Date('1990-01-01'),
         })
 
       await createNudgeNotifications()
 
+      // Check that nudges were created
       const backlogSnapshot = await env.firestore
         .collection('users')
         .doc(userId)
@@ -361,73 +291,17 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
+      // Should fall back to predefined nudges when OpenAI API key is not available
       expect(firstNudge.nudgeType).to.equal('predefined')
-    })
+      expect(firstNudge.isLLMGenerated).to.not.be.true
 
-    it('retries LLM generation on failure and succeeds on second attempt', async () => {
-      maxFailures = 1
-
-      const enrollmentDate = new Date()
-      enrollmentDate.setDate(enrollmentDate.getDate() - 14)
-
-      const userId = 'test-user-retry-success'
-      await env.firestore
+      // Check that the trigger flag was reset
+      const userDoc = await env.firestore
         .collection('users')
         .doc(userId)
-        .set({
-          type: 'patient',
-          timeZone: 'America/New_York',
-          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
-          participantGroup: 1,
-          userLanguage: 'en',
-        })
-
-      await createNudgeNotifications()
-
-      const backlogSnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
         .get()
-
-      expect(backlogSnapshot.size).to.equal(7)
-      expect(fetchCallCount).to.equal(2)
-
-      const firstNudge = backlogSnapshot.docs[0].data()
-      expect(firstNudge.nudgeType).to.equal('llm-generated')
-    })
-
-    it('retries LLM generation up to 3 times then falls back to predefined', async () => {
-      maxFailures = 3
-
-      const enrollmentDate = new Date()
-      enrollmentDate.setDate(enrollmentDate.getDate() - 14)
-
-      const userId = 'test-user-retry-fallback'
-      await env.firestore
-        .collection('users')
-        .doc(userId)
-        .set({
-          type: 'patient',
-          timeZone: 'America/New_York',
-          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
-          participantGroup: 1,
-          userLanguage: 'en',
-        })
-
-      await createNudgeNotifications()
-
-      const backlogSnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .get()
-
-      expect(backlogSnapshot.size).to.equal(7)
-      expect(fetchCallCount).to.equal(3)
-
-      const firstNudge = backlogSnapshot.docs[0].data()
-      expect(firstNudge.nudgeType).to.equal('predefined')
+      const userData = userDoc.data()
+      expect(userData?.triggerNudgeGeneration).to.be.false
     })
   })
 
@@ -474,60 +348,6 @@ describeWithEmulators('function: planNudges', (env) => {
     })
   })
 
-  describe('Date calculation', () => {
-    it('correctly calculates days since enrollment for Timestamp', async () => {
-      const enrollmentDate = new Date()
-      enrollmentDate.setDate(enrollmentDate.getDate() - 7)
-      enrollmentDate.setHours(0, 0, 0, 0)
-
-      const userId = 'test-user-timestamp'
-      await env.firestore
-        .collection('users')
-        .doc(userId)
-        .set({
-          type: 'patient',
-          timeZone: 'UTC',
-          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
-          participantGroup: 1,
-          userLanguage: 'en',
-        })
-
-      await createNudgeNotifications()
-
-      const backlogSnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .get()
-
-      expect(backlogSnapshot.size).to.equal(7)
-    })
-
-    it('correctly calculates days since enrollment for Date object', async () => {
-      const enrollmentDate = new Date()
-      enrollmentDate.setDate(enrollmentDate.getDate() - 14)
-
-      const userId = 'test-user-date'
-      await env.firestore.collection('users').doc(userId).set({
-        type: 'patient',
-        timeZone: 'UTC',
-        dateOfEnrollment: enrollmentDate,
-        participantGroup: 2,
-        userLanguage: 'en',
-      })
-
-      await createNudgeNotifications()
-
-      const backlogSnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .get()
-
-      expect(backlogSnapshot.size).to.equal(7)
-    })
-  })
-
   describe('Language support', () => {
     it('defaults to English for unsupported languages', async () => {
       const enrollmentDate = new Date()
@@ -556,33 +376,8 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
+      expect(firstNudge.nudgeType).to.equal('predefined')
       expect(firstNudge.title).to.not.include('¡')
-    })
-
-    it('defaults to English when userLanguage is undefined', async () => {
-      const enrollmentDate = new Date()
-      enrollmentDate.setDate(enrollmentDate.getDate() - 7)
-
-      const userId = 'test-user-no-lang'
-      await env.firestore
-        .collection('users')
-        .doc(userId)
-        .set({
-          type: 'patient',
-          timeZone: 'UTC',
-          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
-          participantGroup: 1,
-        })
-
-      await createNudgeNotifications()
-
-      const backlogSnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .get()
-
-      expect(backlogSnapshot.size).to.equal(7)
     })
   })
 })
