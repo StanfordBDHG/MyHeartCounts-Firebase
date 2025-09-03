@@ -234,10 +234,14 @@ export class NudgeService {
           }
         }
 
-        const prompt =
-          isSpanish ?
-            `Escribe 7 mensajes motivacionales que tengan la longitud adecuada para una notificación push usando un tono calmado, alentador y profesional, como el de un entrenador de salud para motivar a un usuario de smartphone a aumentar sus niveles de actividad física. Este mensaje se envía por la mañana para que el usuario tenga todo el día para aumentar sus niveles de actividad física. También crea un título para cada notificación push que sea un resumen corto/llamada a la acción de la notificación push que la acompaña. Devuelve la respuesta como un array JSON con exactamente 7 objetos, cada uno con campos "title" y "body". Cada mensaje debe estar personalizado para la siguiente información: ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
-          : `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. Each nudge should be personalized to the following information: ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
+        // Build language context
+        let languageContext = ''
+        if (isSpanish) {
+          languageContext =
+            "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the formal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
+        }
+
+        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
 
         const openai = new OpenAI({
           apiKey: getOpenaiApiKey(),
