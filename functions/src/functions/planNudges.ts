@@ -16,6 +16,27 @@ import {
   type BaseNudgeMessage,
 } from './nudgeMessages.js'
 
+enum Disease {
+  HEART_FAILURE = 'Heart failure',
+  PULMONARY_ARTERIAL_HYPERTENSION = 'Pulmonary arterial hypertension',
+  DIABETES = 'Diabetes',
+  ACHD_SIMPLE = 'ACHD (simple)',
+  ACHD_COMPLEX = 'ACHD (complex)',
+}
+
+enum StageOfChange {
+  PRECONTEMPLATION = 'Precontemplation',
+  CONTEMPLATION = 'Contemplation',
+  PREPARATION = 'Preparation',
+  ACTION = 'Action',
+  MAINTENANCE = 'Maintenance',
+}
+
+enum EducationLevel {
+  HIGHSCHOOL = 'Highschool',
+  COLLEGE = 'college',
+}
+
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp
 }
@@ -123,8 +144,6 @@ export class NudgeService {
     let lastError: Error | null = null
 
     // Get personalization data
-    const recentStepCount = await this.getRecentStepCount(userId)
-    const educationLevel = userData.educationLevel
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -168,26 +187,30 @@ export class NudgeService {
         // Build disease context
         let diseaseContext = ''
         if (disease) {
-          switch (disease) {
-            case 'Heart failure':
+          switch (disease as Disease) {
+            case Disease.HEART_FAILURE:
               diseaseContext =
                 'This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.'
               break
-            case 'Pulmonary arterial hypertension':
+            case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
               diseaseContext =
                 'This participant has pulmonary arterial hypertension (PAH), a condition characterized by high blood pressure in the arteries of the lungs, which makes the right side of the heart work harder to pump blood. PAH is a progressive disease that increases the risk of heart failure, reduced physical capacity, and early mortality. While it cannot be cured, treatments and lifestyle strategies such as regular physical activity can improve exercise tolerance, heart function, and overall quality of life.'
               break
-            case 'Diabetes':
+            case Disease.DIABETES:
               diseaseContext =
                 'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
               break
-            case 'ACHD (simple)':
+            case Disease.ACHD_SIMPLE:
               diseaseContext =
                 'This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.'
               break
-            case 'ACHD (complex)':
+            case Disease.ACHD_COMPLEX:
               diseaseContext =
                 'This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.'
+              break
+            default:
+              logger.warn(`Unknown disease type: ${disease}`)
+              diseaseContext = ''
               break
           }
         }
@@ -195,26 +218,30 @@ export class NudgeService {
         // Build stage of change context
         let stageContext = ''
         if (stateOfChange) {
-          switch (stateOfChange) {
-            case 'Precontemplation':
+          switch (stateOfChange as StageOfChange) {
+            case StageOfChange.PRECONTEMPLATION:
               stageContext =
                 'This person is in the pre-contemplation stage of exercise change. This person does not plan to start exercising in the next six months and does not consider their current behavior a problem.'
               break
-            case 'Contemplation':
+            case StageOfChange.CONTEMPLATION:
               stageContext =
                 'This person is in the contemplation stage of changing their exercise. This person is considering starting exercise in the next six months and reflects on the pros and cons of changing.'
               break
-            case 'Preparation':
+            case StageOfChange.PREPARATION:
               stageContext =
                 'This person is in the preparation stage of changing their exercise habits. This person is ready to begin exercising in the next 30 days and has begun taking small steps.'
               break
-            case 'Action':
+            case StageOfChange.ACTION:
               stageContext =
                 'This person is in the action stage of exercise change. This person has recently started exercising (within the last six months) and is building a new, healthy routine.'
               break
-            case 'Maintenance':
+            case StageOfChange.MAINTENANCE:
               stageContext =
                 'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages.'
+              break
+            default:
+              logger.warn(`Unknown stage of change: ${stateOfChange}`)
+              stageContext = ''
               break
           }
         }
@@ -222,14 +249,18 @@ export class NudgeService {
         // Build education level context
         let educationContext = ''
         if (educationLevel) {
-          switch (educationLevel) {
-            case 'Highschool':
+          switch (educationLevel as EducationLevel) {
+            case EducationLevel.HIGHSCHOOL:
               educationContext =
                 "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level."
               break
-            case 'collage':
+            case EducationLevel.COLLEGE:
               educationContext =
                 'This person is more highly educated and has some form of higher education. Please write the prompts at the 12th grade reading comprehension level.'
+              break
+            default:
+              logger.warn(`Unknown education level: ${educationLevel}`)
+              educationContext = ''
               break
           }
         }
