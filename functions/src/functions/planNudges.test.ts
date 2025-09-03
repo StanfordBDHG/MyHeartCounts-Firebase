@@ -296,10 +296,7 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(firstNudge.isLLMGenerated).to.not.be.true
 
       // Check that the trigger flag was reset
-      const userDoc = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .get()
+      const userDoc = await env.firestore.collection('users').doc(userId).get()
       const userData = userDoc.data()
       expect(userData?.triggerNudgeGeneration).to.be.false
     })
