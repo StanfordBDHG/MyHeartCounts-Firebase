@@ -40,6 +40,19 @@ export class NudgeService {
 
   // Methods
 
+  private calculateAge(dateOfBirth: Date, present: Date = new Date()): number {
+    const yearDiff = present.getFullYear() - dateOfBirth.getFullYear()
+    const monthDiff = present.getMonth() - dateOfBirth.getMonth()
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && present.getDate() < dateOfBirth.getDate())
+    ) {
+      return yearDiff - 1
+    }
+    return yearDiff
+  }
+
   getPredefinedNudges(language: string): NudgeMessage[] {
     const generatedAt = admin.firestore.Timestamp.now()
     const baseNudges = getPredefinedNudgeMessages(language)
@@ -136,10 +149,7 @@ export class NudgeService {
         if (dateOfBirth) {
           const birthDate =
             dateOfBirth instanceof Date ? dateOfBirth : new Date(dateOfBirth)
-          const currentAge = Math.floor(
-            (new Date().getTime() - birthDate.getTime()) /
-              (365.25 * 24 * 60 * 60 * 1000),
-          )
+          const currentAge = this.calculateAge(birthDate)
 
           if (currentAge < 35) {
             ageContext = `This participant is ${currentAge} years old and should be prompted to think about the short-term benefits of exercise on their mood, energy, and health.`
