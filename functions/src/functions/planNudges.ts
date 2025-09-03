@@ -169,7 +169,7 @@ export class NudgeService {
             'This participant is male and may respond better to prompts about playing sports or doing individual activities (i.e., cycling, running/treadmill, walks in the neighborhood, going to the gym)'
         } else {
           genderContext =
-            'This participant is female and may respond better to prompts about group fitness classes and activities with friends. [DEFAULTS TO FEMALE]'
+            'This participant is female and may respond better to prompts about group fitness classes and activities with friends.'
         }
 
         // Build disease context
