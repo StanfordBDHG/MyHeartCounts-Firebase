@@ -41,7 +41,7 @@ jobs:
       - name: Install Dependencies
         run: npm run install
       - name: Build
-        run: npm run build
+        run: NODE_OPTIONS="--max-old-space-size=8192" npm run build
       - name: Lint
         run: npm run lint:strict
     permissions:
@@ -65,7 +65,7 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
       - name: Build
-        run: npm run build
+        run: NODE_OPTIONS="--max-old-space-size=8192" npm run build
       - name: Test
         id: test
         run: npm run test:ci
