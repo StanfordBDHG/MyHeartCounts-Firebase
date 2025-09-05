@@ -35,6 +35,7 @@ enum StageOfChange {
 enum EducationLevel {
   HIGHSCHOOL = 'Highschool',
   COLLEGE = 'college',
+  COLLAGE = 'collage',
 }
 
 interface NudgeMessage extends BaseNudgeMessage {
@@ -255,6 +256,7 @@ export class NudgeService {
                 "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level."
               break
             case EducationLevel.COLLEGE:
+            case EducationLevel.COLLAGE:
               educationContext =
                 'This person is more highly educated and has some form of higher education. Please write the prompts at the 12th grade reading comprehension level.'
               break
