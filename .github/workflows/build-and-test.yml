@@ -43,7 +43,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Lint
-        run: npm run lint:strict
+        run: NODE_OPTIONS="--max-old-space-size=8192" npm run lint:strict
     permissions:
       contents: read
   buildandtest:
