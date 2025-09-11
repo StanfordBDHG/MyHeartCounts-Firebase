@@ -34,7 +34,7 @@
     "jsdom": "^24.1.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
-    "zod": "^3.25.76"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.3",
