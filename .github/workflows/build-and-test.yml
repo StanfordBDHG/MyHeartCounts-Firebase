@@ -39,13 +39,11 @@ jobs:
         with:
           node-version: 22.6.x
       - name: Install Dependencies
-        run: NODE_OPTIONS="--max-old-space-size=8192" npm run install
+        run: npm run install
       - name: Build
-        run: NODE_OPTIONS="--max-old-space-size=8192" npm run build
+        run: npm run build
       - name: Lint
-        run: NODE_OPTIONS="--max-old-space-size=8192" npm --prefix functions/models run lint:strict
-      - name: Lint Functions
-        run: NODE_OPTIONS="--max-old-space-size=8192" npm --prefix functions run lint:strict
+        run: npm run lint:strict
     permissions:
       contents: read
   buildandtest:
