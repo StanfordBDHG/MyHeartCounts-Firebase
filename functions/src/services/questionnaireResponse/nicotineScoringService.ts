@@ -103,10 +103,6 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       // Store FHIR observation
       await this.storeFHIRObservation(userId, response.id, score)
 
-      // Implement business logic (e.g., decline detection)
-      if (previousScore && this.isSignificantDecline(previousScore, score)) {
-        await this.handleScoreDecline(userId, score, previousScore)
-      }
 
       logger.info(
         `NicotineScoringService: Processed nicotine questionnaire response for user ${userId}, overall score: ${score.overallScore}`,
@@ -198,32 +194,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     })
   }
 
-  private isSignificantDecline(
-    previousScore: Document<Score>,
-    currentScore: Score,
-  ): boolean {
-    // Define business logic for significant nicotine score decline
-    // With discrete scoring (0,25,50,75,100), a drop of 25+ points indicates significant decline
-    const threshold = 25 // 25 point decline (e.g., 100→75, 75→50, etc.)
-    return (
-      previousScore.content.overallScore - currentScore.overallScore >=
-      threshold
-    )
-  }
 
-  private async handleScoreDecline(
-    userId: string,
-    currentScore: Score,
-    previousScore: Document<Score>,
-  ): Promise<void> {
-    // Implement decline handling logic for nicotine scores
-    logger.warn(
-      `Significant nicotine score decline detected for user ${userId}: ${previousScore.content.overallScore} → ${currentScore.overallScore}`,
-    )
-
-    // Could send a message to the user or healthcare provider about smoking status changes
-    // await this.messageService.addMessage(userId, AlertMessage.createNicotineScoreDecline(...))
-  }
 
   private async storeFHIRObservation(
     userId: string,
