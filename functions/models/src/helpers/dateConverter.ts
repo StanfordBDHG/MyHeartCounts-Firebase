@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { Timestamp } from 'firebase-admin/firestore'
 import { z } from 'zod'
 import { SchemaConverter } from './schemaConverter.js'
 
@@ -39,8 +40,8 @@ export const dateConverter = new SchemaConverter({
   ]),
   encode: (object) => {
     if (!(object instanceof Date)) {
-      return new Date().toISOString() // Default to current date if null
+      return Timestamp.now() // Default to current timestamp if null
     }
-    return object.toISOString()
+    return Timestamp.fromDate(object)
   },
 })
