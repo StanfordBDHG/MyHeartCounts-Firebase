@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { Timestamp } from 'firebase-admin/firestore'
 import { z } from 'zod'
 import { SchemaConverter } from './schemaConverter.js'
 
@@ -30,17 +31,57 @@ export const dateConverter = new SchemaConverter({
         return z.NEVER
       }
     }),
-    z
-      .object({
-        toDate: z.function().returns(z.date()),
+    z.any().transform((value: unknown, context) => {
+      // Handle Firestore Timestamps or timestamp-like objects
+      if (
+        value &&
+        typeof value === 'object' &&
+        'toDate' in value &&
+        typeof (value as { toDate: unknown }).toDate === 'function'
+      ) {
+        try {
+          const date = (value as { toDate: () => Date }).toDate()
+          if (date instanceof Date && !isNaN(date.getTime())) {
+            return date
+          }
+        } catch {
+          // Fall through to try other approaches
+        }
+      }
+
+      // Handle Date objects directly
+      if (value instanceof Date) {
+        if (!isNaN(value.getTime())) {
+          return value
+        }
+      }
+
+      // Handle null/undefined
+      if (value === null || value === undefined) {
+        return new Date()
+      }
+
+      // try to convert to string then date
+      try {
+        const date = new Date(String(value))
+        if (!isNaN(date.getTime())) {
+          return date
+        }
+      } catch {
+        // Continue to error
+      }
+
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Cannot convert value to date: ${typeof value}`,
       })
-      .transform((timestamp) => timestamp.toDate()),
-    z.null().transform(() => new Date()),
+      return z.NEVER
+    }),
   ]),
   encode: (object) => {
     if (!(object instanceof Date)) {
-      return new Date().toISOString() // Default to current date if null
+      return Timestamp.now() // Default to current timestamp if null
     }
-    return object.toISOString()
+    return Timestamp.fromDate(object)
   },
 })

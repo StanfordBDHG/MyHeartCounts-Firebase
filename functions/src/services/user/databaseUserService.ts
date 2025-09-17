@@ -15,6 +15,7 @@ import {
   UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type Auth } from 'firebase-admin/auth'
+import { Timestamp } from 'firebase-admin/firestore'
 import { type UserRecord } from 'firebase-functions/v1/auth'
 import { https, logger } from 'firebase-functions/v2'
 import { type EnrollUserOptions, type UserService } from './userService.js'
