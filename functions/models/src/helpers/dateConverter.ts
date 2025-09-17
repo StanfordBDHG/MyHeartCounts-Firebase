@@ -31,31 +31,36 @@ export const dateConverter = new SchemaConverter({
         return z.NEVER
       }
     }),
-    z.any().transform((value, context) => {
+    z.any().transform((value: unknown, context) => {
       // Handle Firestore Timestamps or timestamp-like objects
-      if (value && typeof value === 'object' && typeof value.toDate === 'function') {
+      if (
+        value &&
+        typeof value === 'object' &&
+        'toDate' in value &&
+        typeof (value as { toDate: unknown }).toDate === 'function'
+      ) {
         try {
-          const date = value.toDate()
+          const date = (value as { toDate: () => Date }).toDate()
           if (date instanceof Date && !isNaN(date.getTime())) {
             return date
           }
         } catch {
-          // Continue to error
+          // Fall through to try other approaches
         }
       }
-      
+
       // Handle Date objects directly
       if (value instanceof Date) {
         if (!isNaN(value.getTime())) {
           return value
         }
       }
-      
+
       // Handle null/undefined
       if (value === null || value === undefined) {
         return new Date()
       }
-      
+
       // try to convert to string then date
       try {
         const date = new Date(String(value))
@@ -65,7 +70,7 @@ export const dateConverter = new SchemaConverter({
       } catch {
         // Continue to error
       }
-      
+
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Cannot convert value to date: ${typeof value}`,
