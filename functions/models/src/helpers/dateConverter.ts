@@ -31,12 +31,47 @@ export const dateConverter = new SchemaConverter({
         return z.NEVER
       }
     }),
-    z
-      .object({
-        toDate: z.function().returns(z.date()),
+    z.any().transform((value, context) => {
+      // Handle Firestore Timestamps or timestamp-like objects
+      if (value && typeof value === 'object' && typeof value.toDate === 'function') {
+        try {
+          const date = value.toDate()
+          if (date instanceof Date && !isNaN(date.getTime())) {
+            return date
+          }
+        } catch {
+          // Continue to error
+        }
+      }
+      
+      // Handle Date objects directly
+      if (value instanceof Date) {
+        if (!isNaN(value.getTime())) {
+          return value
+        }
+      }
+      
+      // Handle null/undefined
+      if (value === null || value === undefined) {
+        return new Date()
+      }
+      
+      // try to convert to string then date
+      try {
+        const date = new Date(String(value))
+        if (!isNaN(date.getTime())) {
+          return date
+        }
+      } catch {
+        // Continue to error
+      }
+      
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Cannot convert value to date: ${typeof value}`,
       })
-      .transform((timestamp) => timestamp.toDate()),
-    z.null().transform(() => new Date()),
+      return z.NEVER
+    }),
   ]),
   encode: (object) => {
     if (!(object instanceof Date)) {
