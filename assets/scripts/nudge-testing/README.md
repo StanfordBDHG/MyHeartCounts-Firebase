@@ -30,14 +30,25 @@ Total permutations at tje moment: 2 × 4 × 6 × 6 × 4 × 2 = **2,304 combinati
 
 ## Running the Test
 
+### Full Test (All 2,304 permutations)
 ```bash
 npm run test
 ```
 
-This will:
-1. Generate all 2,304 permutations
+### Sample Test (10 permutations to save API costs)
+```bash
+npm run test:sample
+```
+
+### Custom Sample Size
+```bash
+npm run test:sample-custom 50  # Test 50 permutations
+```
+
+The script will:
+1. Generate the specified number of permutations
 2. Call the OpenAI API for each combination
-3. Save results to `nudge_permutations_results.csv`
+3. Save results to `nudge_permutations_results_sample_N.csv` (for samples) or `nudge_permutations_results_full.csv` (for full test)
 
 ## Output CSV Columns
 

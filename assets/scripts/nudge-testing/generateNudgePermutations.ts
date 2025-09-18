@@ -1,8 +1,7 @@
-import admin from 'firebase-admin'
 import * as fs from 'fs'
 import * as path from 'path'
-import OpenAI from 'openai'
 import { fileURLToPath } from 'url'
+import OpenAI from 'openai'
 
 // Type definitions matching planNudges.ts
 enum Disease {
@@ -59,18 +58,6 @@ class NudgePermutationTester {
     })
   }
 
-  private calculateAge(dateOfBirth: Date, present: Date = new Date()): number {
-    const yearDiff = present.getFullYear() - dateOfBirth.getFullYear()
-    const monthDiff = present.getMonth() - dateOfBirth.getMonth()
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && present.getDate() < dateOfBirth.getDate())
-    ) {
-      return yearDiff - 1
-    }
-    return yearDiff
-  }
 
   private getAgeContext(ageGroup: string): string {
     switch (ageGroup) {
@@ -275,8 +262,15 @@ class NudgePermutationTester {
   }
 
   private escapeCSVValue(value: string): string {
+    // Always escape values that contain commas, quotes, or newlines
     if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
-      return `"${value.replace(/"/g, '""')}"`
+      // Replace quotes with double quotes and wrap in quotes
+      // Also normalize all line breaks to spaces to keep CSV structure intact
+      const escaped = value
+        .replace(/"/g, '""')
+        .replace(/\r?\n/g, ' ')
+        .replace(/\r/g, ' ')
+      return `"${escaped}"`
     }
     return value
   }
@@ -327,13 +321,16 @@ class NudgePermutationTester {
     fs.writeFileSync(filename, csvRows.join('\n'), 'utf8')
   }
 
-  async runAllPermutations(): Promise<void> {
+  async runAllPermutations(maxPermutations?: number): Promise<void> {
     const permutations = this.generateAllPermutations()
-    console.log(`Generated ${permutations.length} permutations to test`)
+    const permutationsToTest = maxPermutations ? permutations.slice(0, maxPermutations) : permutations
+
+    console.log(`Generated ${permutations.length} total permutations`)
+    console.log(`Testing ${permutationsToTest.length} permutations`)
 
     let completed = 0
-    for (const context of permutations) {
-      console.log(`Processing permutation ${completed + 1}/${permutations.length}...`)
+    for (const context of permutationsToTest) {
+      console.log(`Processing permutation ${completed + 1}/${permutationsToTest.length}...`)
       const result = await this.generateNudgesForContext(context)
       this.results.push(result)
       completed++
@@ -342,7 +339,10 @@ class NudgePermutationTester {
       await new Promise(resolve => setTimeout(resolve, 100))
     }
 
-    const outputPath = path.join(process.cwd(), 'assets/scripts/nudge-testing', 'nudge_permutations_results.csv')
+    const suffix = maxPermutations ? `_sample_${maxPermutations}` : '_full'
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+    const outputPath = path.join(__dirname, `nudge_permutations_results${suffix}.csv`)
     this.writeResultsToCSV(this.results, outputPath)
     console.log(`Results written to ${outputPath}`)
   }
@@ -355,9 +355,18 @@ async function main() {
     process.exit(1)
   }
 
-  console.log('Starting nudge permutation testing...')
+  // Check for command line arguments to limit permutations
+  const args = process.argv.slice(2)
+  const maxPermutations = args.includes('--sample') ? parseInt(args[args.indexOf('--sample') + 1]) || 10 : undefined
+
+  if (maxPermutations) {
+    console.log(`Starting nudge permutation testing (sample mode: ${maxPermutations} permutations)...`)
+  } else {
+    console.log('Starting nudge permutation testing (full mode: all permutations)...')
+  }
+
   const tester = new NudgePermutationTester(apiKey)
-  await tester.runAllPermutations()
+  await tester.runAllPermutations(maxPermutations)
   console.log('Testing complete!')
 }
 
