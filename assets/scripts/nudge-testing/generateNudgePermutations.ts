@@ -321,12 +321,32 @@ class NudgePermutationTester {
     fs.writeFileSync(filename, csvRows.join('\n'), 'utf8')
   }
 
-  async runAllPermutations(maxPermutations?: number): Promise<void> {
-    const permutations = this.generateAllPermutations()
-    const permutationsToTest = maxPermutations ? permutations.slice(0, maxPermutations) : permutations
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
 
-    console.log(`Generated ${permutations.length} total permutations`)
-    console.log(`Testing ${permutationsToTest.length} permutations`)
+  async runAllPermutations(maxPermutations?: number, randomize = false): Promise<void> {
+    const allPermutations = this.generateAllPermutations()
+
+    let permutationsToTest: TestContext[]
+    if (maxPermutations) {
+      if (randomize) {
+        const shuffled = this.shuffleArray(allPermutations)
+        permutationsToTest = shuffled.slice(0, maxPermutations)
+      } else {
+        permutationsToTest = allPermutations.slice(0, maxPermutations)
+      }
+    } else {
+      permutationsToTest = allPermutations
+    }
+
+    console.log(`Generated ${allPermutations.length} total permutations`)
+    console.log(`Testing ${permutationsToTest.length} permutations${randomize ? ' (randomly selected)' : ''}`)
 
     let completed = 0
     for (const context of permutationsToTest) {
@@ -339,7 +359,7 @@ class NudgePermutationTester {
       await new Promise(resolve => setTimeout(resolve, 100))
     }
 
-    const suffix = maxPermutations ? `_sample_${maxPermutations}` : '_full'
+    const suffix = maxPermutations ? `_sample_${maxPermutations}${randomize ? '_random' : ''}` : '_full'
     const __filename = fileURLToPath(import.meta.url)
     const __dirname = path.dirname(__filename)
     const outputPath = path.join(__dirname, `nudge_permutations_results${suffix}.csv`)
@@ -358,15 +378,16 @@ async function main() {
   // Check for command line arguments to limit permutations
   const args = process.argv.slice(2)
   const maxPermutations = args.includes('--sample') ? parseInt(args[args.indexOf('--sample') + 1]) || 10 : undefined
+  const randomize = args.includes('--random')
 
   if (maxPermutations) {
-    console.log(`Starting nudge permutation testing (sample mode: ${maxPermutations} permutations)...`)
+    console.log(`Starting nudge permutation testing (sample mode: ${maxPermutations} permutations${randomize ? ', randomly selected' : ''})...`)
   } else {
     console.log('Starting nudge permutation testing (full mode: all permutations)...')
   }
 
   const tester = new NudgePermutationTester(apiKey)
-  await tester.runAllPermutations(maxPermutations)
+  await tester.runAllPermutations(maxPermutations, randomize)
   console.log('Testing complete!')
 }
 

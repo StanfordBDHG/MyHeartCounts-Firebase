@@ -37,18 +37,32 @@ npm run test
 
 ### Sample Test (10 permutations to save API costs)
 ```bash
-npm run test:sample
+npm run test:sample           # First 10 permutations
+npm run test:random           # 10 random permutations
 ```
 
 ### Custom Sample Size
 ```bash
-npm run test:sample-custom 50  # Test 50 permutations
+npm run test:sample-custom 50          # First 50 permutations
+npm run test:random-custom 50 --random # 50 random permutations
+```
+
+### Manual Usage
+```bash
+# Sequential sampling
+node dist/generateNudgePermutations.js --sample 25
+
+# Random sampling
+node dist/generateNudgePermutations.js --sample 25 --random
 ```
 
 The script will:
-1. Generate the specified number of permutations
+1. Generate the specified number of permutations (sequential or random)
 2. Call the OpenAI API for each combination
-3. Save results to `nudge_permutations_results_sample_N.csv` (for samples) or `nudge_permutations_results_full.csv` (for full test)
+3. Save results with descriptive filenames:
+   - `nudge_permutations_results_sample_10.csv` (sequential sample)
+   - `nudge_permutations_results_sample_10_random.csv` (random sample)
+   - `nudge_permutations_results_full.csv` (all permutations)
 
 ## Output CSV Columns
 

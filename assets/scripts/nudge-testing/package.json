@@ -8,7 +8,9 @@
     "build": "tsc generateNudgePermutations.ts --target ES2020 --module ES2020 --moduleResolution node --outDir ./dist",
     "test": "npm run build && node dist/generateNudgePermutations.js",
     "test:sample": "npm run build && node dist/generateNudgePermutations.js --sample 10",
-    "test:sample-custom": "npm run build && node dist/generateNudgePermutations.js --sample"
+    "test:sample-custom": "npm run build && node dist/generateNudgePermutations.js --sample",
+    "test:random": "npm run build && node dist/generateNudgePermutations.js --sample 10 --random",
+    "test:random-custom": "npm run build && node dist/generateNudgePermutations.js --sample --random"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0",
