@@ -72,6 +72,24 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
       expect(score.overallScore).to.equal(4)
       expect(score.domainScores.statusScore).to.equal(4)
     })
+
+    it('should calculate score 4 for Moderate smoker/vaper (10 to 19/day)', () => {
+      const calculator = new DefaultNicotineScoreCalculator()
+      const score = calculator.calculate('Moderate smoker/vaper (10 to 19/day)')
+
+      expect(score).to.be.instanceOf(Score)
+      expect(score.overallScore).to.equal(4)
+      expect(score.domainScores.statusScore).to.equal(4)
+    })
+
+    it('should calculate score 4 for Heavy smoker/vaper (>20/day)', () => {
+      const calculator = new DefaultNicotineScoreCalculator()
+      const score = calculator.calculate('Heavy smoker/vaper (>20/day)')
+
+      expect(score).to.be.instanceOf(Score)
+      expect(score.overallScore).to.equal(4)
+      expect(score.domainScores.statusScore).to.equal(4)
+    })
   })
 
   describe('handle method', () => {
@@ -190,6 +208,55 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
       })
 
       expect(result).to.be.false
+    })
+
+    it('should handle database transaction errors gracefully', async () => {
+      const mockDatabaseService = {
+        getQuery: () => Promise.resolve([]),
+        runTransaction: () => Promise.reject(new Error('Transaction failed')),
+      } as any
+      const mockMessageService = {} as any
+      const mockCalculator = new DefaultNicotineScoreCalculator()
+
+      const service = new NicotineScoringQuestionnaireResponseService({
+        databaseService: mockDatabaseService,
+        messageService: mockMessageService,
+        scoreCalculator: mockCalculator,
+      })
+
+      const mockResponse = {
+        id: 'test-response-id',
+        path: 'users/test-user/questionnaireResponses/test-response-id',
+        lastUpdate: new Date(),
+        content: new FHIRQuestionnaireResponse({
+          id: 'test-response',
+          authored: new Date(),
+          questionnaire:
+            'https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure',
+          item: [
+            {
+              linkId: 'dcb2277e-fe96-4f45-844a-ef58a9516380',
+              answer: [
+                {
+                  valueCoding: {
+                    code: '0',
+                    display: 'Never smoked/vaped',
+                    system: 'urn:uuid:c1f5127d-6e24-49eb-87c8-5fda81e18494',
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      }
+
+      try {
+        await service.handle('test-user', mockResponse, { isNew: true })
+        expect.fail('Should have thrown an error')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Error)
+        expect((error as Error).message).to.equal('Transaction failed')
+      }
     })
   })
 })
