@@ -137,7 +137,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     response: FHIRQuestionnaireResponse,
   ): string | null {
     // Expected linkId for the nicotine/smoking question
-    const linkId = 'a77ec6ab-8f37-4db4-8c5b-19a0d10964b9'
+    const linkId = 'dcb2277e-fe96-4f45-844a-ef58a9516380'
 
     try {
       const responseItem = response.leafResponseItem(linkId)
