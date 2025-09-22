@@ -2,20 +2,46 @@
 
 const fs = require('fs');
 const path = require('path');
-const { glob } = require('glob');
 
 /**
  * Prettifies JSON files with consistent formatting
- * Usage: node prettify-json.js [pattern]
- * Example: node prettify-json.js "assets/questionnaire/**/*.json"
+ * Usage: node prettify-json.js [directory]
+ * Example: node prettify-json.js assets/questionnaire
  */
 
-async function prettifyJsonFiles(pattern = 'assets/questionnaire/**/*.json') {
+function findJsonFiles(dir) {
+  const files = [];
+
+  function traverse(currentDir) {
+    const items = fs.readdirSync(currentDir);
+
+    for (const item of items) {
+      const fullPath = path.join(currentDir, item);
+      const stat = fs.statSync(fullPath);
+
+      if (stat.isDirectory()) {
+        traverse(fullPath);
+      } else if (path.extname(item) === '.json') {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  traverse(dir);
+  return files;
+}
+
+function prettifyJsonFiles(directory = 'assets/questionnaire') {
   try {
-    const files = await glob(pattern, { cwd: process.cwd() });
+    if (!fs.existsSync(directory)) {
+      console.error('Directory does not exist:', directory);
+      process.exit(1);
+    }
+
+    const files = findJsonFiles(directory);
 
     if (files.length === 0) {
-      console.log('No JSON files found matching pattern:', pattern);
+      console.log('No JSON files found in directory:', directory);
       return;
     }
 
@@ -51,6 +77,6 @@ async function prettifyJsonFiles(pattern = 'assets/questionnaire/**/*.json') {
   }
 }
 
-// Get pattern from command line argument or use default
-const pattern = process.argv[2] || 'assets/questionnaire/**/*.json';
-prettifyJsonFiles(pattern);
+// Get directory from command line argument or use default
+const directory = process.argv[2] || 'assets/questionnaire';
+prettifyJsonFiles(directory);
