@@ -1,0 +1,687 @@
+{
+  "resourceType": "Questionnaire",
+  "language": "en-US",
+  "id": "F20016D9-28F8-4B91-93E5-0FDE17B88CC8",
+  "title": "Par-Q+",
+  "status": "draft",
+  "meta": {
+    "profile": [
+      "http://spezi.health/fhir/StructureDefinition/sdf-Questionnaire"
+    ],
+    "tag": [
+      {
+        "system": "urn:ietf:bcp:47",
+        "code": "en-US",
+        "display": "English"
+      }
+    ]
+  },
+  "useContext": [
+    {
+      "code": {
+        "system": "http://hl7.org/fhir/ValueSet/usage-context-type",
+        "code": "focus",
+        "display": "Clinical Focus"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.578.1.12.4.1.1.8655",
+            "display": "Par-Q+"
+          }
+        ]
+      }
+    }
+  ],
+  "subjectType": [
+    "Patient"
+  ],
+  "purpose": "Your green-light check: fitness readiness and possible caution points",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/parQplus",
+  "item": [
+    {
+      "linkId": "a88bc3fc-8a12-4af7-8dea-a6e5833d26ae",
+      "type": "display",
+      "text": "The Physical Activity Readiness Questionnaire for Everyone (Par-Q+): \nThe health benefits of regular physical activity are clear; more people should engage in physical activity every day of the week. Participating in physical activity is very safe for MOST people. This questionnaire will tell you whether it is necessary for you to seek further advice from your doctor OR a qualified exercise professional before becoming more physically active. Source:  Copyright © 2024 PAR‑Q+ Collaboration. Used with permission. Please remember if you answer YES to any question",
+      "required": false
+    },
+    {
+      "linkId": "626f009e-4cb3-45de-88fe-dc57d9dd59c3",
+      "type": "boolean",
+      "text": "Has your doctor ever said that you have a heart condition and/or high blood pressure?",
+      "required": false
+    },
+    {
+      "linkId": "b70c2b1d-1d3e-471e-8f76-b836cd6b2806",
+      "type": "boolean",
+      "text": "Do you feel pain in your chest at rest, during activities of daily living, or when you do physical activity?",
+      "required": false
+    },
+    {
+      "linkId": "f77a5328-867e-426b-a982-f247362142b1",
+      "type": "boolean",
+      "text": "Do you lose balance because of dizziness OR have you lost consciousness in the last 12 months? \nPlease answer NO if your dizziness was associated with over-breathing (including during vigorous exercise).",
+      "required": false
+    },
+    {
+      "linkId": "d300a205-e440-4390-81af-25b9123227ac",
+      "type": "boolean",
+      "text": "Have you ever been diagnosed with another chronic medical condition (other than heart disease or high blood pressure)?",
+      "required": false
+    },
+    {
+      "linkId": "64b0ed3d-5585-4c36-ae2e-bc697cae7960",
+      "type": "boolean",
+      "text": "Are you currently taking prescribed medications for a chronic medical condition?",
+      "required": false
+    },
+    {
+      "linkId": "45961150-2e60-4862-c759-cb5f8b75c1bb",
+      "type": "boolean",
+      "text": "Do you currently have (or have had in the past 12 months) a bone, joint, soft tissue (muscle, ligament, tendon) problem that could be made worse by becoming more physically active? \n\nPlease answer NO if you had a problem in the past, but it does not limit your current ability to be physically active.",
+      "required": false
+    },
+    {
+      "linkId": "97e68f50-4ec0-4f29-9709-0dc21de559b3",
+      "type": "boolean",
+      "text": "Has your doctor ever said that you should only do medically supervised physical activity?\nPlease answer NO if you had a problem in the past, but it does not limit your current ability to be physically active.",
+      "required": false
+    },
+    {
+      "linkId": "96ab598f-d6cb-4411-9082-1589e12b4365",
+      "type": "boolean",
+      "text": "Did you answer YES to any of the previous questions?",
+      "required": false
+    },
+    {
+      "linkId": "69f8bd22-f0c0-44c4-b720-4b61b404b0ea",
+      "type": "display",
+      "text": "If you answered NO to all of the questions above, you are cleared for physical activity! Start becoming much more physically active – start slowly and build up gradually.\nFollow Global Physical Activity Guidelines for your age.\nYou may take part in a health and fitness appraisal.\nIf you are over the age of 45 yr and NOT accustomed to regular vigorous to maximal effort exercise, consult a qualified exercise professional before engaging in this intensity of exercise.\nIf you have any further questions, contact a qualified exercise professional.",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": false
+        }
+      ]
+    },
+    {
+      "linkId": "fbe3e637-c3e9-44db-8a60-7a50a0e33f28",
+      "type": "boolean",
+      "text": "Do you have Arthritis, Osteoporosis, or Back Problems?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "0c07f1c6-60bf-448f-8a03-7f2637adf803",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? (Answer NO if you are not currently taking medications or other treatments)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "fbe3e637-c3e9-44db-8a60-7a50a0e33f28",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "a691eb77-08dc-4e09-813c-d9c88fbe0412",
+      "type": "boolean",
+      "text": "Do you have joint problems causing pain, a recent fracture or fracture caused by osteoporosis or cancer, displaced vertebra (e.g., spondylolisthesis), and/or spondylolysis/pars defect (a crack in the bony ring on the back of the spinal column)?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "fbe3e637-c3e9-44db-8a60-7a50a0e33f28",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "a0f748d8-0b8b-46d7-8044-46036dd5d85b",
+      "type": "boolean",
+      "text": "Have you had steroid injections or taken steroid tablets regularly for more than 3 months?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "fbe3e637-c3e9-44db-8a60-7a50a0e33f28",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "bb9ae29e-1ae2-4cae-f605-1ab9c0713239",
+      "type": "boolean",
+      "text": "Do you currently have Cancer of any kind?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "ecd94f57-3682-439c-baa0-b7cdbc54119a",
+      "type": "boolean",
+      "text": "Does your cancer diagnosis include any of the following types: lung/bronchogenic, multiple myeloma (cancer of plasma cells), head and/or neck?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "bb9ae29e-1ae2-4cae-f605-1ab9c0713239",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "45e1e1d7-7eb2-4f9e-bd70-4ac231470407",
+      "type": "boolean",
+      "text": "Are you currently receiving cancer therapy (such as chemotherapy or radiotherapy)?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "bb9ae29e-1ae2-4cae-f605-1ab9c0713239",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "6ab1cdf1-f8fa-429b-ba08-7097a87ffb82",
+      "type": "boolean",
+      "text": "Do you have a Heart or Cardiovascular Condition? This includes Coronary Artery Disease, Heart Failure, Diagnosed Abnormality of Heart Rhythm",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "837188d5-51ba-4a1f-81d1-e1cfaa69292e",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? (Answer NO if you are not currently taking medications or other treatments)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "6ab1cdf1-f8fa-429b-ba08-7097a87ffb82",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "7da14c62-42a7-42c5-9a32-0dc23471c7a1",
+      "type": "boolean",
+      "text": "Do you have an irregular heart beat that requires medical management (e.g., atrial fibrillation, premature ventricular contraction)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "6ab1cdf1-f8fa-429b-ba08-7097a87ffb82",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "c59933b4-153b-4067-88e8-327075dbd22c",
+      "type": "boolean",
+      "text": "Do you have chronic heart failure?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "6ab1cdf1-f8fa-429b-ba08-7097a87ffb82",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "9e857190-b995-48d1-f5ae-f9c4f89f19a5",
+      "type": "boolean",
+      "text": "Do you have diagnosed coronary artery (cardiovascular) disease and have not participated in regular physical activity in the last 2 months?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "6ab1cdf1-f8fa-429b-ba08-7097a87ffb82",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "d6ea925e-e03e-437a-af8c-c5fb19c3ce87",
+      "type": "boolean",
+      "text": "Do you currently have High Blood Pressure?\n",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "7baf34eb-1cc2-4971-80ed-d13127e6d5df",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? (Answer NO if you are not currently taking medications or other treatments)\n",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "d6ea925e-e03e-437a-af8c-c5fb19c3ce87",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "07a31c09-778f-470c-8476-4c7b52902066",
+      "type": "boolean",
+      "text": "Do you have a resting blood pressure equal to or greater than 160/90 mmHg with or without medication? (Answer YES if you do not know your resting blood pressure)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "d6ea925e-e03e-437a-af8c-c5fb19c3ce87",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "67de295f-6a6c-4558-dea1-f5df9bf517fb",
+      "type": "boolean",
+      "text": "Do you have any Metabolic Conditions? This includes Type 1 Diabetes, Type 2 Diabetes, Pre-Diabetes",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "a822cb9e-e92b-4a45-b373-2d3369d9f15e",
+      "type": "boolean",
+      "text": "Do you often have difficulty controlling your blood sugar levels with foods, medications, or other physician-prescribed therapies?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "67de295f-6a6c-4558-dea1-f5df9bf517fb",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "cf75aebc-9f72-47c0-ed83-9c863e43d35d",
+      "type": "boolean",
+      "text": "Do you often suffer from signs and symptoms of low blood sugar (hypoglycemia) following exercise and/or during activities of daily living?\nSigns of hypoglycemia may include shakiness, nervousness, unusual irritability, abnormal sweating, dizziness or light-headedness, mental confusion, difficulty speaking, weakness, or sleepiness.",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "67de295f-6a6c-4558-dea1-f5df9bf517fb",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "05b2995c-7173-45a1-8c85-4854190c6370",
+      "type": "boolean",
+      "text": "Do you have any signs or symptoms of diabetes complications such as heart or vascular disease and/or complications affecting your eyes, kidneys, OR the sensation in your toes and feet?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "67de295f-6a6c-4558-dea1-f5df9bf517fb",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "8052034a-3119-4dde-b9b4-11f598aa4742",
+      "type": "boolean",
+      "text": "Do you have other metabolic conditions (such as current pregnancy-related diabetes, chronic kidney disease, or liver problems)?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "67de295f-6a6c-4558-dea1-f5df9bf517fb",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "648f00d7-991a-4c0f-956b-a84d135f6843",
+      "type": "boolean",
+      "text": "Are you planning to engage in what for you is unusually high (or vigorous) intensity exercise in the near future?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "67de295f-6a6c-4558-dea1-f5df9bf517fb",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "dcb70a96-5cad-448c-82f3-cca049439786",
+      "type": "boolean",
+      "text": "Do you have any Mental Health Problems or Learning Difficulties?\nThis includes Alzheimer’s, Dementia, Depression, Anxiety Disorder, Eating Disorder, Psychotic Disorder, Intellectual Disability, Down Syndrome",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "f59fbdce-c2d1-442b-84bb-52ac21a804e1",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? (Answer NO if you are not currently taking medications or other treatments)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "dcb70a96-5cad-448c-82f3-cca049439786",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "f6c5ba56-7dfc-4ff0-8db9-7531a0e70b6e",
+      "type": "boolean",
+      "text": "Do you have Down Syndrome AND back problems affecting nerves or muscles?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "dcb70a96-5cad-448c-82f3-cca049439786",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "74cd6624-2a25-43c6-9d6d-b68181681852",
+      "type": "boolean",
+      "text": "Do you have a Respiratory Disease? This includes Chronic Obstructive Pulmonary Disease, Asthma, Pulmonary High Blood Pressure",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "5c1493f0-09dd-4cfd-8305-d609c0308d04",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? \n(Answer NO if you are not currently taking medications or other treatments)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "74cd6624-2a25-43c6-9d6d-b68181681852",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "e5f33331-4053-4b02-bcea-a813f00b04da",
+      "type": "boolean",
+      "text": "Has your doctor ever said your blood oxygen level is low at rest or during exercise and/or that you require supplemental oxygen therapy?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "74cd6624-2a25-43c6-9d6d-b68181681852",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "25887164-5e73-4592-8c9f-09dfab47dc9b",
+      "type": "boolean",
+      "text": "If asthmatic, do you currently have symptoms of chest tightness, wheezing, labored breathing, consistent cough (more than 2 days/week), or have you used your rescue medication more than twice in the last week?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "74cd6624-2a25-43c6-9d6d-b68181681852",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "beb83fe4-2f8b-425d-8796-f63f9a208d6c",
+      "type": "boolean",
+      "text": "Has your doctor ever said you have high blood pressure in the blood vessels of your lungs?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "74cd6624-2a25-43c6-9d6d-b68181681852",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "1fa80ab4-e90d-4382-a71c-9f2bd122af79",
+      "type": "boolean",
+      "text": "Do you have a Spinal Cord Injury? This includes Tetraplegia and Paraplegia",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "f5446d25-cd32-4faf-8f5f-8c25f4417bf0",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? (Answer NO if you are not currently taking medications or other treatments)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "1fa80ab4-e90d-4382-a71c-9f2bd122af79",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "8076a1c9-8e5c-473f-8fe2-ff089b65e3db",
+      "type": "boolean",
+      "text": "Do you commonly exhibit low resting blood pressure significant enough to cause dizziness, light-headedness, and/or fainting?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "1fa80ab4-e90d-4382-a71c-9f2bd122af79",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "5e60b8ee-26c3-4561-e3e2-0918704fc2ba",
+      "type": "boolean",
+      "text": "Has your physician indicated that you exhibit sudden bouts of high blood pressure (known as Autonomic Dysreflexia)?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "1fa80ab4-e90d-4382-a71c-9f2bd122af79",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "d82006db-e68c-4688-8eff-268e6dae8d74",
+      "type": "boolean",
+      "text": "Have you had a Stroke? This includes Transient Ischemic Attack (TIA) or Cerebrovascular Event",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "09251369-1c43-44c1-8357-5fa349b86a3f",
+      "type": "boolean",
+      "text": "Do you have difficulty controlling your condition with medications or other physician-prescribed therapies? (Answer NO if you are not currently taking medications or other treatments)",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "d82006db-e68c-4688-8eff-268e6dae8d74",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "59c77e5d-7426-4fed-ce98-6f857aac0274",
+      "type": "boolean",
+      "text": "Do you have any impairment in walking or mobility?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "d82006db-e68c-4688-8eff-268e6dae8d74",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "031751d7-3b3c-433c-831d-9bcbaf4c6e5b",
+      "type": "boolean",
+      "text": "Have you experienced a stroke or impairment in nerves or muscles in the past 6 months?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "d82006db-e68c-4688-8eff-268e6dae8d74",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "51afb3dc-88e6-4c31-8236-6b97e8dcd2f4",
+      "type": "boolean",
+      "text": "Do you have any other medical condition not listed above or do you have two or more medical conditions?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "b2e166a6-8404-44d8-de54-13b38d810a24",
+      "type": "boolean",
+      "text": "Have you experienced a blackout, fainted, or lost consciousness as a result of a head injury within the last 12 months OR have you had a diagnosed concussion within the last 12 months?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "51afb3dc-88e6-4c31-8236-6b97e8dcd2f4",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "edb54825-f8e6-45f4-8fa0-44ea811a85f0",
+      "type": "boolean",
+      "text": "Do you have a medical condition that is not listed (such as epilepsy, neurological conditions, kidney problems)?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "51afb3dc-88e6-4c31-8236-6b97e8dcd2f4",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "acda7247-9648-4410-8eb7-2a6e51664d9b",
+      "type": "boolean",
+      "text": "Do you currently live with two or more medical conditions?",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "51afb3dc-88e6-4c31-8236-6b97e8dcd2f4",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "efecc9c1-bd0f-42fc-85f2-e9ea10d71628",
+      "type": "display",
+      "text": "If you answered YES to one or more of the follow-up questions about your medical condition: You should seek further information before becoming more physically active or engaging in a fitness appraisal. You should complete the specially designed online screening and exercise recommendations program - the ePARmed-X+ at www.eparmedx.com and/or visit a qualified exercise professional to work through the ePARmed-X+ and for further information.",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "940adb10-7002-45c1-8789-2513098ffaf1",
+      "type": "display",
+      "text": "If you answered NO to all of the FOLLOW-UP questions about your medical condition, you are ready to become more physically active! It is advised that you consult a qualified exercise professional to help you develop a safe and effective physical activity plan.\nYou are encouraged to start slowly and build up gradually - 20 to 60 minutes of low to moderate intensity exercise, 3-5 days per week.\nIf you are over the age of 45 yr and NOT accustomed to regular vigorous to maximal effort exercise, consult a qualified exercise professional before engaging in this intensity of exercise.",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "96ab598f-d6cb-4411-9082-1589e12b4365",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
+    },
+    {
+      "linkId": "325ffa22-2d48-4ddb-f36a-acada8232fa6",
+      "type": "display",
+      "text": "Delay becoming more active if: You have a temporary illness such as a cold or fever; it is best to wait until you feel better.\nYou are pregnant - talk to your health care practitioner, your physician, a qualified exercise professional, and/or complete the ePARmed-X+ at www.eparmedx.com before becoming more physically active.\nYour health changes - take this survey again and/or talk to your doctor or a qualified exercise professional before continuing with any physical activity program.",
+      "required": false
+    },
+    {
+      "linkId": "72c2bb4f-9bd3-4598-92c0-959c8dc37d7c",
+      "type": "display",
+      "text": "I, the undersigned, have read, understood to my full satisfaction and completed this questionnaire. I acknowledge that this physical activity clearance is valid for a maximum of 12 months from the date it is completed and becomes invalid if my condition changes.",
+      "required": false
+    },
+    {
+      "linkId": "95dc3b17-ab9c-4ff1-eaa8-7d2cce260504",
+      "type": "display",
+      "text": "Thank you for completing the Par-Q+.\n",
+      "required": false
+    }
+  ]
+}

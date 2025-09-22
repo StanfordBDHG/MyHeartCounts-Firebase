@@ -10,7 +10,6 @@ import { randomUUID } from 'crypto'
 import {
   Score,
   type FHIRQuestionnaireResponse,
-  type FHIRObservation,
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
 import {
@@ -36,7 +35,6 @@ export class DietScoreCalculator implements ScoreCalculator {
       (sum, answer) => sum + (answer ? 1 : 0),
       0,
     )
-    const overallScore = this.pointsToScore(totalPoints)
 
     // Keep category breakdown for tracking purposes
     const categoryScores = {
@@ -64,18 +62,9 @@ export class DietScoreCalculator implements ScoreCalculator {
 
     return new Score({
       date: new Date(),
-      overallScore: overallScore,
+      overallScore: totalPoints,
       domainScores: categoryScores,
     })
-  }
-
-  private pointsToScore(points: number): number {
-    if (points >= 17) return 100
-    if (points >= 14) return 85
-    if (points >= 11) return 70
-    if (points >= 8) return 50
-    if (points >= 5) return 25
-    return 0
   }
 
   private getFruitsVegetablesQuestions(): string[] {
@@ -186,16 +175,8 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
       const score = this.calculateScore(response.content)
       if (score === null) return false
 
-      // Get previous score for comparison (optional)
-      const previousScore = await this.getLatestScore(userId)
-
       // Store FHIR observation
       await this.storeFHIRObservation(userId, response.id, score)
-
-      // Implement business logic (e.g., decline detection)
-      if (previousScore && this.isSignificantDecline(previousScore, score)) {
-        await this.handleScoreDecline(userId, score, previousScore)
-      }
 
       logger.info(
         `DietScoringService: Processed diet questionnaire response for user ${userId}, overall score: ${score.overallScore}`,
@@ -287,66 +268,6 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
 
     logger.warn(`No boolean value found for linkId '${linkId}'`)
     return null
-  }
-
-  private async getLatestScore(
-    userId: string,
-  ): Promise<Document<Score> | undefined> {
-    const collectionName = 'HealthObservations_MHCCustomSampleTypeDietMEPAScore'
-    const result = await this.databaseService.getQuery<FHIRObservation>(
-      (collections) =>
-        collections
-          .userHealthObservations(userId, collectionName)
-          .orderBy('effectiveDateTime', 'desc')
-          .limit(1),
-    )
-
-    const latestObservation = result.at(0)
-    if (!latestObservation) return undefined
-
-    // Convert FHIR observation back to Score
-    const score = this.observationToScore(latestObservation.content)
-    return {
-      id: latestObservation.id,
-      content: score,
-      path: latestObservation.path,
-      lastUpdate: latestObservation.lastUpdate,
-    }
-  }
-
-  private observationToScore(observation: FHIRObservation): Score {
-    return new Score({
-      overallScore: observation.valueQuantity?.value ?? 0,
-      date: observation.effectiveDateTime ?? new Date(),
-      domainScores: {},
-    })
-  }
-
-  private isSignificantDecline(
-    previousScore: Document<Score>,
-    currentScore: Score,
-  ): boolean {
-    // Define business logic for significant diet score decline
-    // With discrete scoring (0,25,50,70,85,100), a drop of 25+ points indicates significant decline
-    const threshold = 25 // 25 point decline (e.g., 85→50 or 70→25)
-    return (
-      previousScore.content.overallScore - currentScore.overallScore >=
-      threshold
-    )
-  }
-
-  private async handleScoreDecline(
-    userId: string,
-    currentScore: Score,
-    previousScore: Document<Score>,
-  ): Promise<void> {
-    // Implement decline handling logic for diet scores
-    logger.warn(
-      `Significant diet score decline detected for user ${userId}: ${previousScore.content.overallScore} -> ${currentScore.overallScore}`,
-    )
-
-    // Could send a message to the user or healthcare provider about diet changes
-    // await this.messageService.addMessage(userId, AlertMessage.createDietScoreDecline(...))
   }
 
   private async storeFHIRObservation(

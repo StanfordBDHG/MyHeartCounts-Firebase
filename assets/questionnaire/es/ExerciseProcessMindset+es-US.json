@@ -1,7 +1,8 @@
 {
-  "title": "Exercise Process Mindset Measure",
   "resourceType": "Questionnaire",
-  "language": "en-US",
+  "language": "es-419",
+  "id": "9C6F4F2B-B436-4B96-B493-032051AB681F",
+  "title": "Medida de Mentalidad sobre el Proceso de Ejercicio",
   "status": "draft",
   "meta": {
     "profile": [
@@ -10,8 +11,8 @@
     "tag": [
       {
         "system": "urn:ietf:bcp:47",
-        "code": "en-US",
-        "display": "English"
+        "code": "es-419",
+        "display": "Español (Latinoamérica)"
       }
     ]
   },
@@ -20,35 +21,34 @@
       "code": {
         "system": "http://hl7.org/fhir/ValueSet/usage-context-type",
         "code": "focus",
-        "display": "Clinical Focus"
+        "display": "Enfoque Clínico"
       },
       "valueCodeableConcept": {
         "coding": [
           {
             "system": "urn:oid:2.16.578.1.12.4.1.1.8655",
-            "display": "Exercise Process Mindset Measure"
+            "display": "Medida de Mentalidad sobre el Proceso de Ejercicio"
           }
         ]
       }
     }
   ],
-  "contact": [
-    {}
-  ],
   "subjectType": [
     "Patient"
   ],
+  "purpose": "Mide las actitudes sobre el proceso de su trayectoria de salud",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/exerciseProcess",
   "item": [
     {
       "linkId": "cddcb4e1-0ef2-498b-921b-db8a20f1cb81",
       "type": "display",
-      "text": "Now think about what it's like to exercise. The following statements are different opinions about EXERCISING.",
+      "text": "Ahora piense en cómo es hacer ejercicio. Las siguientes afirmaciones son diferentes opiniones sobre HACER EJERCICIO.",
       "required": false
     },
     {
       "linkId": "2fcf688f-70ee-49e4-d684-b9f99d521dfb",
       "type": "group",
-      "text": "Please select the option in each step that best describes how you feel about exercising.",
+      "text": "Por favor, seleccione la opción en cada paso que mejor describa cómo se siente acerca de hacer ejercicio.",
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -64,11 +64,12 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "656bd1dd-6bd4-41ba-82ac-36f21e5288e7",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -76,7 +77,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-difficult",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very difficult"
+                "display": "Muy difícil"
               }
             },
             {
@@ -84,7 +85,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-difficult",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat difficult"
+                "display": "Algo difícil"
               }
             },
             {
@@ -92,7 +93,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-easy",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat easy"
+                "display": "Algo fácil"
               }
             },
             {
@@ -100,7 +101,7 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-easy",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very easy"
+                "display": "Muy fácil"
               }
             }
           ]
@@ -108,7 +109,7 @@
         {
           "linkId": "14933034-e3aa-43b3-8d84-42381171517e",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -116,7 +117,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-unpleasant",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very unpleasant"
+                "display": "Muy desagradable"
               }
             },
             {
@@ -124,7 +125,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-unpleasant",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat unpleasant"
+                "display": "Algo desagradable"
               }
             },
             {
@@ -132,7 +133,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-pleasurable",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat pleasurable"
+                "display": "Algo placentero"
               }
             },
             {
@@ -140,7 +141,7 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-pleasurable",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very pleasurable"
+                "display": "Muy placentero"
               }
             }
           ]
@@ -148,7 +149,7 @@
         {
           "linkId": "6889acf5-4753-46b6-dd77-cc29a0af6741",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -156,7 +157,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-stressful",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very stressful"
+                "display": "Muy estresante"
               }
             },
             {
@@ -164,7 +165,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-stressful",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat stressful"
+                "display": "Algo estresante"
               }
             },
             {
@@ -172,7 +173,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-relaxing",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat relaxing"
+                "display": "Algo relajante"
               }
             },
             {
@@ -180,7 +181,7 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-relaxing",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very relaxing"
+                "display": "Muy relajante"
               }
             }
           ]
@@ -188,7 +189,7 @@
         {
           "linkId": "5fe09a0e-a65c-425d-ccf2-07cb3a25babd",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -196,7 +197,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-inconvenient",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very inconvenient"
+                "display": "Muy inconveniente"
               }
             },
             {
@@ -204,7 +205,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-inconvenient",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat inconvenient"
+                "display": "Algo inconveniente"
               }
             },
             {
@@ -212,7 +213,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-convenient",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat convenient"
+                "display": "Algo conveniente"
               }
             },
             {
@@ -220,7 +221,7 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-convenient",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very convenient"
+                "display": "Muy conveniente"
               }
             }
           ]
@@ -228,7 +229,7 @@
         {
           "linkId": "1499c5a7-215e-4ce9-d618-27b930f54d44",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -236,7 +237,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-boring",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very boring"
+                "display": "Muy aburrido"
               }
             },
             {
@@ -244,7 +245,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-boring",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat boring"
+                "display": "Algo aburrido"
               }
             },
             {
@@ -252,7 +253,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-fun",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat fun"
+                "display": "Algo divertido"
               }
             },
             {
@@ -260,7 +261,7 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-fun",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very fun"
+                "display": "Muy divertido"
               }
             }
           ]
@@ -268,7 +269,7 @@
         {
           "linkId": "bc27d883-c3bb-40f4-baab-29c0a1d41ed3",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -276,7 +277,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-lonely",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very lonely"
+                "display": "Muy solitario"
               }
             },
             {
@@ -284,7 +285,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-lonely",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat lonely"
+                "display": "Algo solitario"
               }
             },
             {
@@ -292,7 +293,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-social",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat social"
+                "display": "Algo social"
               }
             },
             {
@@ -300,7 +301,7 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-social",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very social"
+                "display": "Muy social"
               }
             }
           ]
@@ -308,7 +309,7 @@
         {
           "linkId": "5189dae2-fee8-4f45-80d2-505a6eeabec0",
           "type": "choice",
-          "text": "EXERCISING is: ",
+          "text": "HACER EJERCICIO es:",
           "required": false,
           "answerOption": [
             {
@@ -316,7 +317,7 @@
                 "id": "7b150357-004d-487a-cb7d-2c51d178851e",
                 "code": "very-depriving",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very depriving"
+                "display": "Muy privativo"
               }
             },
             {
@@ -324,7 +325,7 @@
                 "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
                 "code": "somewhat-depriving",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat depriving"
+                "display": "Algo privativo"
               }
             },
             {
@@ -332,7 +333,7 @@
                 "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
                 "code": "somewhat-indulgent",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Somewhat indulgent"
+                "display": "Algo indulgente"
               }
             },
             {
@@ -340,18 +341,17 @@
                 "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
                 "code": "very-indulgent",
                 "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
-                "display": "Very indulgent"
+                "display": "Muy indulgente"
               }
             }
           ]
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "46070375-4197-48b0-d0b2-c0d0a1fd5992",
       "type": "display",
-      "text": "Thank you for completing this questionnaire. ",
+      "text": "Gracias por completar este cuestionario.",
       "required": false
     }
   ]

@@ -33,7 +33,7 @@ describe('DietScoringQuestionnaireResponseService', () => {
       const score = calculator.calculate(answers)
 
       expect(score).to.be.instanceOf(Score)
-      expect(score.overallScore).to.equal(25) // 6 points should give score 25
+      expect(score.overallScore).to.equal(6) // 6 points should give score 6
       expect(score.domainScores).to.have.property('fruitsVegetables')
       expect(score.domainScores).to.have.property('fat')
       expect(score.domainScores).to.have.property('starchyFoods')
@@ -45,10 +45,10 @@ describe('DietScoringQuestionnaireResponseService', () => {
       expect(score.domainScores.totalPoints).to.equal(6)
     })
 
-    it('should use lookup table for scoring (17-21 points = 100)', () => {
+    it('should return raw points for scoring (18 points = 18)', () => {
       const calculator = new DietScoreCalculator()
 
-      // Create answers for 18 questions (should give score 100)
+      // Create answers for 18 questions (should give score 18)
       const allTrueAnswers: Record<string, boolean> = {}
       const questionIds = [
         '92a6518b-61dd-442c-8082-09c3457daada',
@@ -74,17 +74,17 @@ describe('DietScoringQuestionnaireResponseService', () => {
         '1ce40499-9d9c-4f91-e7c5-da0986503406',
       ]
 
-      // Answer first 18 questions as true (18 points should give score 100)
+      // Answer first 18 questions as true (18 points should give score 18)
       for (let i = 0; i < 18; i++) {
         allTrueAnswers[questionIds[i]] = true
       }
 
       const score = calculator.calculate(allTrueAnswers)
-      expect(score.overallScore).to.equal(100)
+      expect(score.overallScore).to.equal(18)
       expect(score.domainScores.totalPoints).to.equal(18)
     })
 
-    it('should use lookup table for scoring (14-16 points = 85)', () => {
+    it('should return raw points for scoring (15 points = 15)', () => {
       const calculator = new DietScoreCalculator()
 
       const answers: Record<string, boolean> = {}
@@ -106,17 +106,17 @@ describe('DietScoringQuestionnaireResponseService', () => {
         'e5208b21-21d1-4f88-8c22-0580d4457172',
       ]
 
-      // Answer 15 questions as true (15 points should give score 85)
+      // Answer 15 questions as true (15 points should give score 15)
       for (let i = 0; i < 15; i++) {
         answers[questionIds[i]] = true
       }
 
       const score = calculator.calculate(answers)
-      expect(score.overallScore).to.equal(85)
+      expect(score.overallScore).to.equal(15)
       expect(score.domainScores.totalPoints).to.equal(15)
     })
 
-    it('should use lookup table for scoring (5-7 points = 25)', () => {
+    it('should return raw points for scoring (6 points = 6)', () => {
       const calculator = new DietScoreCalculator()
 
       const answers: Record<string, boolean> = {
@@ -125,11 +125,11 @@ describe('DietScoringQuestionnaireResponseService', () => {
         '6616bfe1-d22f-488f-8ba6-0695cf19f634': true,
         'fee4378b-c67a-4bf3-d99f-e94092207ee2': true,
         'ff78ee6d-a8ad-4d7b-80e1-2894dca64065': true,
-        '50a6fdb1-d90c-416a-86a8-bf07602b701c': true, // 6 points should give score 25
+        '50a6fdb1-d90c-416a-86a8-bf07602b701c': true, // 6 points should give score 6
       }
 
       const score = calculator.calculate(answers)
-      expect(score.overallScore).to.equal(25)
+      expect(score.overallScore).to.equal(6)
       expect(score.domainScores.totalPoints).to.equal(6)
     })
 

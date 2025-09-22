@@ -1,7 +1,8 @@
 {
-  "title": "Diet",
   "resourceType": "Questionnaire",
   "language": "en-US",
+  "id": "7F0E807D-2B29-4366-A19C-731FC40C5892",
+  "title": "Diet",
   "status": "draft",
   "meta": {
     "profile": [
@@ -32,12 +33,11 @@
       }
     }
   ],
-  "contact": [
-    {}
-  ],
   "subjectType": [
     "Patient"
   ],
+  "purpose": "A general diet assessment",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/dietScore",
   "item": [
     {
       "linkId": "238acfb0-2eb1-4fff-9423-76fb09299e45",
@@ -64,6 +64,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "92a6518b-61dd-442c-8082-09c3457daada",
@@ -95,8 +96,7 @@
           "text": "Eating at least 5 portions of fruit and vegetables a day can help to reduce the risk of coronary heart disease. They provide a variety of different vitamins and minerals, as well as being a good source of fiber. ",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "5f436760-8fca-4464-f605-2402a4366de8",
@@ -117,6 +117,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "fee4378b-c67a-4bf3-d99f-e94092207ee2",
@@ -154,8 +155,7 @@
           "text": "Most people would benefit from eating less saturated fat. This is the type of fat found in many common foods including meat and dairy products and in many processed foods. Eating too much fat in general may contribute to weight gain, and too much saturated fat can contribute towards coronary heart disease. ",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "dfe15a90-8686-448f-9be9-56c277c96513",
@@ -176,6 +176,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "055647aa-77aa-4877-81ae-40a2f08b8c5e",
@@ -201,8 +202,7 @@
           "text": "Aim to base all meals on a good-sized serving from this group, choosing wholegrain types when you can.\n• Starchy foods contain carbohydrate mainly in the form of starch, which provides energy. They also contain some protein, minerals, vitamins and fiber.\n• Fiber helps the digestive system function properly, preventing bowel disorders such as constipation.\n• Try to avoid frying foods in this food group (eg, chips), or adding too much fat (eg, spreading butter on bread), or adding rich sauces or dressings (eg, cheese sauce on pasta).",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "7ae33e1b-475c-490b-a25d-87fcc826dee2",
@@ -223,6 +223,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "016e5729-7381-455d-b888-38e9e4365fa8",
@@ -260,8 +261,7 @@
           "text": "If you eat foods and drinks containing sugar, eat them mainly at mealtimes rather than in between meals, to reduce the risk of tooth decay. \n\nSugar can count for a lot of additional calories during the day, especially if you add sugar to every drink. ",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "bd597585-01bc-4db9-ff0f-0a035ed135bd",
@@ -282,6 +282,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "7d376d7b-4167-49b3-8600-683af1534e77",
@@ -313,8 +314,7 @@
           "text": "Fermented foods are beneficial for your health because they contain probiotics that enhance gut microbiome diversity, which can improve digestion, strengthen immune function, and promote overall well-being.",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "2cbe1f5e-be1e-47c2-8ac5-8546ba9a57fd",
@@ -335,6 +335,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "a713aac6-c812-46e7-896c-ab9209d197fc",
@@ -372,8 +373,7 @@
           "text": "Reducing the amount of salt in your diet can help keep your blood pressure down, especially if this is part of a healthy diet that includes plenty of fruit and vegetables. Reducing your blood pressure reduces your risk of having a heart attack or stroke.",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "992749aa-caf0-41ae-8f89-1890ada2df0a",
@@ -393,6 +393,7 @@
           }
         }
       ],
+      "required": false,
       "item": [
         {
           "linkId": "1ce40499-9d9c-4f91-e7c5-da0986503406",
@@ -406,8 +407,7 @@
           "text": "Too much alcohol can lead to damage to the heart muscle, high blood pressure,stroke and some cancers. Alcohol is high in calories too, and so it can lead to weight gain.",
           "required": false
         }
-      ],
-      "required": false
+      ]
     },
     {
       "linkId": "e0c000d7-5af9-46f6-a0a0-d78a82e12363",

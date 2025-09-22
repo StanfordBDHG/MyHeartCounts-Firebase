@@ -1,7 +1,8 @@
 {
-  "title": "System Usability Survey",
   "resourceType": "Questionnaire",
   "language": "en-US",
+  "id": "0BB5A269-14F2-4597-8D30-7C96C22C2CC3",
+  "title": "System Usability Survey",
   "status": "draft",
   "meta": {
     "profile": [
@@ -32,12 +33,11 @@
       }
     }
   ],
-  "contact": [
-    {}
-  ],
   "subjectType": [
     "Patient"
   ],
+  "purpose": "Quick usability check",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/sus",
   "item": [
     {
       "linkId": "cc4c3ec5-36fe-4fe5-e6e3-186119bf3534",
