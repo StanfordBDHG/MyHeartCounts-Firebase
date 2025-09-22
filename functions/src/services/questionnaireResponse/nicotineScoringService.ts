@@ -43,23 +43,23 @@ export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
   }
 
   private smokingStatusToScore(smokingStatus: string): number {
-    // Lookup table based on display values
+    // Lookup table based on iOS NicotineExposureCategoryValues enum
     switch (smokingStatus) {
       case 'Never smoked/vaped':
-        return 100
+        return 0 // neverSmoked
       case 'Quit >5 years ago':
-        return 75
+        return 1 // quitMoreThan5YearsAgo
       case 'Quit 1-5 years ago':
-        return 50
+        return 2 // quitWithin1To5Years
       case 'Quit <1 year ago':
-        return 25
+        return 3 // quitWithinLastYearOrIsUsingNDS
       case 'Light smoker/vaper (<10/day)':
       case 'Moderate smoker/vaper (10 to 19/day)':
       case 'Heavy smoker/vaper (>20/day)':
-        return 0
+        return 4 // activelySmoking
       default:
         logger.warn(`Unknown smoking status: ${smokingStatus}`)
-        return 0
+        return 4 // activelySmoking (most conservative)
     }
   }
 }
