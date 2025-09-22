@@ -35,7 +35,6 @@ export class DietScoreCalculator implements ScoreCalculator {
       (sum, answer) => sum + (answer ? 1 : 0),
       0,
     )
-    const overallScore = this.pointsToScore(totalPoints)
 
     // Keep category breakdown for tracking purposes
     const categoryScores = {
@@ -63,18 +62,9 @@ export class DietScoreCalculator implements ScoreCalculator {
 
     return new Score({
       date: new Date(),
-      overallScore: overallScore,
+      overallScore: totalPoints,
       domainScores: categoryScores,
     })
-  }
-
-  private pointsToScore(points: number): number {
-    if (points >= 17) return 100
-    if (points >= 14) return 85
-    if (points >= 11) return 70
-    if (points >= 8) return 50
-    if (points >= 5) return 25
-    return 0
   }
 
   private getFruitsVegetablesQuestions(): string[] {
