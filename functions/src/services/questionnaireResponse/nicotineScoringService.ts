@@ -103,7 +103,6 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       // Store FHIR observation
       await this.storeFHIRObservation(userId, response.id, score)
 
-
       logger.info(
         `NicotineScoringService: Processed nicotine questionnaire response for user ${userId}, overall score: ${score.overallScore}`,
       )
@@ -193,8 +192,6 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       domainScores: {},
     })
   }
-
-
 
   private async storeFHIRObservation(
     userId: string,

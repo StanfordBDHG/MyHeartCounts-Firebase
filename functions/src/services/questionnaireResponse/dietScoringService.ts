@@ -270,7 +270,6 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
     return null
   }
 
-
   private async storeFHIRObservation(
     userId: string,
     questionnaireResponseId: string,
