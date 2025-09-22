@@ -49,11 +49,13 @@ export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
         return 100
       case 'Quit >5 years ago':
         return 75
-      case 'Quit 1- 5 years ago':
+      case 'Quit 1-5 years ago':
         return 50
       case 'Quit <1 year ago':
         return 25
-      case 'Smoke/vape now':
+      case 'Light smoker/vaper (<10/day)':
+      case 'Moderate smoker/vaper (10 to 19/day)':
+      case 'Heavy smoker/vaper (>20/day)':
         return 0
       default:
         logger.warn(`Unknown smoking status: ${smokingStatus}`)
