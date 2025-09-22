@@ -1,1 +1,398 @@
-{"resourceType":"Questionnaire","language":"es-419","id":"A6F08E4E-519C-4E49-B1F7-EE2BDA12AFC7","title":"Medida de Adecuación del Ejercicio","status":"draft","meta":{"profile":["http://spezi.health/fhir/StructureDefinition/sdf-Questionnaire"],"tag":[{"system":"urn:ietf:bcp:47","code":"es-419","display":"Español (Latinoamérica)"}]},"useContext":[{"code":{"system":"http://hl7.org/fhir/ValueSet/usage-context-type","code":"focus","display":"Enfoque Clínico"},"valueCodeableConcept":{"coding":[{"system":"urn:oid:2.16.578.1.12.4.1.1.8655","display":"Medida de Adecuación del Ejercicio"}]}}],"subjectType":["Patient"],"purpose":"Mide las creencias sobre si su nivel de actividad es adecuado para la salud","url":"https://myheartcounts.stanford.edu/fhir/survey/exerciseAdequacy","item":[{"linkId":"203727ed-feb1-4b3c-9a48-27182cd45e3b","type":"display","text":"Esta breve encuesta le pide que reflexione sobre sus niveles actuales de actividad física y evalúe cómo cree que están impactando varios aspectos de su salud y bienestar.","required":false},{"linkId":"7db04d4c-6c55-4dd5-cfaf-756b450d4e2a","type":"group","text":"Instrucciones: Al responder las siguientes preguntas, por favor piense en su nivel actual de actividad física o inactividad (es decir, cuánto ejercicio, si es que lo hace, ha estado realizando recientemente).","extension":[{"url":"http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl","valueCodeableConcept":{"coding":[{"system":"http://hl7.org/fhir/ValueSet/questionnaire-item-control","code":"page","display":"Page"}],"text":"Page"}}],"required":false,"item":[{"linkId":"c54b2bcb-8441-4ad7-f124-ff997f1e3a6f","type":"choice","text":"Mi nivel actual de actividad física es poco saludable.","required":false,"answerOption":[{"valueCoding":{"id":"09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6","code":"strongly-disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Totalmente en desacuerdo"}},{"valueCoding":{"id":"2b9ac766-38b0-4189-9ba4-418b72c4f24b","code":"disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"En desacuerdo"}},{"valueCoding":{"id":"c012ea47-a601-4d1b-e9fb-041d4dc7b20c","code":"somewhat-disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Algo en desacuerdo"}},{"valueCoding":{"id":"5e7a1881-925b-4f61-82c5-5b999d1eb993","code":"neither-agree-or-disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Ni de acuerdo ni en desacuerdo"}},{"valueCoding":{"id":"571ba8fb-8d81-4339-8101-64e5ad7dcbf6","code":"somewhat-agree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Algo de acuerdo"}},{"valueCoding":{"id":"4cf60fb7-8263-4361-ddfc-b161fd199ba3","code":"agree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"De acuerdo"}},{"valueCoding":{"id":"1e5e79e4-e149-4dad-ca85-b36eaf05c923","code":"strongly-agree-","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Totalmente de acuerdo"}}]},{"linkId":"806328a7-7493-4e1e-a45d-ed8a972c2bd8","type":"choice","text":"Mi nivel actual de actividad física me está ayudando a lograr o mantener un peso corporal saludable.","required":false,"answerOption":[{"valueCoding":{"id":"09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6","code":"strongly-disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Totalmente en desacuerdo"}},{"valueCoding":{"id":"2b9ac766-38b0-4189-9ba4-418b72c4f24b","code":"disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"En desacuerdo"}},{"valueCoding":{"id":"c012ea47-a601-4d1b-e9fb-041d4dc7b20c","code":"somewhat-disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Algo en desacuerdo"}},{"valueCoding":{"id":"5e7a1881-925b-4f61-82c5-5b999d1eb993","code":"neither-agree-or-disagree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Ni de acuerdo ni en desacuerdo"}},{"valueCoding":{"id":"571ba8fb-8d81-4339-8101-64e5ad7dcbf6","code":"somewhat-agree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Algo de acuerdo"}},{"valueCoding":{"id":"109d2006-1cd1-42e1-8b7c-94edeed6675a","code":"agree","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"De acuerdo"}},{"valueCoding":{"id":"1e5e79e4-e149-4dad-ca85-b36eaf05c923","code":"strongly-agree-","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Totalmente de acuerdo"}}]},{"linkId":"fb2c3b32-2709-4fe4-f362-95f68afea410","type":"choice","text":"¿Qué tan perjudicial/beneficioso es su nivel actual de actividad física para su salud?","required":false,"answerOption":[{"valueCoding":{"id":"09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6","code":"very-harmful-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Muy perjudicial para mi salud"}},{"valueCoding":{"id":"2b9ac766-38b0-4189-9ba4-418b72c4f24b","code":"moderately-harmful-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Moderadamente perjudicial para mi salud"}},{"valueCoding":{"id":"c012ea47-a601-4d1b-e9fb-041d4dc7b20c","code":"slightly-harmful-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Ligeramente perjudicial para mi salud"}},{"valueCoding":{"id":"5e7a1881-925b-4f61-82c5-5b999d1eb993","code":"neither-harmful-nor-beneficial-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Ni perjudicial ni beneficioso para mi salud"}},{"valueCoding":{"id":"571ba8fb-8d81-4339-8101-64e5ad7dcbf6","code":"moderately-beneficial-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Moderadamente beneficioso para mi salud"}},{"valueCoding":{"id":"1e5e79e4-e149-4dad-ca85-b36eaf05c923","code":"very-beneficial-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Muy beneficioso para mi salud"}},{"valueCoding":{"id":"75a08637-e26b-4f1b-8649-7ea01c650280","code":"extremely-beneficial-for-my-health","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Extremadamente beneficioso para mi salud"}}]},{"linkId":"24cf3c1e-dcf1-4036-8557-9da96ad423ec","type":"choice","text":"¿Cuánto aumenta o disminuye su nivel actual de actividad física (o inactividad) su riesgo de enfermedad?","required":false,"answerOption":[{"valueCoding":{"id":"09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6","code":"increases-my-risk-very-much","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Aumenta mucho mi riesgo"}},{"valueCoding":{"id":"2b9ac766-38b0-4189-9ba4-418b72c4f24b","code":"increases-my-risk-moderately","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Aumenta moderadamente mi riesgo"}},{"valueCoding":{"id":"c012ea47-a601-4d1b-e9fb-041d4dc7b20c","code":"increases-my-risk-slightly","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Aumenta ligeramente mi riesgo"}},{"valueCoding":{"id":"5e7a1881-925b-4f61-82c5-5b999d1eb993","code":"neither-increases-nor-decreases-my-risk","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Ni aumenta ni disminuye mi riesgo"}},{"valueCoding":{"id":"571ba8fb-8d81-4339-8101-64e5ad7dcbf6","code":"decreases-my-risk-slightly","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a 0bc2","display":"Disminuye ligeramente mi riesgo"}},{"valueCoding":{"id":"1e5e79e4-e149-4dad-ca85-b36eaf05c923","code":"decreases-my-risk-moderately","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Disminuye moderadamente mi riesgo"}},{"valueCoding":{"id":"75a08637-e26b-4f1b-8649-7ea01c650280","code":"decreases-my-risk-very-much","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Disminuye mucho mi riesgo"}}]},{"linkId":"09b0b0e8-8a3f-4598-deb1-88b34ddac3a9","type":"choice","text":"¿Cuánto está fortaleciendo o debilitando sus músculos su nivel actual de actividad física (o inactividad)?","required":false,"answerOption":[{"valueCoding":{"id":"09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6","code":"strengthening-very-much","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Fortaleciendo mucho"}},{"valueCoding":{"id":"2b9ac766-38b0-4189-9ba4-418b72c4f24b","code":"strengthening-moderately","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Fortaleciendo moderadamente"}},{"valueCoding":{"id":"c012ea47-a601-4d1b-e9fb-041d4dc7b20c","code":"strengthening-slightly","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Fortaleciendo ligeramente"}},{"valueCoding":{"id":"5e7a1881-925b-4f61-82c5-5b999d1eb993","code":"neither-strengthening-nor-weakening","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Ni fortaleciendo ni debilitando"}},{"valueCoding":{"id":"571ba8fb-8d81-4339-8101-64e5ad7dcbf6","code":"weakening-slightly","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Debilitando ligeramente"}},{"valueCoding":{"id":"1e5e79e4-e149-4dad-ca85-b36eaf05c923","code":"weakening-moderately","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Debilitando moderadamente"}},{"valueCoding":{"id":"bbff4709-6a31-4f3d-8b31-c62d4b68f601","code":"weakening-very-much","system":"urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2","display":"Debilitando mucho"}}]}]},{"linkId":"4dbc7750-e08e-47c2-88c0-d4e8f42ada69","type":"display","text":"Gracias por completar esta encuesta.","required":false}]}
+{
+  "resourceType": "Questionnaire",
+  "language": "es-419",
+  "id": "A6F08E4E-519C-4E49-B1F7-EE2BDA12AFC7",
+  "title": "Medida de Adecuación del Ejercicio",
+  "status": "draft",
+  "meta": {
+    "profile": [
+      "http://spezi.health/fhir/StructureDefinition/sdf-Questionnaire"
+    ],
+    "tag": [
+      {
+        "system": "urn:ietf:bcp:47",
+        "code": "es-419",
+        "display": "Español (Latinoamérica)"
+      }
+    ]
+  },
+  "useContext": [
+    {
+      "code": {
+        "system": "http://hl7.org/fhir/ValueSet/usage-context-type",
+        "code": "focus",
+        "display": "Enfoque Clínico"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.578.1.12.4.1.1.8655",
+            "display": "Medida de Adecuación del Ejercicio"
+          }
+        ]
+      }
+    }
+  ],
+  "subjectType": [
+    "Patient"
+  ],
+  "purpose": "Mide las creencias sobre si su nivel de actividad es adecuado para la salud",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/exerciseAdequacy",
+  "item": [
+    {
+      "linkId": "203727ed-feb1-4b3c-9a48-27182cd45e3b",
+      "type": "display",
+      "text": "Esta breve encuesta le pide que reflexione sobre sus niveles actuales de actividad física y evalúe cómo cree que están impactando varios aspectos de su salud y bienestar.",
+      "required": false
+    },
+    {
+      "linkId": "7db04d4c-6c55-4dd5-cfaf-756b450d4e2a",
+      "type": "group",
+      "text": "Instrucciones: Al responder las siguientes preguntas, por favor piense en su nivel actual de actividad física o inactividad (es decir, cuánto ejercicio, si es que lo hace, ha estado realizando recientemente).",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/ValueSet/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "required": false,
+      "item": [
+        {
+          "linkId": "c54b2bcb-8441-4ad7-f124-ff997f1e3a6f",
+          "type": "choice",
+          "text": "Mi nivel actual de actividad física es poco saludable.",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6",
+                "code": "strongly-disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Totalmente en desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "2b9ac766-38b0-4189-9ba4-418b72c4f24b",
+                "code": "disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "En desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "c012ea47-a601-4d1b-e9fb-041d4dc7b20c",
+                "code": "somewhat-disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Algo en desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "5e7a1881-925b-4f61-82c5-5b999d1eb993",
+                "code": "neither-agree-or-disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Ni de acuerdo ni en desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "571ba8fb-8d81-4339-8101-64e5ad7dcbf6",
+                "code": "somewhat-agree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Algo de acuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "4cf60fb7-8263-4361-ddfc-b161fd199ba3",
+                "code": "agree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "De acuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "1e5e79e4-e149-4dad-ca85-b36eaf05c923",
+                "code": "strongly-agree-",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Totalmente de acuerdo"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "806328a7-7493-4e1e-a45d-ed8a972c2bd8",
+          "type": "choice",
+          "text": "Mi nivel actual de actividad física me está ayudando a lograr o mantener un peso corporal saludable.",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6",
+                "code": "strongly-disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Totalmente en desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "2b9ac766-38b0-4189-9ba4-418b72c4f24b",
+                "code": "disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "En desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "c012ea47-a601-4d1b-e9fb-041d4dc7b20c",
+                "code": "somewhat-disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Algo en desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "5e7a1881-925b-4f61-82c5-5b999d1eb993",
+                "code": "neither-agree-or-disagree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Ni de acuerdo ni en desacuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "571ba8fb-8d81-4339-8101-64e5ad7dcbf6",
+                "code": "somewhat-agree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Algo de acuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "109d2006-1cd1-42e1-8b7c-94edeed6675a",
+                "code": "agree",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "De acuerdo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "1e5e79e4-e149-4dad-ca85-b36eaf05c923",
+                "code": "strongly-agree-",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Totalmente de acuerdo"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "fb2c3b32-2709-4fe4-f362-95f68afea410",
+          "type": "choice",
+          "text": "¿Qué tan perjudicial/beneficioso es su nivel actual de actividad física para su salud?",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6",
+                "code": "very-harmful-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Muy perjudicial para mi salud"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "2b9ac766-38b0-4189-9ba4-418b72c4f24b",
+                "code": "moderately-harmful-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Moderadamente perjudicial para mi salud"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "c012ea47-a601-4d1b-e9fb-041d4dc7b20c",
+                "code": "slightly-harmful-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Ligeramente perjudicial para mi salud"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "5e7a1881-925b-4f61-82c5-5b999d1eb993",
+                "code": "neither-harmful-nor-beneficial-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Ni perjudicial ni beneficioso para mi salud"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "571ba8fb-8d81-4339-8101-64e5ad7dcbf6",
+                "code": "moderately-beneficial-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Moderadamente beneficioso para mi salud"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "1e5e79e4-e149-4dad-ca85-b36eaf05c923",
+                "code": "very-beneficial-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Muy beneficioso para mi salud"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "75a08637-e26b-4f1b-8649-7ea01c650280",
+                "code": "extremely-beneficial-for-my-health",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Extremadamente beneficioso para mi salud"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "24cf3c1e-dcf1-4036-8557-9da96ad423ec",
+          "type": "choice",
+          "text": "¿Cuánto aumenta o disminuye su nivel actual de actividad física (o inactividad) su riesgo de enfermedad?",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6",
+                "code": "increases-my-risk-very-much",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Aumenta mucho mi riesgo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "2b9ac766-38b0-4189-9ba4-418b72c4f24b",
+                "code": "increases-my-risk-moderately",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Aumenta moderadamente mi riesgo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "c012ea47-a601-4d1b-e9fb-041d4dc7b20c",
+                "code": "increases-my-risk-slightly",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Aumenta ligeramente mi riesgo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "5e7a1881-925b-4f61-82c5-5b999d1eb993",
+                "code": "neither-increases-nor-decreases-my-risk",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Ni aumenta ni disminuye mi riesgo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "571ba8fb-8d81-4339-8101-64e5ad7dcbf6",
+                "code": "decreases-my-risk-slightly",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a 0bc2",
+                "display": "Disminuye ligeramente mi riesgo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "1e5e79e4-e149-4dad-ca85-b36eaf05c923",
+                "code": "decreases-my-risk-moderately",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Disminuye moderadamente mi riesgo"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "75a08637-e26b-4f1b-8649-7ea01c650280",
+                "code": "decreases-my-risk-very-much",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Disminuye mucho mi riesgo"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "09b0b0e8-8a3f-4598-deb1-88b34ddac3a9",
+          "type": "choice",
+          "text": "¿Cuánto está fortaleciendo o debilitando sus músculos su nivel actual de actividad física (o inactividad)?",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "09a7e8e5-5d8c-41c6-97ea-163e4c3e95d6",
+                "code": "strengthening-very-much",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Fortaleciendo mucho"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "2b9ac766-38b0-4189-9ba4-418b72c4f24b",
+                "code": "strengthening-moderately",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Fortaleciendo moderadamente"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "c012ea47-a601-4d1b-e9fb-041d4dc7b20c",
+                "code": "strengthening-slightly",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Fortaleciendo ligeramente"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "5e7a1881-925b-4f61-82c5-5b999d1eb993",
+                "code": "neither-strengthening-nor-weakening",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Ni fortaleciendo ni debilitando"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "571ba8fb-8d81-4339-8101-64e5ad7dcbf6",
+                "code": "weakening-slightly",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Debilitando ligeramente"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "1e5e79e4-e149-4dad-ca85-b36eaf05c923",
+                "code": "weakening-moderately",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Debilitando moderadamente"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "bbff4709-6a31-4f3d-8b31-c62d4b68f601",
+                "code": "weakening-very-much",
+                "system": "urn:uuid:bf786b8a-280e-4bc2-a897-f06b739a0bc2",
+                "display": "Debilitando mucho"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "4dbc7750-e08e-47c2-88c0-d4e8f42ada69",
+      "type": "display",
+      "text": "Gracias por completar esta encuesta.",
+      "required": false
+    }
+  ]
+}

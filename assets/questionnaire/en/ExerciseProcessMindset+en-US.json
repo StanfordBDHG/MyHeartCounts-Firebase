@@ -1,1 +1,358 @@
-{"resourceType":"Questionnaire","language":"en-US","id":"9C6F4F2B-B436-4B96-B493-032051AB681F","title":"Exercise Process Mindset Measure","status":"draft","meta":{"profile":["http://spezi.health/fhir/StructureDefinition/sdf-Questionnaire"],"tag":[{"system":"urn:ietf:bcp:47","code":"en-US","display":"English"}]},"useContext":[{"code":{"system":"http://hl7.org/fhir/ValueSet/usage-context-type","code":"focus","display":"Clinical Focus"},"valueCodeableConcept":{"coding":[{"system":"urn:oid:2.16.578.1.12.4.1.1.8655","display":"Exercise Process Mindset Measure"}]}}],"subjectType":["Patient"],"purpose":"Measures mindsets about the health journey's process","url":"https://myheartcounts.stanford.edu/fhir/survey/exerciseProcess","item":[{"linkId":"cddcb4e1-0ef2-498b-921b-db8a20f1cb81","type":"display","text":"Now think about what it's like to exercise. The following statements are different opinions about EXERCISING.","required":false},{"linkId":"2fcf688f-70ee-49e4-d684-b9f99d521dfb","type":"group","text":"Please select the option in each step that best describes how you feel about exercising.","extension":[{"url":"http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl","valueCodeableConcept":{"coding":[{"system":"http://hl7.org/fhir/ValueSet/questionnaire-item-control","code":"page","display":"Page"}],"text":"Page"}}],"required":false,"item":[{"linkId":"656bd1dd-6bd4-41ba-82ac-36f21e5288e7","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-difficult","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very difficult"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-difficult","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat difficult"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-easy","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat easy"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-easy","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very easy"}}]},{"linkId":"14933034-e3aa-43b3-8d84-42381171517e","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-unpleasant","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very unpleasant"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-unpleasant","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat unpleasant"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-pleasurable","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat pleasurable"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-pleasurable","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very pleasurable"}}]},{"linkId":"6889acf5-4753-46b6-dd77-cc29a0af6741","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-stressful","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very stressful"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-stressful","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat stressful"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-relaxing","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat relaxing"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-relaxing","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very relaxing"}}]},{"linkId":"5fe09a0e-a65c-425d-ccf2-07cb3a25babd","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-inconvenient","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very inconvenient"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-inconvenient","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat inconvenient"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-convenient","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat convenient"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-convenient","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very convenient"}}]},{"linkId":"1499c5a7-215e-4ce9-d618-27b930f54d44","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-boring","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very boring"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-boring","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat boring"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-fun","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat fun"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-fun","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very fun"}}]},{"linkId":"bc27d883-c3bb-40f4-baab-29c0a1d41ed3","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-lonely","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very lonely"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-lonely","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat lonely"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-social","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat social"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-social","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very social"}}]},{"linkId":"5189dae2-fee8-4f45-80d2-505a6eeabec0","type":"choice","text":"EXERCISING is: ","required":false,"answerOption":[{"valueCoding":{"id":"7b150357-004d-487a-cb7d-2c51d178851e","code":"very-depriving","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very depriving"}},{"valueCoding":{"id":"3bceb4f7-41de-43fe-ba29-264dfc541310","code":"somewhat-depriving","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat depriving"}},{"valueCoding":{"id":"25e687c8-da7e-4563-989b-4ae238d258fa","code":"somewhat-indulgent","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Somewhat indulgent"}},{"valueCoding":{"id":"dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c","code":"very-indulgent","system":"urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5","display":"Very indulgent"}}]}]},{"linkId":"46070375-4197-48b0-d0b2-c0d0a1fd5992","type":"display","text":"Thank you for completing this questionnaire. ","required":false}]}
+{
+  "resourceType": "Questionnaire",
+  "language": "en-US",
+  "id": "9C6F4F2B-B436-4B96-B493-032051AB681F",
+  "title": "Exercise Process Mindset Measure",
+  "status": "draft",
+  "meta": {
+    "profile": [
+      "http://spezi.health/fhir/StructureDefinition/sdf-Questionnaire"
+    ],
+    "tag": [
+      {
+        "system": "urn:ietf:bcp:47",
+        "code": "en-US",
+        "display": "English"
+      }
+    ]
+  },
+  "useContext": [
+    {
+      "code": {
+        "system": "http://hl7.org/fhir/ValueSet/usage-context-type",
+        "code": "focus",
+        "display": "Clinical Focus"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.578.1.12.4.1.1.8655",
+            "display": "Exercise Process Mindset Measure"
+          }
+        ]
+      }
+    }
+  ],
+  "subjectType": [
+    "Patient"
+  ],
+  "purpose": "Measures mindsets about the health journey's process",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/exerciseProcess",
+  "item": [
+    {
+      "linkId": "cddcb4e1-0ef2-498b-921b-db8a20f1cb81",
+      "type": "display",
+      "text": "Now think about what it's like to exercise. The following statements are different opinions about EXERCISING.",
+      "required": false
+    },
+    {
+      "linkId": "2fcf688f-70ee-49e4-d684-b9f99d521dfb",
+      "type": "group",
+      "text": "Please select the option in each step that best describes how you feel about exercising.",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/ValueSet/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "required": false,
+      "item": [
+        {
+          "linkId": "656bd1dd-6bd4-41ba-82ac-36f21e5288e7",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-difficult",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very difficult"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-difficult",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat difficult"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-easy",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat easy"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-easy",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very easy"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "14933034-e3aa-43b3-8d84-42381171517e",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-unpleasant",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very unpleasant"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-unpleasant",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat unpleasant"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-pleasurable",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat pleasurable"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-pleasurable",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very pleasurable"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "6889acf5-4753-46b6-dd77-cc29a0af6741",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-stressful",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very stressful"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-stressful",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat stressful"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-relaxing",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat relaxing"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-relaxing",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very relaxing"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "5fe09a0e-a65c-425d-ccf2-07cb3a25babd",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-inconvenient",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very inconvenient"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-inconvenient",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat inconvenient"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-convenient",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat convenient"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-convenient",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very convenient"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1499c5a7-215e-4ce9-d618-27b930f54d44",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-boring",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very boring"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-boring",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat boring"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-fun",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat fun"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-fun",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very fun"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "bc27d883-c3bb-40f4-baab-29c0a1d41ed3",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-lonely",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very lonely"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-lonely",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat lonely"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-social",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat social"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-social",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very social"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "5189dae2-fee8-4f45-80d2-505a6eeabec0",
+          "type": "choice",
+          "text": "EXERCISING is: ",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "id": "7b150357-004d-487a-cb7d-2c51d178851e",
+                "code": "very-depriving",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very depriving"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "3bceb4f7-41de-43fe-ba29-264dfc541310",
+                "code": "somewhat-depriving",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat depriving"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "25e687c8-da7e-4563-989b-4ae238d258fa",
+                "code": "somewhat-indulgent",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Somewhat indulgent"
+              }
+            },
+            {
+              "valueCoding": {
+                "id": "dcf7ee6f-86c4-41f6-9ffc-c7de8a7aad6c",
+                "code": "very-indulgent",
+                "system": "urn:uuid:123f0f7b-7282-4206-839f-1566456db8f5",
+                "display": "Very indulgent"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "46070375-4197-48b0-d0b2-c0d0a1fd5992",
+      "type": "display",
+      "text": "Thank you for completing this questionnaire. ",
+      "required": false
+    }
+  ]
+}
