@@ -68,7 +68,7 @@ describeWithEmulators('function: sendNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(1)
     })
 
-    it('skips users without FCM token', async () => {
+    it('archives failed notifications for users without FCM token', async () => {
       const userId = 'test-user-no-token'
       const pastTime = new Date()
       pastTime.setMinutes(pastTime.getMinutes() - 30)
@@ -96,7 +96,17 @@ describeWithEmulators('function: sendNudges', (env) => {
         .collection('notificationHistory')
         .get()
 
-      expect(historySnapshot.size).to.equal(0)
+      expect(historySnapshot.size).to.equal(1)
+
+      const archivedNotification = historySnapshot.docs[0].data()
+      expect(archivedNotification.status).to.equal('failed')
+      expect(archivedNotification.errorMessage).to.equal(
+        'No FCM token available for user',
+      )
+      expect(archivedNotification.title).to.equal('Test Notification')
+      expect(archivedNotification.body).to.equal(
+        'This notification should not be sent',
+      )
 
       const backlogSnapshot = await env.firestore
         .collection('users')
@@ -104,7 +114,7 @@ describeWithEmulators('function: sendNudges', (env) => {
         .collection('notificationBacklog')
         .get()
 
-      expect(backlogSnapshot.size).to.equal(1)
+      expect(backlogSnapshot.size).to.equal(0)
     })
 
     it('skips users without timezone', async () => {
@@ -144,6 +154,102 @@ describeWithEmulators('function: sendNudges', (env) => {
         .get()
 
       expect(backlogSnapshot.size).to.equal(1)
+    })
+
+    it('archives successful notifications with sent status', async () => {
+      const userId = 'test-user-success'
+      const pastTime = new Date()
+      pastTime.setMinutes(pastTime.getMinutes() - 30)
+
+      await env.firestore.collection('users').doc(userId).set({
+        type: 'patient',
+        fcmToken: 'test-success-token',
+        timeZone: 'UTC',
+      })
+
+      await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .add({
+          title: 'Success Notification',
+          body: 'This notification should be sent successfully',
+          timestamp: admin.firestore.Timestamp.fromDate(pastTime),
+        })
+
+      await processNotificationBacklog()
+
+      const historySnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationHistory')
+        .get()
+
+      expect(historySnapshot.size).to.equal(1)
+
+      const archivedNotification = historySnapshot.docs[0].data()
+      expect(archivedNotification.status).to.equal('sent')
+      expect(archivedNotification.errorMessage).to.be.undefined
+      expect(archivedNotification.title).to.equal('Success Notification')
+      expect(archivedNotification.body).to.equal(
+        'This notification should be sent successfully',
+      )
+
+      const backlogSnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .get()
+
+      expect(backlogSnapshot.size).to.equal(0)
+    })
+
+    it('archives failed notifications with error status', async () => {
+      const userId = 'test-user-fail'
+      const pastTime = new Date()
+      pastTime.setMinutes(pastTime.getMinutes() - 30)
+
+      await env.firestore.collection('users').doc(userId).set({
+        type: 'patient',
+        fcmToken: 'test-fail-token', // Mock will fail tokens with 'fail' in name
+        timeZone: 'UTC',
+      })
+
+      await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .add({
+          title: 'Fail Notification',
+          body: 'This notification should fail',
+          timestamp: admin.firestore.Timestamp.fromDate(pastTime),
+        })
+
+      await processNotificationBacklog()
+
+      const historySnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationHistory')
+        .get()
+
+      expect(historySnapshot.size).to.equal(1)
+
+      const archivedNotification = historySnapshot.docs[0].data()
+      expect(archivedNotification.status).to.equal('failed')
+      expect(archivedNotification.errorMessage).to.include('Invalid FCM token')
+      expect(archivedNotification.title).to.equal('Fail Notification')
+      expect(archivedNotification.body).to.equal(
+        'This notification should fail',
+      )
+
+      const backlogSnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .get()
+
+      expect(backlogSnapshot.size).to.equal(0)
     })
   })
 
