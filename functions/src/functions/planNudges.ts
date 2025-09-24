@@ -370,7 +370,7 @@ export class NudgeService {
     userId: string,
     userData: any,
     nudges: NudgeMessage[],
-    nudgeType: string,
+    category: string,
   ): Promise<number> {
     let nudgesCreated = 0
 
@@ -399,7 +399,7 @@ export class NudgeService {
           title: nudgeMessage.title,
           body: nudgeMessage.body,
           timestamp: admin.firestore.Timestamp.fromDate(utcTime),
-          nudgeType,
+          category,
           isLLMGenerated: nudgeMessage.isLLMGenerated,
           generatedAt: nudgeMessage.generatedAt,
         })
@@ -491,7 +491,7 @@ export class NudgeService {
             userId,
             userData,
             predefinedNudges,
-            'predefined',
+            'nudge-predefined',
           )
           nudgesCreated += created
         }
@@ -506,12 +506,12 @@ export class NudgeService {
           )
           const { nudges: llmNudges, usedFallback } =
             await this.generateLLMNudges(userId, userLanguage, userData)
-          const nudgeType = usedFallback ? 'predefined' : 'llm-generated'
+          const category = usedFallback ? 'nudge-predefined' : 'nudge-llm'
           const created = await this.createNudgesForUser(
             userId,
             userData,
             llmNudges,
-            nudgeType,
+            category,
           )
           nudgesCreated += created
         }
