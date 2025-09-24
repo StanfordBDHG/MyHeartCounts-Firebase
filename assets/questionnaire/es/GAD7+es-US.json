@@ -1,6 +1,7 @@
 {
   "resourceType": "Questionnaire",
-  "language": "en-US",
+  "language": "es-419",
+  "id": "1FF524AE-C159-496A-B0BD-E81B2FAD3E8B",
   "title": "GAD-7",
   "status": "draft",
   "meta": {
@@ -10,8 +11,8 @@
     "tag": [
       {
         "system": "urn:ietf:bcp:47",
-        "code": "en-US",
-        "display": "English"
+        "code": "es-419",
+        "display": "Español (Latinoamérica)"
       }
     ]
   },
@@ -20,7 +21,7 @@
       "code": {
         "system": "http://hl7.org/fhir/ValueSet/usage-context-type",
         "code": "focus",
-        "display": "Clinical Focus"
+        "display": "Enfoque Clínico"
       },
       "valueCodeableConcept": {
         "coding": [
@@ -35,17 +36,19 @@
   "subjectType": [
     "Patient"
   ],
+  "purpose": "Tamizaje de ansiedad",
+  "url": "https://myheartcounts.stanford.edu/fhir/survey/gad7",
   "item": [
     {
       "linkId": "a4517fa8-6c01-4701-9ace-13761a26508f",
       "type": "display",
-      "text": "General Anxiety Disorder Questionnaire: The following questionnaire will ask about anxiety symptoms you may have experienced over the past two weeks to help us better understand your mental health.",
+      "text": "Cuestionario de Trastorno de Ansiedad Generalizada: El siguiente cuestionario le preguntará sobre los síntomas de ansiedad que puede haber experimentado durante las últimas dos semanas para ayudarnos a comprender mejor su salud mental.",
       "required": false
     },
     {
       "linkId": "11530055-770d-4b62-81bc-7aabde46eb1a",
       "type": "group",
-      "text": "How often have you been bothered by the following over the past 2 weeks?",
+      "text": "¿Con qué frecuencia le han molestado los siguientes problemas durante las últimas 2 semanas?",
       "extension": [
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -66,7 +69,7 @@
         {
           "linkId": "69f6b657-f886-4270-ae5d-d7650bde5a19",
           "type": "choice",
-          "text": "Feeling nervous, anxious, or on edge",
+          "text": "Sentirse nervioso, ansioso o con los nervios de punta",
           "required": false,
           "answerOption": [
             {
@@ -74,7 +77,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -82,7 +85,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -90,7 +93,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -98,7 +101,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -106,7 +109,7 @@
         {
           "linkId": "6d41f822-e1b5-408a-f05f-2df2016e6524",
           "type": "choice",
-          "text": "Not being able to stop or control worrying",
+          "text": "No ser capaz de parar o controlar la preocupación",
           "required": false,
           "answerOption": [
             {
@@ -114,7 +117,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -122,7 +125,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -130,7 +133,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -138,7 +141,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -146,7 +149,7 @@
         {
           "linkId": "cad0fed3-1086-4e73-8771-599b9b48ad13",
           "type": "choice",
-          "text": "Worrying too much about different things",
+          "text": "Preocuparse demasiado por diferentes cosas",
           "required": false,
           "answerOption": [
             {
@@ -154,7 +157,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -162,7 +165,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -170,7 +173,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -178,7 +181,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -186,7 +189,7 @@
         {
           "linkId": "4bdf0913-6903-4a59-aac2-f87d7e8d449a",
           "type": "choice",
-          "text": "Trouble relaxing",
+          "text": "Tener dificultad para relajarse",
           "required": false,
           "answerOption": [
             {
@@ -194,7 +197,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -202,7 +205,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -210,7 +213,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -218,7 +221,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -226,7 +229,7 @@
         {
           "linkId": "1dedc4ae-29a5-4a1e-8726-56347268e362",
           "type": "choice",
-          "text": "Being so restless that it's hard to sit still",
+          "text": "Estar tan inquieto que es difícil permanecer sentado",
           "required": false,
           "answerOption": [
             {
@@ -234,7 +237,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -242,7 +245,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -250,7 +253,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -258,7 +261,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -266,7 +269,7 @@
         {
           "linkId": "e65d42c2-bb7a-4653-af9f-66e78240222e",
           "type": "choice",
-          "text": "Becoming easily annoyed or irritable",
+          "text": "Irritarse o enojarse con facilidad",
           "required": false,
           "answerOption": [
             {
@@ -274,7 +277,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -282,7 +285,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -290,7 +293,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -298,7 +301,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -306,7 +309,7 @@
         {
           "linkId": "68e93f3b-4fd0-44ac-da21-14902acefc65",
           "type": "choice",
-          "text": "Feeling afraid as if something awful might happen",
+          "text": "Sentir miedo como si algo terrible pudiera suceder",
           "required": false,
           "answerOption": [
             {
@@ -314,7 +317,7 @@
                 "id": "4fd7ae28-5a19-464b-865f-b1ca7737c218",
                 "code": "not-at-all",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Not at all"
+                "display": "Nunca"
               }
             },
             {
@@ -322,7 +325,7 @@
                 "id": "cf5cb572-ce96-4fcf-dff4-61b0dad6cb42",
                 "code": "several-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Several Days"
+                "display": "Varios días"
               }
             },
             {
@@ -330,7 +333,7 @@
                 "id": "333b9b12-bd57-455a-830b-80d980a7dc2c",
                 "code": "more-than-half-the-days",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "More than half the days"
+                "display": "Más de la mitad de los días"
               }
             },
             {
@@ -338,7 +341,7 @@
                 "id": "37998776-0428-4c46-817b-6944b2581dbc",
                 "code": "nearly-every-day",
                 "system": "urn:uuid:d52a782e-a4d2-4b57-8b2d-41d2f6dfa246",
-                "display": "Nearly every day"
+                "display": "Casi todos los días"
               }
             }
           ]
@@ -348,7 +351,7 @@
     {
       "linkId": "cecbbcd0-97c7-485a-9f15-d96c57d7103f",
       "type": "display",
-      "text": "Thank you for completing this survey. ",
+      "text": "Gracias por completar esta encuesta.",
       "required": false
     }
   ]
