@@ -1,3 +1,11 @@
+/** 
+ This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
+
+ SPDX-FileCopyrightText: 2025 Stanford University
+
+ SPDX-License-Identifier: MIT
+*/
+
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'

@@ -239,7 +239,7 @@ export class NudgeService {
               break
             case StageOfChange.MAINTENANCE:
               stageContext =
-                'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages.'
+                'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages. New activities should be avoided. Be as neutral as possible with the generated nudge.'
               break
             default:
               logger.warn(`Unknown stage of change: ${stateOfChange}`)
@@ -275,7 +275,7 @@ export class NudgeService {
             "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the formal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
         }
 
-        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
+        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
 
         const openai = new OpenAI({
           apiKey: getOpenaiApiKey(),

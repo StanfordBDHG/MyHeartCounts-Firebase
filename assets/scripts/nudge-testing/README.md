@@ -1,3 +1,9 @@
+<!-- 
+This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
+SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+SPDX-License-Identifier: MIT
+-->
+
 # Nudge Permutation Testing Script
 
 This script generates all possible permutations of the personalization context used in the `planNudges.ts` function and captures the LLM responses for analysis.
