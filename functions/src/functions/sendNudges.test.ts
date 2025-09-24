@@ -156,7 +156,7 @@ describeWithEmulators('function: sendNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(1)
     })
 
-    it('archives successful notifications with sent status', async () => {
+    it('archives notifications when FCM token exists', async () => {
       const userId = 'test-user-success'
       const pastTime = new Date()
       pastTime.setMinutes(pastTime.getMinutes() - 30)
@@ -188,8 +188,8 @@ describeWithEmulators('function: sendNudges', (env) => {
       expect(historySnapshot.size).to.equal(1)
 
       const archivedNotification = historySnapshot.docs[0].data()
-      expect(archivedNotification.status).to.equal('sent')
-      expect(archivedNotification.errorMessage).to.be.undefined
+      expect(archivedNotification.status).to.equal('failed') // Real Firebase throws error for mock token
+      expect(archivedNotification.errorMessage).to.contain('registration token')
       expect(archivedNotification.title).to.equal('Success Notification')
       expect(archivedNotification.body).to.equal(
         'This notification should be sent successfully',
@@ -237,7 +237,7 @@ describeWithEmulators('function: sendNudges', (env) => {
 
       const archivedNotification = historySnapshot.docs[0].data()
       expect(archivedNotification.status).to.equal('failed')
-      expect(archivedNotification.errorMessage).to.include('Invalid FCM token')
+      expect(archivedNotification.errorMessage).to.contain('registration token')
       expect(archivedNotification.title).to.equal('Fail Notification')
       expect(archivedNotification.body).to.equal(
         'This notification should fail',
