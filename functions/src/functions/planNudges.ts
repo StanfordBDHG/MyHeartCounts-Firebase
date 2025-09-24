@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import { randomUUID } from 'crypto'
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
@@ -376,6 +377,7 @@ export class NudgeService {
 
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
       const nudgeMessage = nudges[dayIndex]
+      const nudgeId = randomUUID().toUpperCase()
 
       const targetDate = new Date()
       targetDate.setDate(targetDate.getDate() + dayIndex)
@@ -395,7 +397,9 @@ export class NudgeService {
         .collection('users')
         .doc(userId)
         .collection('notificationBacklog')
-        .add({
+        .doc(nudgeId)
+        .set({
+          id: nudgeId,
           title: nudgeMessage.title,
           body: nudgeMessage.body,
           timestamp: admin.firestore.Timestamp.fromDate(utcTime),

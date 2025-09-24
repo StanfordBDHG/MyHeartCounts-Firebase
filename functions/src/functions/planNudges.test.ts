@@ -42,10 +42,16 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
+      const firstNudgeDocId = backlogSnapshot.docs[0].id
       expect(firstNudge.category).to.equal('nudge-predefined')
       expect(firstNudge.title).to.be.a('string')
       expect(firstNudge.body).to.be.a('string')
       expect(firstNudge.timestamp).to.be.instanceOf(admin.firestore.Timestamp)
+      expect(firstNudge.id).to.be.a('string')
+      expect(firstNudge.id).to.equal(firstNudgeDocId)
+      expect(firstNudge.id).to.match(
+        /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/,
+      )
     })
 
     it('creates nudges for group 1 user at day 14 (fallback to nudge-predefined when no API key)', async () => {
@@ -77,11 +83,17 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
+      const firstNudgeDocId = backlogSnapshot.docs[0].id
       // Should fall back to nudge-predefined nudges when OpenAI API key is not available
       expect(firstNudge.category).to.equal('nudge-predefined')
       expect(firstNudge.title).to.be.a('string')
       expect(firstNudge.body).to.be.a('string')
       expect(firstNudge.isLLMGenerated).to.not.be.true
+      expect(firstNudge.id).to.be.a('string')
+      expect(firstNudge.id).to.equal(firstNudgeDocId)
+      expect(firstNudge.id).to.match(
+        /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/,
+      )
     })
 
     it('creates nudges for group 2 user at day 7 (fallback to nudge-predefined when no API key)', async () => {
@@ -175,10 +187,16 @@ describeWithEmulators('function: planNudges', (env) => {
       expect(backlogSnapshot.size).to.equal(7)
 
       const firstNudge = backlogSnapshot.docs[0].data()
+      const firstNudgeDocId = backlogSnapshot.docs[0].id
       expect(firstNudge.category).to.equal('nudge-predefined')
       // Check that it's in Spanish by looking for spanish words/characters
       expect(firstNudge.title).to.match(
         /[ÁÉÍÓÚáéíóúñÑ]|Construye|Impulso|Campeón|Equípate|Hora de Poder|Desafío|Moverse/,
+      )
+      expect(firstNudge.id).to.be.a('string')
+      expect(firstNudge.id).to.equal(firstNudgeDocId)
+      expect(firstNudge.id).to.match(
+        /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/,
       )
     })
 
