@@ -155,7 +155,9 @@ export class NotificationService {
                   status: 'failed',
                   errorMessage: 'No FCM token available for user',
                   isLLMGenerated: backlogItem.isLLMGenerated ?? false,
-                  ...(backlogItem.generatedAt && { generatedAt: backlogItem.generatedAt }),
+                  ...(backlogItem.generatedAt && {
+                    generatedAt: backlogItem.generatedAt,
+                  }),
                 }
 
                 await this.firestore
