@@ -18,6 +18,17 @@ interface NotificationBacklogItem {
   generatedAt?: admin.firestore.Timestamp
 }
 
+interface NotificationArchiveItem {
+  title: string
+  body: string
+  originalTimestamp: admin.firestore.Timestamp
+  processedTimestamp: admin.firestore.FieldValue
+  status: 'sent' | 'failed'
+  errorMessage?: string
+  isLLMGenerated?: boolean
+  generatedAt?: admin.firestore.Timestamp
+}
+
 export class NotificationService {
   // Properties
 
@@ -47,9 +58,13 @@ export class NotificationService {
     title: string,
     body: string,
     fcmToken: string,
+    originalTimestamp: admin.firestore.Timestamp,
     isLLMGenerated?: boolean,
     generatedAt?: admin.firestore.Timestamp,
-  ): Promise<boolean> {
+  ): Promise<void> {
+    let status: 'sent' | 'failed' = 'failed'
+    let errorMessage: string | undefined = undefined
+
     try {
       const notificationMessage = {
         token: fcmToken,
@@ -59,30 +74,40 @@ export class NotificationService {
       const sendResult = await this.messaging.send(notificationMessage)
 
       if (sendResult) {
-        await this.firestore
-          .collection('users')
-          .doc(userId)
-          .collection('notificationHistory')
-          .add({
-            title,
-            body,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            isLLMGenerated: isLLMGenerated ?? false,
-            generatedAt: generatedAt ?? null,
-          })
-
+        status = 'sent'
         logger.info(`Sent notification to user ${userId}: ${title}`)
-        return true
       } else {
-        logger.warn(`Failed to send notification to user ${userId}`)
-        return false
+        errorMessage = 'Firebase messaging send returned falsy result'
+        logger.warn(
+          `Failed to send notification to user ${userId}: ${errorMessage}`,
+        )
       }
     } catch (error) {
+      errorMessage = String(error)
       logger.error(
-        `Error sending notification to user ${userId}: ${String(error)}`,
+        `Error sending notification to user ${userId}: ${errorMessage}`,
       )
-      return false
     }
+
+    const archiveData: NotificationArchiveItem = {
+      title,
+      body,
+      originalTimestamp,
+      processedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      status,
+      isLLMGenerated: isLLMGenerated ?? false,
+      ...(generatedAt && { generatedAt }),
+    }
+
+    if (errorMessage) {
+      archiveData.errorMessage = errorMessage
+    }
+
+    await this.firestore
+      .collection('users')
+      .doc(userId)
+      .collection('notificationHistory')
+      .add(archiveData)
   }
 
   async processNotificationBacklog(): Promise<void> {
@@ -101,7 +126,7 @@ export class NotificationService {
         const userData = userDoc.data()
         const userId = userDoc.id
 
-        if (!userData.fcmToken || !userData.timeZone) {
+        if (!userData.timeZone) {
           continue
         }
 
@@ -119,19 +144,41 @@ export class NotificationService {
             const notificationTime = backlogItem.timestamp.toDate()
 
             if (notificationTime <= now) {
-              const sent = await this.sendNotificationToUser(
-                userId,
-                backlogItem.title,
-                backlogItem.body,
-                userData.fcmToken,
-                backlogItem.isLLMGenerated,
-                backlogItem.generatedAt,
-              )
+              if (!userData.fcmToken) {
+                // Archive as failed due to missing FCM token
+                const archiveData: NotificationArchiveItem = {
+                  title: backlogItem.title,
+                  body: backlogItem.body,
+                  originalTimestamp: backlogItem.timestamp,
+                  processedTimestamp:
+                    admin.firestore.FieldValue.serverTimestamp(),
+                  status: 'failed',
+                  errorMessage: 'No FCM token available for user',
+                  isLLMGenerated: backlogItem.isLLMGenerated ?? false,
+                  ...(backlogItem.generatedAt && {
+                    generatedAt: backlogItem.generatedAt,
+                  }),
+                }
 
-              if (sent) {
-                totalSent++
-                await backlogDoc.ref.delete()
+                await this.firestore
+                  .collection('users')
+                  .doc(userId)
+                  .collection('notificationHistory')
+                  .add(archiveData)
+              } else {
+                await this.sendNotificationToUser(
+                  userId,
+                  backlogItem.title,
+                  backlogItem.body,
+                  userData.fcmToken,
+                  backlogItem.timestamp,
+                  backlogItem.isLLMGenerated,
+                  backlogItem.generatedAt,
+                )
               }
+
+              totalSent++
+              await backlogDoc.ref.delete()
             }
           } catch (error) {
             logger.error(

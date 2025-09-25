@@ -1,0 +1,23 @@
+{
+  "name": "nudge-permutation-tester",
+  "version": "1.0.0",
+  "description": "Testing script for generating all nudge permutations",
+  "type": "module",
+  "main": "generateNudgePermutations.js",
+  "scripts": {
+    "build": "tsc generateNudgePermutations.ts --target ES2020 --module ES2020 --moduleResolution node --outDir ./dist",
+    "test": "npm run build && node dist/generateNudgePermutations.js",
+    "test:sample": "npm run build && node dist/generateNudgePermutations.js --sample 10",
+    "test:sample-custom": "npm run build && node dist/generateNudgePermutations.js --sample",
+    "test:random": "npm run build && node dist/generateNudgePermutations.js --sample 10 --random",
+    "test:random-custom": "npm run build && node dist/generateNudgePermutations.js --sample --random"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "openai": "^4.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
