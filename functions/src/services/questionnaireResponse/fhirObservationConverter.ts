@@ -20,6 +20,7 @@ export interface QuestionnaireObservationConfig {
   display: string
   unit: string
   unitSystem: string
+  ucumCode?: string
 }
 
 export function scoreToObservation(
@@ -50,9 +51,10 @@ export function scoreToObservation(
       value: score.overallScore,
       unit: config.unit,
       system: config.unitSystem,
-      code: config.loincCode,
+      code: config.ucumCode ?? config.unit,
     },
     effectiveDateTime: score.date,
+    issued: new Date(),
     extension: [
       {
         url: 'https://bdh.stanford.edu/fhir/defs/sampleUploadTimeZone',
@@ -78,14 +80,6 @@ export function scoreToObservation(
         url: 'http://hl7.org/fhir/StructureDefinition/derivedFrom',
         valueString: `QuestionnaireResponse/${questionnaireResponseId}`,
       },
-      {
-        url: 'http://hl7.org/fhir/StructureDefinition/issued',
-        valueString: new Date().toISOString(),
-      },
-      {
-        url: 'http://hl7.org/fhir/StructureDefinition/identifier',
-        valueString: observationId,
-      },
     ],
   })
 }
@@ -96,7 +90,8 @@ export function getDietObservationConfig(): QuestionnaireObservationConfig {
     customCode: 'MHCCustomSampleTypeDietMEPAScore',
     display: 'Diet MEPA Score',
     unit: 'count',
-    unitSystem: 'http://loinc.org',
+    unitSystem: 'http://unitsofmeasure.org',
+    ucumCode: '{count}',
   }
 }
 
@@ -106,6 +101,7 @@ export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
     customCode: 'MHCCustomSampleTypeNicotineExposure',
     display: 'Nicotine Exposure Score',
     unit: 'count',
-    unitSystem: 'http://loinc.org',
+    unitSystem: 'http://unitsofmeasure.org',
+    ucumCode: '{count}',
   }
 }

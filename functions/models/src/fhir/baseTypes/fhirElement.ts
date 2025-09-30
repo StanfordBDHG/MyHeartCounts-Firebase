@@ -29,16 +29,27 @@ const fhirExtensionBaseConverter = new SchemaConverter({
     ),
     valueString: optionalish(z.string()),
   }),
-  encode: (object) => ({
-    url: object.url,
-    valueQuantities:
-      object.valueQuantities?.map(fhirQuantityConverter.value.encode) ?? null,
-    valueReference:
-      object.valueReference ?
-        fhirReferenceConverter.value.encode(object.valueReference)
-      : null,
-    valueString: object.valueString ?? null,
-  }),
+  encode: (object) => {
+    const result: Record<string, unknown> = {
+      url: object.url,
+    }
+
+    if (object.valueQuantities && object.valueQuantities.length > 0) {
+      result.valueQuantities = object.valueQuantities.map(
+        fhirQuantityConverter.value.encode,
+      )
+    }
+    if (object.valueReference) {
+      result.valueReference = fhirReferenceConverter.value.encode(
+        object.valueReference,
+      )
+    }
+    if (object.valueString !== undefined) {
+      result.valueString = object.valueString
+    }
+
+    return result
+  },
 })
 
 export interface FHIRExtensionInput
@@ -68,13 +79,17 @@ export const fhirExtensionConverter = (() => {
   function fhirExtensionEncode(
     object: z.output<typeof fhirExtensionSchema>,
   ): z.input<typeof fhirExtensionSchema> {
-    return {
+    const result: Record<string, unknown> = {
       ...fhirExtensionBaseConverter.value.encode(object),
-      valueCodeableConcept:
-        object.valueCodeableConcept ?
-          fhirCodeableConceptConverter.value.encode(object.valueCodeableConcept)
-        : null,
     }
+
+    if (object.valueCodeableConcept) {
+      result.valueCodeableConcept = fhirCodeableConceptConverter.value.encode(
+        object.valueCodeableConcept,
+      )
+    }
+
+    return result as unknown as z.input<typeof fhirExtensionSchema>
   }
 
   return new SchemaConverter({
@@ -90,11 +105,20 @@ export const fhirElementConverter = new SchemaConverter({
       z.lazy(() => fhirExtensionConverter.value.schema).array(),
     ),
   }),
-  encode: (object) => ({
-    id: object.id ?? null,
-    extension:
-      object.extension?.map(fhirExtensionConverter.value.encode) ?? null,
-  }),
+  encode: (object) => {
+    const result: Record<string, unknown> = {}
+
+    if (object.id !== undefined) {
+      result.id = object.id
+    }
+    if (object.extension && object.extension.length > 0) {
+      result.extension = object.extension.map(
+        fhirExtensionConverter.value.encode,
+      )
+    }
+
+    return result
+  },
 })
 
 export abstract class FHIRElement {
@@ -116,11 +140,18 @@ export const fhirResourceConverter = new SchemaConverter({
     resourceType: z.string(),
     meta: optionalish(fhirMetaConverter.schema),
   }),
-  encode: (object) => ({
-    ...fhirElementConverter.value.encode(object),
-    resourceType: object.resourceType,
-    meta: object.meta ? fhirMetaConverter.encode(object.meta) : null,
-  }),
+  encode: (object) => {
+    const result: Record<string, unknown> = {
+      ...fhirElementConverter.value.encode(object),
+      resourceType: object.resourceType,
+    }
+
+    if (object.meta) {
+      result.meta = fhirMetaConverter.encode(object.meta)
+    }
+
+    return result
+  },
 })
 
 export type FHIRResourceInput = z.output<typeof fhirElementConverter.schema> & {

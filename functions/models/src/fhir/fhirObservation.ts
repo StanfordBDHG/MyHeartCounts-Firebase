@@ -157,6 +157,7 @@ export const fhirObservationConverter = new Lazy(
           ),
           effectiveDateTime: optionalish(dateConverterISO.schema),
           effectiveInstant: optionalish(dateConverterISO.schema),
+          issued: optionalish(dateConverterISO.schema),
         })
         .transform((values) => new FHIRObservation(values)),
       encode: (object) => {
@@ -178,6 +179,10 @@ export const fhirObservationConverter = new Lazy(
           base.valueQuantity = fhirQuantityConverter.value.encode(
             object.valueQuantity,
           )
+        }
+
+        if (object.issued) {
+          base.issued = dateConverterISO.encode(object.issued)
         }
 
         // and only include one of the mutually exclusive effective fields
@@ -320,6 +325,7 @@ export class FHIRObservation extends FHIRResource {
   readonly effectivePeriod?: FHIRPeriod
   readonly effectiveDateTime?: Date
   readonly effectiveInstant?: Date
+  readonly issued?: Date
 
   // Computed Properties
 
@@ -648,6 +654,7 @@ export class FHIRObservation extends FHIRResource {
       effectivePeriod?: FHIRPeriod
       effectiveDateTime?: Date
       effectiveInstant?: Date
+      issued?: Date
     },
   ) {
     super(input)
@@ -658,6 +665,7 @@ export class FHIRObservation extends FHIRResource {
     this.effectivePeriod = input.effectivePeriod
     this.effectiveDateTime = input.effectiveDateTime
     this.effectiveInstant = input.effectiveInstant
+    this.issued = input.issued
   }
 
   // Methods

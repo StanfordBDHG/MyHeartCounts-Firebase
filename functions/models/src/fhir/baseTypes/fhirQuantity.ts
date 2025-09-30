@@ -20,12 +20,16 @@ export const fhirQuantityConverter = new Lazy(
         unit: optionalish(z.string()),
         value: optionalish(z.number()),
       }),
-      encode: (object) => ({
-        code: object.code ?? null,
-        system: object.system ?? null,
-        unit: object.unit ?? null,
-        value: object.value ?? null,
-      }),
+      encode: (object) => {
+        const result: Record<string, unknown> = {}
+
+        if (object.code !== undefined) result.code = object.code
+        if (object.system !== undefined) result.system = object.system
+        if (object.unit !== undefined) result.unit = object.unit
+        if (object.value !== undefined) result.value = object.value
+
+        return result
+      },
     }),
 )
 

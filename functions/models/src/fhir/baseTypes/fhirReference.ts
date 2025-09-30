@@ -20,12 +20,18 @@ export const fhirReferenceConverter = new Lazy(
         display: optionalish(z.string()),
         identifier: optionalish(z.string()),
       }),
-      encode: (object) => ({
-        reference: object.reference,
-        type: object.type ?? null,
-        display: object.display ?? null,
-        identifier: object.identifier ?? null,
-      }),
+      encode: (object) => {
+        const result: Record<string, unknown> = {
+          reference: object.reference,
+        }
+
+        if (object.type !== undefined) result.type = object.type
+        if (object.display !== undefined) result.display = object.display
+        if (object.identifier !== undefined)
+          result.identifier = object.identifier
+
+        return result
+      },
     }),
 )
 
