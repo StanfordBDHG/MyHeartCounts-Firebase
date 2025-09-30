@@ -16,6 +16,7 @@ import {
 
 export interface QuestionnaireObservationConfig {
   loincCode: string
+  loincDisplay: string
   customCode: string
   display: string
   unit: string
@@ -35,6 +36,7 @@ export function scoreToObservation(
       {
         code: config.loincCode,
         system: 'http://loinc.org',
+        display: config.loincDisplay,
       },
       {
         code: config.customCode,
@@ -42,6 +44,7 @@ export function scoreToObservation(
         system: 'https://spezi.stanford.edu',
       },
     ],
+    text: config.display,
   }
 
   return new FHIRObservation({
@@ -92,6 +95,7 @@ export function scoreToObservation(
 export function getDietObservationConfig(): QuestionnaireObservationConfig {
   return {
     loincCode: '67504-6', // Nutrition assessment LOINC code
+    loincDisplay: 'Nutrition assessment and counseling',
     customCode: 'MHCCustomSampleTypeDietMEPAScore',
     display: 'Diet MEPA Score',
     unit: 'count',
@@ -103,6 +107,7 @@ export function getDietObservationConfig(): QuestionnaireObservationConfig {
 export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
   return {
     loincCode: '72166-2', // Tobacco use status LOINC code
+    loincDisplay: 'Tobacco use status',
     customCode: 'MHCCustomSampleTypeNicotineExposure',
     display: 'Nicotine Exposure Score',
     unit: 'count',
