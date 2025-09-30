@@ -168,52 +168,61 @@ export const fhirObservationConverter = new Lazy(
         })
         .transform((values) => new FHIRObservation(values)),
       encode: (object) => {
-        const base: Record<string, unknown> = {
-          ...fhirResourceConverter.value.encode(object),
-          resourceType: 'Observation',
-          status: object.status,
-          code: fhirCodeableConceptConverter.value.encode(object.code),
-        }
+        const resourceBase = fhirResourceConverter.value.encode(object)
+
+        const result: Record<string, unknown> = { ...resourceBase }
+
+        result.resourceType = 'Observation'
+        result.status = object.status
+        result.code = fhirCodeableConceptConverter.value.encode(object.code)
 
         // Only include optional fields that have values...
         if (object.component && object.component.length > 0) {
-          base.component = object.component.map(
+          result.component = object.component.map(
             fhirObservationComponentConverter.value.encode,
           )
         }
 
         if (object.valueQuantity) {
-          base.valueQuantity = fhirQuantityConverter.value.encode(
+          result.valueQuantity = fhirQuantityConverter.value.encode(
             object.valueQuantity,
           )
         }
 
         if (object.issued) {
-          base.issued = dateConverterISO.encode(object.issued)
+          result.issued = dateConverterISO.encode(object.issued)
         }
 
         if (object.derivedFrom && object.derivedFrom.length > 0) {
-          base.derivedFrom = object.derivedFrom.map(
-            fhirReferenceConverter.value.encode,
-          )
+          result.derivedFrom = object.derivedFrom.map((ref) => {
+            // Create an explicitly clean reference object to prevent any field leakage
+            const cleanRef: Record<string, unknown> = {
+              reference: ref.reference,
+            }
+            if (ref.type !== undefined) cleanRef.type = ref.type
+            if (ref.display !== undefined) cleanRef.display = ref.display
+            if (ref.identifier !== undefined)
+              cleanRef.identifier = ref.identifier
+            return cleanRef
+          })
         }
 
         // and only include one of the mutually exclusive effective fields
         if (object.effectivePeriod) {
-          base.effectivePeriod = fhirPeriodConverter.value.encode(
+          result.effectivePeriod = fhirPeriodConverter.value.encode(
             object.effectivePeriod,
           )
         } else if (object.effectiveDateTime) {
-          base.effectiveDateTime = dateConverterISO.encode(
+          result.effectiveDateTime = dateConverterISO.encode(
             object.effectiveDateTime,
           )
         } else if (object.effectiveInstant) {
-          base.effectiveInstant = dateConverterISO.encode(
+          result.effectiveInstant = dateConverterISO.encode(
             object.effectiveInstant,
           )
         }
 
-        return base
+        return result
       },
     }),
 )
