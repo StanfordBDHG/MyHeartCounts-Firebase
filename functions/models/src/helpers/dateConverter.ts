@@ -85,3 +85,39 @@ export const dateConverter = new SchemaConverter({
     return Timestamp.fromDate(object)
   },
 })
+
+export const dateConverterISO = new SchemaConverter({
+  schema: z.union([
+    z.string().transform((string, context) => {
+      try {
+        const date = new Date(string)
+        if (isNaN(date.getTime())) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Invalid date',
+          })
+          return z.NEVER
+        }
+        return date
+      } catch (error) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: String(error),
+        })
+        return z.NEVER
+      }
+    }),
+    z
+      .object({
+        toDate: z.function().returns(z.date()),
+      })
+      .transform((timestamp) => timestamp.toDate()),
+    z.null().transform(() => new Date()),
+  ]),
+  encode: (object) => {
+    if (!(object instanceof Date)) {
+      return new Date().toISOString() // Default to current date if null
+    }
+    return object.toISOString()
+  },
+})
