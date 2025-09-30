@@ -153,31 +153,48 @@ export const fhirObservationConverter = new Lazy(
           effectiveInstant: optionalish(dateConverterISO.schema),
         })
         .transform((values) => new FHIRObservation(values)),
-      encode: (object) => ({
-        ...fhirResourceConverter.value.encode(object),
-        status: object.status,
-        code: fhirCodeableConceptConverter.value.encode(object.code),
-        component:
-          object.component?.map(
-            fhirObservationComponentConverter.value.encode,
-          ) ?? null,
-        valueQuantity:
-          object.valueQuantity ?
-            fhirQuantityConverter.value.encode(object.valueQuantity)
-          : null,
-        effectivePeriod:
-          object.effectivePeriod ?
-            fhirPeriodConverter.value.encode(object.effectivePeriod)
-          : null,
-        effectiveDateTime:
-          object.effectiveDateTime ?
-            dateConverterISO.encode(object.effectiveDateTime)
-          : null,
-        effectiveInstant:
-          object.effectiveInstant ?
-            dateConverterISO.encode(object.effectiveInstant)
-          : null,
-      }),
+      encode: (object) => {
+        const base = {
+          ...fhirResourceConverter.value.encode(object),
+          status: object.status,
+          code: fhirCodeableConceptConverter.value.encode(object.code),
+          component:
+            object.component?.map(
+              fhirObservationComponentConverter.value.encode,
+            ) ?? null,
+          valueQuantity:
+            object.valueQuantity ?
+              fhirQuantityConverter.value.encode(object.valueQuantity)
+            : null,
+        }
+
+        if (object.effectivePeriod) {
+          return {
+            ...base,
+            effectivePeriod: fhirPeriodConverter.value.encode(
+              object.effectivePeriod,
+            ),
+          }
+        }
+
+        if (object.effectiveDateTime) {
+          return {
+            ...base,
+            effectiveDateTime: dateConverterISO.encode(
+              object.effectiveDateTime,
+            ),
+          }
+        }
+
+        if (object.effectiveInstant) {
+          return {
+            ...base,
+            effectiveInstant: dateConverterISO.encode(object.effectiveInstant),
+          }
+        }
+
+        return base
+      },
     }),
 )
 
