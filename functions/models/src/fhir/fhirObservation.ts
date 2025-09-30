@@ -22,6 +22,10 @@ import {
   type FHIRQuantity,
   fhirQuantityConverter,
 } from './baseTypes/fhirQuantity.js'
+import {
+  type FHIRReference,
+  fhirReferenceConverter,
+} from './baseTypes/fhirReference.js'
 import { CodingSystem, LoincCode } from '../codes/codes.js'
 import { QuantityUnit } from '../codes/quantityUnit.js'
 import { dateConverterISO } from '../helpers/dateConverter.js'
@@ -158,6 +162,9 @@ export const fhirObservationConverter = new Lazy(
           effectiveDateTime: optionalish(dateConverterISO.schema),
           effectiveInstant: optionalish(dateConverterISO.schema),
           issued: optionalish(dateConverterISO.schema),
+          derivedFrom: optionalish(
+            z.lazy(() => fhirReferenceConverter.value.schema).array(),
+          ),
         })
         .transform((values) => new FHIRObservation(values)),
       encode: (object) => {
@@ -183,6 +190,12 @@ export const fhirObservationConverter = new Lazy(
 
         if (object.issued) {
           base.issued = dateConverterISO.encode(object.issued)
+        }
+
+        if (object.derivedFrom && object.derivedFrom.length > 0) {
+          base.derivedFrom = object.derivedFrom.map(
+            fhirReferenceConverter.value.encode,
+          )
         }
 
         // and only include one of the mutually exclusive effective fields
@@ -326,6 +339,7 @@ export class FHIRObservation extends FHIRResource {
   readonly effectiveDateTime?: Date
   readonly effectiveInstant?: Date
   readonly issued?: Date
+  readonly derivedFrom?: FHIRReference[]
 
   // Computed Properties
 
@@ -655,6 +669,7 @@ export class FHIRObservation extends FHIRResource {
       effectiveDateTime?: Date
       effectiveInstant?: Date
       issued?: Date
+      derivedFrom?: FHIRReference[]
     },
   ) {
     super(input)
@@ -666,6 +681,7 @@ export class FHIRObservation extends FHIRResource {
     this.effectiveDateTime = input.effectiveDateTime
     this.effectiveInstant = input.effectiveInstant
     this.issued = input.issued
+    this.derivedFrom = input.derivedFrom
   }
 
   // Methods

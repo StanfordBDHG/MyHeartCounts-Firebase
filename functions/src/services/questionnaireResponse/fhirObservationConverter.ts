@@ -55,6 +55,11 @@ export function scoreToObservation(
     },
     effectiveDateTime: score.date,
     issued: new Date(),
+    derivedFrom: [
+      {
+        reference: `QuestionnaireResponse/${questionnaireResponseId}`,
+      },
+    ],
     extension: [
       {
         url: 'https://bdh.stanford.edu/fhir/defs/sampleUploadTimeZone',
@@ -75,10 +80,6 @@ export function scoreToObservation(
       {
         url: 'https://bdh.stanford.edu/fhir/defs/sourceRevision/OSVersion',
         valueString: '18.5.0',
-      },
-      {
-        url: 'http://hl7.org/fhir/StructureDefinition/derivedFrom',
-        valueString: `QuestionnaireResponse/${questionnaireResponseId}`,
       },
     ],
   })
