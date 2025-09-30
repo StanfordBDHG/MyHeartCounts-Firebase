@@ -148,6 +148,7 @@ export const fhirObservationConverter = new Lazy(
         .extend({
           status: z.nativeEnum(FHIRObservationStatus),
           code: z.lazy(() => fhirCodeableConceptConverter.value.schema),
+          subject: z.lazy(() => fhirReferenceConverter.value.schema),
           component: optionalish(
             z
               .lazy(() => fhirObservationComponentConverter.value.schema)
@@ -175,6 +176,19 @@ export const fhirObservationConverter = new Lazy(
         result.resourceType = 'Observation'
         result.status = object.status
         result.code = fhirCodeableConceptConverter.value.encode(object.code)
+        // Ensure clean subject encoding to prevent field leakage
+        result.subject = {
+          reference: object.subject.reference,
+          ...(object.subject.type !== undefined && {
+            type: object.subject.type,
+          }),
+          ...(object.subject.display !== undefined && {
+            display: object.subject.display,
+          }),
+          ...(object.subject.identifier !== undefined && {
+            identifier: object.subject.identifier,
+          }),
+        }
 
         // Only include optional fields that have values...
         if (object.component && object.component.length > 0) {
@@ -313,10 +327,12 @@ export class FHIRObservation extends FHIRResource {
     value: number
     unit: QuantityUnit
     code: LoincCode
+    subject: FHIRReference
   }): FHIRObservation {
     return new FHIRObservation({
       id: input.id,
       status: FHIRObservationStatus.final,
+      subject: input.subject,
       code: {
         text: this.loincDisplay.get(input.code) ?? undefined,
         coding: [
@@ -342,6 +358,7 @@ export class FHIRObservation extends FHIRResource {
   readonly resourceType: string = 'Observation'
   readonly status: FHIRObservationStatus
   readonly code: FHIRCodeableConcept
+  readonly subject: FHIRReference
   readonly component?: FHIRObservationComponent[]
   readonly valueQuantity?: FHIRQuantity
   readonly effectivePeriod?: FHIRPeriod
@@ -672,6 +689,7 @@ export class FHIRObservation extends FHIRResource {
     input: FHIRResourceInput & {
       status: FHIRObservationStatus
       code: FHIRCodeableConcept
+      subject: FHIRReference
       component?: FHIRObservationComponent[]
       valueQuantity?: FHIRQuantity
       effectivePeriod?: FHIRPeriod
@@ -684,6 +702,7 @@ export class FHIRObservation extends FHIRResource {
     super(input)
     this.status = input.status
     this.code = input.code
+    this.subject = input.subject
     this.component = input.component
     this.valueQuantity = input.valueQuantity
     this.effectivePeriod = input.effectivePeriod

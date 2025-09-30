@@ -282,6 +282,7 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
       config,
       questionnaireResponseId,
       observationId,
+      userId,
     )
 
     const collectionName = 'HealthObservations_MHCCustomSampleTypeDietMEPAScore'

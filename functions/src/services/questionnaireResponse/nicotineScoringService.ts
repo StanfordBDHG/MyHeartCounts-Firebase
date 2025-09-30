@@ -207,6 +207,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       config,
       questionnaireResponseId,
       observationId,
+      userId,
     )
 
     const collectionName =

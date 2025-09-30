@@ -132,6 +132,7 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
       config,
       questionnaireResponseId,
       observationId,
+      userId,
     )
 
     // Store in the same collection as the dedicated nicotine questionnaire

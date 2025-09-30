@@ -28,6 +28,7 @@ export function scoreToObservation(
   config: QuestionnaireObservationConfig,
   questionnaireResponseId: string,
   observationId: string,
+  userId: string,
 ): FHIRObservation {
   const codeableConcept: FHIRCodeableConcept = {
     coding: [
@@ -46,6 +47,9 @@ export function scoreToObservation(
   return new FHIRObservation({
     id: observationId,
     status: FHIRObservationStatus.final,
+    subject: {
+      reference: `Patient/${userId}`,
+    },
     code: codeableConcept,
     valueQuantity: {
       value: score.overallScore,
