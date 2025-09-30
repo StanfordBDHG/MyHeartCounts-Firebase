@@ -117,13 +117,19 @@ export const fhirObservationComponentConverter = new Lazy(
           z.lazy(() => fhirQuantityConverter.value.schema),
         ),
       }),
-      encode: (object) => ({
-        code: fhirCodeableConceptConverter.value.encode(object.code),
-        valueQuantity:
-          object.valueQuantity ?
-            fhirQuantityConverter.value.encode(object.valueQuantity)
-          : null,
-      }),
+      encode: (object) => {
+        const result: Record<string, unknown> = {
+          code: fhirCodeableConceptConverter.value.encode(object.code),
+        }
+
+        if (object.valueQuantity) {
+          result.valueQuantity = fhirQuantityConverter.value.encode(
+            object.valueQuantity,
+          )
+        }
+
+        return result
+      },
     }),
 )
 
@@ -154,43 +160,39 @@ export const fhirObservationConverter = new Lazy(
         })
         .transform((values) => new FHIRObservation(values)),
       encode: (object) => {
-        const base = {
+        const base: Record<string, unknown> = {
           ...fhirResourceConverter.value.encode(object),
+          resourceType: 'Observation',
           status: object.status,
           code: fhirCodeableConceptConverter.value.encode(object.code),
-          component:
-            object.component?.map(
-              fhirObservationComponentConverter.value.encode,
-            ) ?? null,
-          valueQuantity:
-            object.valueQuantity ?
-              fhirQuantityConverter.value.encode(object.valueQuantity)
-            : null,
         }
 
+        // Only include optional fields that have values...
+        if (object.component && object.component.length > 0) {
+          base.component = object.component.map(
+            fhirObservationComponentConverter.value.encode,
+          )
+        }
+
+        if (object.valueQuantity) {
+          base.valueQuantity = fhirQuantityConverter.value.encode(
+            object.valueQuantity,
+          )
+        }
+
+        // and only include one of the mutually exclusive effective fields
         if (object.effectivePeriod) {
-          return {
-            ...base,
-            effectivePeriod: fhirPeriodConverter.value.encode(
-              object.effectivePeriod,
-            ),
-          }
-        }
-
-        if (object.effectiveDateTime) {
-          return {
-            ...base,
-            effectiveDateTime: dateConverterISO.encode(
-              object.effectiveDateTime,
-            ),
-          }
-        }
-
-        if (object.effectiveInstant) {
-          return {
-            ...base,
-            effectiveInstant: dateConverterISO.encode(object.effectiveInstant),
-          }
+          base.effectivePeriod = fhirPeriodConverter.value.encode(
+            object.effectivePeriod,
+          )
+        } else if (object.effectiveDateTime) {
+          base.effectiveDateTime = dateConverterISO.encode(
+            object.effectiveDateTime,
+          )
+        } else if (object.effectiveInstant) {
+          base.effectiveInstant = dateConverterISO.encode(
+            object.effectiveInstant,
+          )
         }
 
         return base
