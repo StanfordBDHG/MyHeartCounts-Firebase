@@ -34,7 +34,8 @@ export function scoreToObservation(
       {
         code: config.customCode,
         display: config.display,
-        system: 'https://spezi.stanford.edu',
+        system:
+          'https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes',
       },
     ],
     text: config.display,
@@ -87,7 +88,7 @@ export function scoreToObservation(
 
 export function getDietObservationConfig(): QuestionnaireObservationConfig {
   return {
-    customCode: 'MHCCustomSampleTypeDietMEPAScore',
+    customCode: 'diet-mepa-score',
     display: 'Diet MEPA Score',
     unit: 'count',
     unitSystem: 'http://unitsofmeasure.org',
@@ -97,7 +98,7 @@ export function getDietObservationConfig(): QuestionnaireObservationConfig {
 
 export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
   return {
-    customCode: 'MHCCustomSampleTypeNicotineExposure',
+    customCode: 'nicotine-exposure-score',
     display: 'Nicotine Exposure Score',
     unit: 'count',
     unitSystem: 'http://unitsofmeasure.org',
