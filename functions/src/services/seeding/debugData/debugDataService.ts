@@ -190,6 +190,9 @@ export class DebugDataService extends SeedingService {
         value: 60 + number * 40,
         unit: QuantityUnit.bpm,
         code: LoincCode.heartRate,
+        subject: {
+          reference: `Patient/${userId}`,
+        },
       }),
     )
 

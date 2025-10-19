@@ -7,7 +7,7 @@
 //
 
 import { z } from 'zod'
-import { dateConverter } from '../../helpers/dateConverter.js'
+import { dateConverterISO } from '../../helpers/dateConverter.js'
 import { Lazy } from '../../helpers/lazy.js'
 import { optionalish } from '../../helpers/optionalish.js'
 import { SchemaConverter } from '../../helpers/schemaConverter.js'
@@ -16,13 +16,17 @@ export const fhirPeriodConverter = new Lazy(
   () =>
     new SchemaConverter({
       schema: z.object({
-        start: optionalish(dateConverter.schema),
-        end: optionalish(dateConverter.schema),
+        start: optionalish(dateConverterISO.schema),
+        end: optionalish(dateConverterISO.schema),
       }),
-      encode: (object) => ({
-        start: object.start ? dateConverter.encode(object.start) : null,
-        end: object.end ? dateConverter.encode(object.end) : null,
-      }),
+      encode: (object) => {
+        const result: Record<string, unknown> = {}
+
+        if (object.start) result.start = dateConverterISO.encode(object.start)
+        if (object.end) result.end = dateConverterISO.encode(object.end)
+
+        return result
+      },
     }),
 )
 

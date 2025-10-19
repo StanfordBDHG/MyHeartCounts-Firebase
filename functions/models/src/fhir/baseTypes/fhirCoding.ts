@@ -22,14 +22,20 @@ export const fhirCodingConverter = new Lazy(
         display: optionalish(z.string()),
         userSelected: optionalish(z.boolean()),
       }),
-      encode: (object) => ({
-        ...fhirElementConverter.value.encode(object),
-        system: object.system ?? null,
-        version: object.version ?? null,
-        code: object.code ?? null,
-        display: object.display ?? null,
-        userSelected: object.userSelected ?? null,
-      }),
+      encode: (object) => {
+        const result: Record<string, unknown> = {
+          ...fhirElementConverter.value.encode(object),
+        }
+
+        if (object.system !== undefined) result.system = object.system
+        if (object.version !== undefined) result.version = object.version
+        if (object.code !== undefined) result.code = object.code
+        if (object.display !== undefined) result.display = object.display
+        if (object.userSelected !== undefined)
+          result.userSelected = object.userSelected
+
+        return result
+      },
     }),
 )
 

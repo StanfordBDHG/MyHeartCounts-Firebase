@@ -22,9 +22,13 @@ import {
   type FHIRQuantity,
   fhirQuantityConverter,
 } from './baseTypes/fhirQuantity.js'
+import {
+  type FHIRReference,
+  fhirReferenceConverter,
+} from './baseTypes/fhirReference.js'
 import { CodingSystem, LoincCode } from '../codes/codes.js'
 import { QuantityUnit } from '../codes/quantityUnit.js'
-import { dateConverter } from '../helpers/dateConverter.js'
+import { dateConverterISO } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
 import { optionalish } from '../helpers/optionalish.js'
 import { SchemaConverter } from '../helpers/schemaConverter.js'
@@ -117,13 +121,19 @@ export const fhirObservationComponentConverter = new Lazy(
           z.lazy(() => fhirQuantityConverter.value.schema),
         ),
       }),
-      encode: (object) => ({
-        code: fhirCodeableConceptConverter.value.encode(object.code),
-        valueQuantity:
-          object.valueQuantity ?
-            fhirQuantityConverter.value.encode(object.valueQuantity)
-          : null,
-      }),
+      encode: (object) => {
+        const result: Record<string, unknown> = {
+          code: fhirCodeableConceptConverter.value.encode(object.code),
+        }
+
+        if (object.valueQuantity) {
+          result.valueQuantity = fhirQuantityConverter.value.encode(
+            object.valueQuantity,
+          )
+        }
+
+        return result
+      },
     }),
 )
 
@@ -138,6 +148,7 @@ export const fhirObservationConverter = new Lazy(
         .extend({
           status: z.nativeEnum(FHIRObservationStatus),
           code: z.lazy(() => fhirCodeableConceptConverter.value.schema),
+          subject: z.lazy(() => fhirReferenceConverter.value.schema),
           component: optionalish(
             z
               .lazy(() => fhirObservationComponentConverter.value.schema)
@@ -149,35 +160,84 @@ export const fhirObservationConverter = new Lazy(
           effectivePeriod: optionalish(
             z.lazy(() => fhirPeriodConverter.value.schema),
           ),
-          effectiveDateTime: optionalish(dateConverter.schema),
-          effectiveInstant: optionalish(dateConverter.schema),
+          effectiveDateTime: optionalish(dateConverterISO.schema),
+          effectiveInstant: optionalish(dateConverterISO.schema),
+          issued: optionalish(dateConverterISO.schema),
+          derivedFrom: optionalish(
+            z.lazy(() => fhirReferenceConverter.value.schema).array(),
+          ),
         })
         .transform((values) => new FHIRObservation(values)),
-      encode: (object) => ({
-        ...fhirResourceConverter.value.encode(object),
-        status: object.status,
-        code: fhirCodeableConceptConverter.value.encode(object.code),
-        component:
-          object.component?.map(
+      encode: (object) => {
+        const resourceBase = fhirResourceConverter.value.encode(object)
+
+        const result: Record<string, unknown> = { ...resourceBase }
+
+        result.resourceType = 'Observation'
+        result.status = object.status
+        result.code = fhirCodeableConceptConverter.value.encode(object.code)
+        // Ensure clean subject encoding to prevent field leakage
+        result.subject = {
+          reference: object.subject.reference,
+          ...(object.subject.type !== undefined && {
+            type: object.subject.type,
+          }),
+          ...(object.subject.display !== undefined && {
+            display: object.subject.display,
+          }),
+          ...(object.subject.identifier !== undefined && {
+            identifier: object.subject.identifier,
+          }),
+        }
+
+        // Only include optional fields that have values...
+        if (object.component && object.component.length > 0) {
+          result.component = object.component.map(
             fhirObservationComponentConverter.value.encode,
-          ) ?? null,
-        valueQuantity:
-          object.valueQuantity ?
-            fhirQuantityConverter.value.encode(object.valueQuantity)
-          : null,
-        effectivePeriod:
-          object.effectivePeriod ?
-            fhirPeriodConverter.value.encode(object.effectivePeriod)
-          : null,
-        effectiveDateTime:
-          object.effectiveDateTime ?
-            dateConverter.encode(object.effectiveDateTime)
-          : null,
-        effectiveInstant:
-          object.effectiveInstant ?
-            dateConverter.encode(object.effectiveInstant)
-          : null,
-      }),
+          )
+        }
+
+        if (object.valueQuantity) {
+          result.valueQuantity = fhirQuantityConverter.value.encode(
+            object.valueQuantity,
+          )
+        }
+
+        if (object.issued) {
+          result.issued = dateConverterISO.encode(object.issued)
+        }
+
+        if (object.derivedFrom && object.derivedFrom.length > 0) {
+          result.derivedFrom = object.derivedFrom.map((ref) => {
+            // Create an explicitly clean reference object to prevent any field leakage
+            const cleanRef: Record<string, unknown> = {
+              reference: ref.reference,
+            }
+            if (ref.type !== undefined) cleanRef.type = ref.type
+            if (ref.display !== undefined) cleanRef.display = ref.display
+            if (ref.identifier !== undefined)
+              cleanRef.identifier = ref.identifier
+            return cleanRef
+          })
+        }
+
+        // and only include one of the mutually exclusive effective fields
+        if (object.effectivePeriod) {
+          result.effectivePeriod = fhirPeriodConverter.value.encode(
+            object.effectivePeriod,
+          )
+        } else if (object.effectiveDateTime) {
+          result.effectiveDateTime = dateConverterISO.encode(
+            object.effectiveDateTime,
+          )
+        } else if (object.effectiveInstant) {
+          result.effectiveInstant = dateConverterISO.encode(
+            object.effectiveInstant,
+          )
+        }
+
+        return result
+      },
     }),
 )
 
@@ -267,10 +327,12 @@ export class FHIRObservation extends FHIRResource {
     value: number
     unit: QuantityUnit
     code: LoincCode
+    subject: FHIRReference
   }): FHIRObservation {
     return new FHIRObservation({
       id: input.id,
       status: FHIRObservationStatus.final,
+      subject: input.subject,
       code: {
         text: this.loincDisplay.get(input.code) ?? undefined,
         coding: [
@@ -296,11 +358,14 @@ export class FHIRObservation extends FHIRResource {
   readonly resourceType: string = 'Observation'
   readonly status: FHIRObservationStatus
   readonly code: FHIRCodeableConcept
+  readonly subject: FHIRReference
   readonly component?: FHIRObservationComponent[]
   readonly valueQuantity?: FHIRQuantity
   readonly effectivePeriod?: FHIRPeriod
   readonly effectiveDateTime?: Date
   readonly effectiveInstant?: Date
+  readonly issued?: Date
+  readonly derivedFrom?: FHIRReference[]
 
   // Computed Properties
 
@@ -624,21 +689,27 @@ export class FHIRObservation extends FHIRResource {
     input: FHIRResourceInput & {
       status: FHIRObservationStatus
       code: FHIRCodeableConcept
+      subject: FHIRReference
       component?: FHIRObservationComponent[]
       valueQuantity?: FHIRQuantity
       effectivePeriod?: FHIRPeriod
       effectiveDateTime?: Date
       effectiveInstant?: Date
+      issued?: Date
+      derivedFrom?: FHIRReference[]
     },
   ) {
     super(input)
     this.status = input.status
     this.code = input.code
+    this.subject = input.subject
     this.component = input.component
     this.valueQuantity = input.valueQuantity
     this.effectivePeriod = input.effectivePeriod
     this.effectiveDateTime = input.effectiveDateTime
     this.effectiveInstant = input.effectiveInstant
+    this.issued = input.issued
+    this.derivedFrom = input.derivedFrom
   }
 
   // Methods

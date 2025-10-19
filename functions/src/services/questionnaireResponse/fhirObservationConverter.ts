@@ -15,11 +15,11 @@ import {
 } from '@stanfordbdhg/myheartcounts-models'
 
 export interface QuestionnaireObservationConfig {
-  loincCode: string
   customCode: string
   display: string
   unit: string
   unitSystem: string
+  ucumCode?: string
 }
 
 export function scoreToObservation(
@@ -27,32 +27,40 @@ export function scoreToObservation(
   config: QuestionnaireObservationConfig,
   questionnaireResponseId: string,
   observationId: string,
+  userId: string,
 ): FHIRObservation {
   const codeableConcept: FHIRCodeableConcept = {
     coding: [
       {
-        code: config.loincCode,
-        system: 'http://loinc.org',
-      },
-      {
         code: config.customCode,
         display: config.display,
-        system: 'https://spezi.stanford.edu',
+        system:
+          'https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes',
       },
     ],
+    text: config.display,
   }
 
   return new FHIRObservation({
     id: observationId,
     status: FHIRObservationStatus.final,
+    subject: {
+      reference: `Patient/${userId}`,
+    },
     code: codeableConcept,
     valueQuantity: {
       value: score.overallScore,
       unit: config.unit,
       system: config.unitSystem,
-      code: config.loincCode,
+      code: config.ucumCode ?? config.unit,
     },
     effectiveDateTime: score.date,
+    issued: new Date(),
+    derivedFrom: [
+      {
+        reference: `QuestionnaireResponse/${questionnaireResponseId}`,
+      },
+    ],
     extension: [
       {
         url: 'https://bdh.stanford.edu/fhir/defs/sampleUploadTimeZone',
@@ -74,38 +82,26 @@ export function scoreToObservation(
         url: 'https://bdh.stanford.edu/fhir/defs/sourceRevision/OSVersion',
         valueString: '18.5.0',
       },
-      {
-        url: 'http://hl7.org/fhir/StructureDefinition/derivedFrom',
-        valueString: `QuestionnaireResponse/${questionnaireResponseId}`,
-      },
-      {
-        url: 'http://hl7.org/fhir/StructureDefinition/issued',
-        valueString: new Date().toISOString(),
-      },
-      {
-        url: 'http://hl7.org/fhir/StructureDefinition/identifier',
-        valueString: observationId,
-      },
     ],
   })
 }
 
 export function getDietObservationConfig(): QuestionnaireObservationConfig {
   return {
-    loincCode: '67504-6', // Nutrition assessment LOINC code
-    customCode: 'MHCCustomSampleTypeDietMEPAScore',
+    customCode: 'diet-mepa-score',
     display: 'Diet MEPA Score',
     unit: 'count',
-    unitSystem: 'http://loinc.org',
+    unitSystem: 'http://unitsofmeasure.org',
+    ucumCode: '{count}',
   }
 }
 
 export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
   return {
-    loincCode: '72166-2', // Tobacco use status LOINC code
-    customCode: 'MHCCustomSampleTypeNicotineExposure',
+    customCode: 'nicotine-exposure-score',
     display: 'Nicotine Exposure Score',
     unit: 'count',
-    unitSystem: 'http://loinc.org',
+    unitSystem: 'http://unitsofmeasure.org',
+    ucumCode: '{count}',
   }
 }
