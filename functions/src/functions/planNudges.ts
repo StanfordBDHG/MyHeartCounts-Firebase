@@ -458,6 +458,10 @@ export class NudgeService {
           continue
         }
 
+        if (!userData.didOptInToTrial) {
+          continue
+        }
+
         const daysSinceEnrollment = this.getDaysSinceEnrollment(
           userData.dateOfEnrollment,
         )
