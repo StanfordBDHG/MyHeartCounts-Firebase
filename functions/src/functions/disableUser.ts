@@ -11,7 +11,6 @@ import {
   type DisableUserOutput,
 } from '@stanfordbdhg/myheartcounts-models'
 import { validatedOnCall } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const disableUser = validatedOnCall(
@@ -23,7 +22,7 @@ export const disableUser = validatedOnCall(
     const userId = request.data.userId
     const userService = factory.user()
 
-    credential.check(UserRole.admin)
+    credential.checkAuthenticated()
 
     await userService.disableUser(userId)
   },

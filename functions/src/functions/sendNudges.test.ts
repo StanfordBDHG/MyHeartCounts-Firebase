@@ -302,7 +302,7 @@ describeWithEmulators('function: sendNudges', (env) => {
       pastTime.setMinutes(pastTime.getMinutes() - 30)
 
       await env.firestore.collection('users').doc(userId).set({
-        type: 'clinician',
+        type: 'patient',
         fcmToken: 'test-fcm-token',
         timeZone: 'UTC',
       })

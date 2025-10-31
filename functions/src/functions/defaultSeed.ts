@@ -17,7 +17,6 @@ import { logger } from 'firebase-functions'
 import { type z } from 'zod'
 import { validatedOnCall, validatedOnRequest } from './helpers.js'
 import { _updateStaticData } from './updateStaticData.js'
-import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { type ServiceFactory } from '../services/factory/serviceFactory.js'
 import { type DebugDataService } from '../services/seeding/debugData/debugDataService.js'
@@ -132,7 +131,7 @@ export const defaultSeed =
       defaultSeedInputSchema,
       async (request): Promise<DefaultSeedOutput> => {
         const factory = getServiceFactory()
-        factory.credential(request.auth).check(UserRole.admin)
+        factory.credential(request.auth).checkAuthenticated()
         await _defaultSeed(factory, request.data)
         return {}
       },

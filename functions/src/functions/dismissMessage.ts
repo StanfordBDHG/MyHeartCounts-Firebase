@@ -11,7 +11,6 @@ import {
   type DismissMessageOutput,
 } from '@stanfordbdhg/myheartcounts-models'
 import { validatedOnCall } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const dismissMessage = validatedOnCall(
@@ -21,7 +20,7 @@ export const dismissMessage = validatedOnCall(
     const factory = getServiceFactory()
     const credential = factory.credential(request.auth)
     const userId = request.data.userId ?? credential.userId
-    credential.check(UserRole.admin, UserRole.user(userId))
+    credential.checkUser(userId)
 
     await factory
       .message()

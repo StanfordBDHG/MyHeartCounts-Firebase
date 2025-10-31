@@ -13,7 +13,6 @@ import {
 } from '@stanfordbdhg/myheartcounts-models'
 import { type z } from 'zod'
 import { validatedOnCall, validatedOnRequest } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { type ServiceFactory } from '../services/factory/serviceFactory.js'
 
@@ -42,7 +41,7 @@ export const updateStaticData =
       updateStaticDataInputSchema,
       async (request): Promise<UpdateStaticDataOutput> => {
         const factory = getServiceFactory()
-        factory.credential(request.auth).check(UserRole.admin)
+        factory.credential(request.auth).checkAuthenticated()
         await _updateStaticData(factory, request.data)
         return {}
       },
