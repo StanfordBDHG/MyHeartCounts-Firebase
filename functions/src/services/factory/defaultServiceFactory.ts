@@ -9,7 +9,6 @@
 import { Lazy } from '@stanfordbdhg/myheartcounts-models'
 import admin from 'firebase-admin'
 import { type AuthData } from 'firebase-functions/v2/tasks'
-import { type ServiceFactoryOptions } from './getServiceFactory.js'
 import { type ServiceFactory } from './serviceFactory.js'
 import { Credential } from '../credential/credential.js'
 import { FirestoreService } from '../database/firestoreService.js'
@@ -91,13 +90,6 @@ export class DefaultServiceFactory implements ServiceFactory {
   private readonly userService = new Lazy(
     () => new DatabaseUserService(this.auth.value, this.databaseService.value),
   )
-
-  // Constructor
-
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
-  constructor(options: ServiceFactoryOptions) {
-    // Options parameter required by interface but not currently used
-  }
 
   // Methods - User
 
