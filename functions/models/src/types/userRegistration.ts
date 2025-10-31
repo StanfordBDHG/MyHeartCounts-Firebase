@@ -20,7 +20,6 @@ export const userRegistrationInputConverter = new Lazy(
         type: z.nativeEnum(UserType),
         disabled: optionalishDefault(z.boolean(), false),
         dateOfBirth: optionalish(dateConverter.schema),
-        clinician: optionalish(z.string()),
         language: optionalish(z.string()),
         timeZone: optionalish(z.string()),
         participantGroup: optionalish(z.number().int()),
@@ -30,7 +29,6 @@ export const userRegistrationInputConverter = new Lazy(
         disabled: object.disabled,
         dateOfBirth:
           object.dateOfBirth ? dateConverter.encode(object.dateOfBirth) : null,
-        clinician: object.clinician ?? null,
         language: object.language ?? null,
         timeZone: object.timeZone ?? null,
         participantGroup: object.participantGroup ?? null,
@@ -62,7 +60,6 @@ export class UserRegistration {
   readonly disabled: boolean
 
   readonly dateOfBirth?: Date
-  readonly clinician?: string
 
   readonly language?: string
   readonly timeZone?: string
@@ -83,7 +80,6 @@ export class UserRegistration {
     type: UserType
     disabled: boolean
     dateOfBirth?: Date
-    clinician?: string
     language?: string
     timeZone?: string
     participantGroup?: number
@@ -91,7 +87,6 @@ export class UserRegistration {
     this.type = input.type
     this.disabled = input.disabled
     this.dateOfBirth = input.dateOfBirth
-    this.clinician = input.clinician
     this.language = input.language
     this.timeZone = input.timeZone
     this.participantGroup = input.participantGroup

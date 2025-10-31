@@ -45,7 +45,6 @@ export class User extends UserRegistration {
     type: UserType
     disabled: boolean
     dateOfBirth?: Date
-    clinician?: string
     language?: string
     timeZone?: string
     participantGroup?: number

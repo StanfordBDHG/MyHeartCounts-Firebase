@@ -78,7 +78,6 @@ export class MockUserService implements UserService {
         type: UserType.clinician,
         disabled: false,
         dateOfBirth: new Date('1970-01-02'),
-        clinician: 'mockClinician',
         lastActiveDate: new Date('2024-04-04'),
         dateOfEnrollment: new Date('2024-04-02'),
         timeZone: 'America/Los_Angeles',

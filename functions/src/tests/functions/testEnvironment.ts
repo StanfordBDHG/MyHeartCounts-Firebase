@@ -128,7 +128,6 @@ export class EmulatorTestEnvironment {
     options: {
       type: UserType
       disabled?: boolean
-      clinician?: string
       dateOfEnrollment?: Date
       lastActiveDate?: Date
     } & admin.auth.CreateRequest,
@@ -139,7 +138,6 @@ export class EmulatorTestEnvironment {
         type: options.type,
         disabled: options.disabled ?? false,
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
-        clinician: options.clinician,
         lastActiveDate: options.lastActiveDate ?? new Date(),
       }),
     )
