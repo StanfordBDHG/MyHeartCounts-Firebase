@@ -11,7 +11,7 @@ import {
   DebugDataComponent,
   StaticDataComponent,
   UserDebugDataComponent,
-  UserType,
+  
 } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { _defaultSeed } from './defaultSeed.js'
@@ -42,7 +42,7 @@ describeWithEmulators('function: defaultSeed', (env) => {
     // We don't check for exactly 8 users since the number might change in future updates
 
     const user = users.docs.find(
-      (userDoc) => userDoc.data().type === UserType.patient,
+      (userDoc) => userDoc.data().type === 'patient',
     )
     expect(user).to.exist
 

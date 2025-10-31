@@ -11,7 +11,7 @@ import {
   defaultSeedInputSchema,
   type DefaultSeedOutput,
   UserDebugDataComponent,
-  UserType,
+  
 } from '@stanfordbdhg/myheartcounts-models'
 import { logger } from 'firebase-functions'
 import { type z } from 'zod'
@@ -83,7 +83,7 @@ export async function _defaultSeed(
     for (const userId of userIds) {
       try {
         const user = await userService.getUser(userId)
-        if (user?.content.type === UserType.patient) {
+        if (user?.content.type === 'patient') {
           await _seedPatientCollections({
             debugData: debugDataService,
             trigger: triggerService,

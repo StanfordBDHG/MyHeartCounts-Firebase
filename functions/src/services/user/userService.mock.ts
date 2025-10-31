@@ -9,7 +9,6 @@
 import {
   User,
   type UserAuth,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type EnrollUserOptions, type UserService } from './userService.js'
 import { type Document } from '../database/databaseService.js'
@@ -75,7 +74,7 @@ export class MockUserService implements UserService {
       path: 'users/' + userId,
       lastUpdate: new Date(),
       content: new User({
-        type: UserType.clinician,
+        type: 'clinician',
         disabled: false,
         dateOfBirth: new Date('1970-01-02'),
         lastActiveDate: new Date('2024-04-04'),

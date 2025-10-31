@@ -9,7 +9,6 @@
 import {
   type UserClaims,
   userClaimsSchema,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { https, logger } from 'firebase-functions/v2'
 import { type AuthData } from 'firebase-functions/v2/tasks'
@@ -20,15 +19,6 @@ export class Credential {
   readonly userId: string
   private readonly claims: Partial<UserClaims>
 
-  // Public getters for testing
-  get userType(): UserType {
-    return this.claims.type ?? UserType.patient
-  }
-
-  // Helper method for testing
-  userHasType(type: UserType): boolean {
-    return this.userType === type
-  }
 
   // Constructor
 

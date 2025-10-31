@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType } from '@stanfordbdhg/myheartcounts-models'
+
 import { expect } from 'chai'
 import type { https } from 'firebase-functions/v2'
 import { deleteHealthSamples } from './deleteHealthSamples.js'
@@ -18,7 +18,6 @@ describeWithEmulators(
   (env) => {
     it('should accept requests without confirmation parameter', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
       })
 
       const result = await env.call(
@@ -38,7 +37,6 @@ describeWithEmulators(
 
     it('should validate empty samples array', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
       })
 
       await expectError(
@@ -61,7 +59,6 @@ describeWithEmulators(
 
     it('should validate too many samples', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
       })
 
       const tooManyDocumentIds = Array.from(
@@ -89,7 +86,6 @@ describeWithEmulators(
 
     it('should return async job response for entered-in-error marking', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
       })
 
       const result = await env.call(
@@ -113,10 +109,8 @@ describeWithEmulators(
 
     it('should deny access to other users samples', async () => {
       const userId1 = await env.createUser({
-        type: UserType.patient,
       })
       const userId2 = await env.createUser({
-        type: UserType.patient,
       })
 
       await expectError(
@@ -137,42 +131,9 @@ describeWithEmulators(
       )
     })
 
-    it('should allow admin to delete any users samples', async () => {
-      const adminId = await env.createUser({
-        type: UserType.admin,
-      })
-      const userId = await env.createUser({
-        type: UserType.patient,
-      })
-
-      const result = await env.call(
-        deleteHealthSamples,
-        {
-          userId,
-          collection: 'heartRateObservations',
-          documentIds: ['admin-test-sample'],
-        },
-        {
-          uid: adminId,
-          token: {
-            type: UserType.admin,
-            disabled: false,
-          },
-        },
-      )
-
-      expect(result.status).to.equal('accepted')
-      expect(result.jobId).to.be.a('string')
-      expect(result.totalSamples).to.equal(1)
-      expect(result.estimatedDurationMinutes).to.be.a('number')
-      expect(result.message).to.include(
-        'Processing 1 samples as entered-in-error asynchronously',
-      )
-    })
 
     it('should handle large batch marking requests', async () => {
       const userId = await env.createUser({
-        type: UserType.patient,
       })
 
       // Create a large batch of 1000 document IDs

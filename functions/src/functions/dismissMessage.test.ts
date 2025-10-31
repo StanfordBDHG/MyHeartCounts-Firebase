@@ -9,7 +9,7 @@
 import {
   QuestionnaireReference,
   UserMessage,
-  UserType,
+  
 } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { it } from 'mocha'
@@ -33,7 +33,6 @@ describeWithEmulators('function: dismissMessage', (env) => {
           { messageId: messageRef.id, didPerformAction: true },
           {
             uid: user.uid,
-            token: { type: UserType.patient, organization: 'stanford' },
           },
         ),
       (error) =>
@@ -55,7 +54,6 @@ describeWithEmulators('function: dismissMessage', (env) => {
       { messageId: messageRef.id, didPerformAction: true },
       {
         uid: user.uid,
-        token: { type: UserType.patient, organization: 'stanford' },
       },
     )
 

@@ -7,7 +7,6 @@
 //
 
 import { z } from 'zod'
-import { UserType } from './userType.js'
 import { dateConverter } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
 import { optionalish, optionalishDefault } from '../helpers/optionalish.js'
@@ -17,7 +16,6 @@ export const userRegistrationInputConverter = new Lazy(
   () =>
     new SchemaConverter({
       schema: z.object({
-        type: z.nativeEnum(UserType),
         disabled: optionalishDefault(z.boolean(), false),
         dateOfBirth: optionalish(dateConverter.schema),
         language: optionalish(z.string()),
@@ -47,7 +45,6 @@ export const userRegistrationConverter = new Lazy(
 )
 
 export const userClaimsSchema = z.object({
-  type: z.nativeEnum(UserType),
   disabled: optionalishDefault(z.boolean(), false),
 })
 
@@ -56,7 +53,6 @@ export type UserClaims = z.output<typeof userClaimsSchema>
 export class UserRegistration {
   // Stored Properties
 
-  readonly type: UserType
   readonly disabled: boolean
 
   readonly dateOfBirth?: Date
@@ -69,22 +65,19 @@ export class UserRegistration {
 
   get claims(): UserClaims {
     return {
-      type: this.type,
-      disabled: this.disabled,
+      disabled: this.disabled
     }
   }
 
   // Constructor
 
   constructor(input: {
-    type: UserType
     disabled: boolean
     dateOfBirth?: Date
     language?: string
     timeZone?: string
     participantGroup?: number
   }) {
-    this.type = input.type
     this.disabled = input.disabled
     this.dateOfBirth = input.dateOfBirth
     this.language = input.language

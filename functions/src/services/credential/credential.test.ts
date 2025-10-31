@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { UserType } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { type DecodedIdToken } from 'firebase-admin/auth'
 import { https } from 'firebase-functions/v2'
@@ -17,21 +16,19 @@ import { Credential } from './credential.js'
 describe('Credential', () => {
   function createAuthData(
     userId: string,
-    type: UserType,
     disabled = false,
   ): AuthData {
     return {
       uid: userId,
       token: {
-        type: type,
         disabled,
       } as unknown as DecodedIdToken,
     } as AuthData
   }
 
-  const adminAuth = createAuthData('mockAdmin', UserType.admin)
-  const patientAuth = createAuthData('mockPatient', UserType.patient)
-  const disabledAuth = createAuthData('disabledUser', UserType.patient, true)
+  const adminAuth = createAuthData('mockAdmin')
+  const patientAuth = createAuthData('mockPatient')
+  const disabledAuth = createAuthData('disabledUser', true)
 
   function expectToNotThrow(fn: () => void): void {
     expect(fn).to.not.throw()
@@ -54,18 +51,14 @@ describe('Credential', () => {
       )
     })
 
-    it('correctly parses admin user claims', () => {
+    it('correctly parses user claims', () => {
       const credential = new Credential(adminAuth)
       expect(credential.userId).to.equal(adminAuth.uid)
-      expect(credential.userType).to.equal(UserType.admin)
-      expect(credential.userHasType(UserType.admin)).to.be.true
     })
 
     it('correctly parses patient user claims', () => {
       const credential = new Credential(patientAuth)
       expect(credential.userId).to.equal(patientAuth.uid)
-      expect(credential.userType).to.equal(UserType.patient)
-      expect(credential.userHasType(UserType.patient)).to.be.true
     })
   })
 

@@ -11,7 +11,6 @@ import {
   userRegistrationInputConverter,
   UserRegistration,
 } from './userRegistration.js'
-import { type UserType } from './userType.js'
 import { dateConverter } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
 import { SchemaConverter } from '../helpers/schemaConverter.js'
@@ -42,7 +41,6 @@ export class User extends UserRegistration {
   // Constructor
 
   constructor(input: {
-    type: UserType
     disabled: boolean
     dateOfBirth?: Date
     language?: string
