@@ -10,9 +10,6 @@
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "receivesInactivityReminders": true,
-      "receivesQuestionnaireReminders": true,
-      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -26,9 +23,6 @@
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "receivesInactivityReminders": true,
-      "receivesQuestionnaireReminders": true,
-      "receivesRecommendationUpdates": true
     }
   },
   {
@@ -42,9 +36,6 @@
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
       "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "receivesInactivityReminders": true,
-      "receivesQuestionnaireReminders": true,
-      "receivesRecommendationUpdates": true
     }
   }
 ]

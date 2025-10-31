@@ -338,16 +338,13 @@ export class DefaultMessageService implements MessageService {
 
     switch (input.message.content.type) {
       case UserMessageType.weightGain:
-        if (!user.receivesRecommendationUpdates) return
         break
       case UserMessageType.welcome:
         break
       case UserMessageType.vitals:
       case UserMessageType.symptomQuestionnaire:
-        if (!user.receivesQuestionnaireReminders) return
         break
       case UserMessageType.preAppointment:
-        if (!user.receivesInactivityReminders) return
         break
     }
 

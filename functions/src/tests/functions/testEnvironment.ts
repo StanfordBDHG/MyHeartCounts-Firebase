@@ -131,9 +131,6 @@ export class EmulatorTestEnvironment {
       clinician?: string
       dateOfEnrollment?: Date
       lastActiveDate?: Date
-      receivesInactivityReminders?: boolean
-      receivesQuestionnaireReminders?: boolean
-      receivesRecommendationUpdates?: boolean
     } & admin.auth.CreateRequest,
   ) {
     const authUser = await this.auth.createUser(options)
@@ -144,12 +141,6 @@ export class EmulatorTestEnvironment {
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
         clinician: options.clinician,
         lastActiveDate: options.lastActiveDate ?? new Date(),
-        receivesInactivityReminders:
-          options.receivesInactivityReminders ?? true,
-        receivesQuestionnaireReminders:
-          options.receivesQuestionnaireReminders ?? true,
-        receivesRecommendationUpdates:
-          options.receivesRecommendationUpdates ?? true,
       }),
     )
     return authUser.uid

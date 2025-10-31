@@ -46,9 +46,6 @@ export class User extends UserRegistration {
     disabled: boolean
     dateOfBirth?: Date
     clinician?: string
-    receivesInactivityReminders?: boolean
-    receivesQuestionnaireReminders?: boolean
-    receivesRecommendationUpdates?: boolean
     language?: string
     timeZone?: string
     participantGroup?: number

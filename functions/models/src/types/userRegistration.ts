@@ -21,9 +21,6 @@ export const userRegistrationInputConverter = new Lazy(
         disabled: optionalishDefault(z.boolean(), false),
         dateOfBirth: optionalish(dateConverter.schema),
         clinician: optionalish(z.string()),
-        receivesInactivityReminders: optionalish(z.boolean()),
-        receivesQuestionnaireReminders: optionalish(z.boolean()),
-        receivesRecommendationUpdates: optionalish(z.boolean()),
         language: optionalish(z.string()),
         timeZone: optionalish(z.string()),
         participantGroup: optionalish(z.number().int()),
@@ -34,11 +31,6 @@ export const userRegistrationInputConverter = new Lazy(
         dateOfBirth:
           object.dateOfBirth ? dateConverter.encode(object.dateOfBirth) : null,
         clinician: object.clinician ?? null,
-        receivesInactivityReminders: object.receivesInactivityReminders ?? null,
-        receivesQuestionnaireReminders:
-          object.receivesQuestionnaireReminders ?? null,
-        receivesRecommendationUpdates:
-          object.receivesRecommendationUpdates ?? null,
         language: object.language ?? null,
         timeZone: object.timeZone ?? null,
         participantGroup: object.participantGroup ?? null,
@@ -72,10 +64,6 @@ export class UserRegistration {
   readonly dateOfBirth?: Date
   readonly clinician?: string
 
-  readonly receivesInactivityReminders?: boolean
-  readonly receivesQuestionnaireReminders?: boolean
-  readonly receivesRecommendationUpdates?: boolean
-
   readonly language?: string
   readonly timeZone?: string
   readonly participantGroup?: number
@@ -96,9 +84,6 @@ export class UserRegistration {
     disabled: boolean
     dateOfBirth?: Date
     clinician?: string
-    receivesInactivityReminders?: boolean
-    receivesQuestionnaireReminders?: boolean
-    receivesRecommendationUpdates?: boolean
     language?: string
     timeZone?: string
     participantGroup?: number
@@ -107,9 +92,6 @@ export class UserRegistration {
     this.disabled = input.disabled
     this.dateOfBirth = input.dateOfBirth
     this.clinician = input.clinician
-    this.receivesInactivityReminders = input.receivesInactivityReminders
-    this.receivesQuestionnaireReminders = input.receivesQuestionnaireReminders
-    this.receivesRecommendationUpdates = input.receivesRecommendationUpdates
     this.language = input.language
     this.timeZone = input.timeZone
     this.participantGroup = input.participantGroup

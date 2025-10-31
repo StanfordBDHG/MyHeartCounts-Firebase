@@ -99,9 +99,6 @@ export class DatabaseUserService implements UserService {
         const userData = new User({
           type: UserType.patient,
           disabled: false,
-          receivesInactivityReminders: true,
-          receivesQuestionnaireReminders: true,
-          receivesRecommendationUpdates: true,
           participantGroup: Math.random() < 0.5 ? 1 : 2,
           lastActiveDate: new Date(),
           dateOfEnrollment: new Date(),
