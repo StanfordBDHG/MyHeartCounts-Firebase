@@ -11,7 +11,6 @@ import {
   userRegistrationInputConverter,
   UserRegistration,
 } from './userRegistration.js'
-import { type UserType } from './userType.js'
 import { dateConverter } from '../helpers/dateConverter.js'
 import { Lazy } from '../helpers/lazy.js'
 import { SchemaConverter } from '../helpers/schemaConverter.js'
@@ -42,13 +41,8 @@ export class User extends UserRegistration {
   // Constructor
 
   constructor(input: {
-    type: UserType
     disabled: boolean
     dateOfBirth?: Date
-    clinician?: string
-    receivesInactivityReminders?: boolean
-    receivesQuestionnaireReminders?: boolean
-    receivesRecommendationUpdates?: boolean
     language?: string
     timeZone?: string
     participantGroup?: number

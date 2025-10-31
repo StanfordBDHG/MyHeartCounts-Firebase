@@ -9,10 +9,7 @@
     "user": {
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
-      "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "receivesInactivityReminders": true,
-      "receivesQuestionnaireReminders": true,
-      "receivesRecommendationUpdates": true
+      "lastActiveDate": "1970-01-01T00:00:00.000Z"
     }
   },
   {
@@ -25,10 +22,7 @@
     "user": {
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
-      "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "receivesInactivityReminders": true,
-      "receivesQuestionnaireReminders": true,
-      "receivesRecommendationUpdates": true
+      "lastActiveDate": "1970-01-01T00:00:00.000Z"
     }
   },
   {
@@ -41,10 +35,7 @@
     "user": {
       "type": "patient",
       "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
-      "lastActiveDate": "1970-01-01T00:00:00.000Z",
-      "receivesInactivityReminders": true,
-      "receivesQuestionnaireReminders": true,
-      "receivesRecommendationUpdates": true
+      "lastActiveDate": "1970-01-01T00:00:00.000Z"
     }
   }
 ]

@@ -151,7 +151,6 @@ describe('DietScoringQuestionnaireResponseService', () => {
 
       const service = new DietScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
         scoreCalculator: mockCalculator,
       })
 
@@ -184,7 +183,6 @@ describe('DietScoringQuestionnaireResponseService', () => {
 
       const service = new DietScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
         scoreCalculator: mockCalculator,
       })
 

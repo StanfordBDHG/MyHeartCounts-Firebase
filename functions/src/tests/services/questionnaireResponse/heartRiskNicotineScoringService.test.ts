@@ -22,7 +22,6 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
       })
 
       const mockResponse = {
@@ -52,7 +51,6 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
       })
 
       const mockResponse = {
@@ -94,7 +92,6 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
       })
 
       const mockResponse = {
@@ -128,7 +125,6 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
       })
 
       const mockResponse = {
@@ -171,7 +167,6 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
       })
 
       const mockResponse = {
@@ -217,7 +212,6 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
       })
 
       const smokingStatuses = [

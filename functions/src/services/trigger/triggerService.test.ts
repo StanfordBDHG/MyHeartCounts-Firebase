@@ -12,7 +12,6 @@ import {
   User,
   UserMessage,
   UserMessageType,
-  UserType,
   UserObservationCollection,
   FHIRObservationStatus,
   CodingSystem,
@@ -29,9 +28,7 @@ describeWithEmulators('TriggerService', (env) => {
   let patientId: string
 
   beforeEach(async () => {
-    patientId = await env.createUser({
-      type: UserType.patient,
-    })
+    patientId = await env.createUser({})
   })
 
   describe('service functionality', () => {
@@ -75,14 +72,14 @@ describeWithEmulators('TriggerService', (env) => {
         throw new Error('User not found')
       }
 
-      // This should create welcome messages
+      // This should handle user enrollment (message functionality removed)
       await triggerService.userEnrolled(userDocument)
 
-      // Verify welcome messages
       const messagesSnapshot = await env.collections
         .userMessages(patientId)
         .get()
-      expect(messagesSnapshot.docs.length).to.be.greaterThan(0)
+      // No messages should be created
+      expect(messagesSnapshot.docs.length).to.equal(0)
     })
   })
 
@@ -192,21 +189,13 @@ describeWithEmulators('TriggerService', (env) => {
       // This is a test for a private method, but we can test it through its effects
       await triggerService.sendWeeklySymptomQuestionnaires()
 
-      // Create a questionnaire message manually to ensure there's at least one
-      await env.factory.message().addMessage(
-        patientId,
-        UserMessage.createSymptomQuestionnaire({
-          questionnaireReference: QuestionnaireReference.enUS,
-        }),
-      )
-
-      // Check that message is created
+      // Check that method completes
       const messagesSnapshot = await env.collections
         .userMessages(patientId)
         .get()
 
-      // This should create at least one message
-      expect(messagesSnapshot.docs.length).to.be.greaterThan(0)
+      // No messages should be created
+      expect(messagesSnapshot.docs.length).to.equal(0)
     })
 
     it('should handle sending daily reminders', async () => {

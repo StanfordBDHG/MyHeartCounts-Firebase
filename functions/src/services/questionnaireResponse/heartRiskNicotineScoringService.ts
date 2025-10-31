@@ -23,20 +23,14 @@ import {
   type Document,
   type DatabaseService,
 } from '../database/databaseService.js'
-import type { MessageService } from '../message/messageService.js'
 
 export class HeartRiskNicotineScoringQuestionnaireResponseService extends QuestionnaireResponseService {
   private readonly databaseService: DatabaseService
-  private readonly messageService: MessageService
   private readonly scoreCalculator: DefaultNicotineScoreCalculator
 
-  constructor(input: {
-    databaseService: DatabaseService
-    messageService: MessageService
-  }) {
+  constructor(input: { databaseService: DatabaseService }) {
     super()
     this.databaseService = input.databaseService
-    this.messageService = input.messageService
     this.scoreCalculator = new DefaultNicotineScoreCalculator()
   }
 

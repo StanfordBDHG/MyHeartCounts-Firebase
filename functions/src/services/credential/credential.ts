@@ -9,80 +9,15 @@
 import {
   type UserClaims,
   userClaimsSchema,
-  UserType,
 } from '@stanfordbdhg/myheartcounts-models'
 import { https, logger } from 'firebase-functions/v2'
 import { type AuthData } from 'firebase-functions/v2/tasks'
-
-export enum UserRoleType {
-  admin = 'admin',
-  clinician = 'clinician',
-  patient = 'patient',
-  user = 'user',
-}
-
-export class UserRole {
-  // Properties
-
-  readonly type: UserRoleType
-  readonly organization?: string
-  readonly userId?: string
-
-  // Constructor
-
-  private constructor(
-    type: UserRoleType,
-    organization?: string,
-    userId?: string,
-  ) {
-    this.type = type
-    this.organization = organization
-    this.userId = userId
-  }
-
-  // Methods
-
-  equals(role: UserRole): boolean {
-    return (
-      this.type === role.type &&
-      this.organization === role.organization &&
-      this.userId === role.userId
-    )
-  }
-
-  // Static Properties
-
-  static readonly admin = new UserRole(UserRoleType.admin, undefined, undefined)
-  static readonly clinician = new UserRole(
-    UserRoleType.clinician,
-    undefined,
-    undefined,
-  )
-  static readonly patient = new UserRole(
-    UserRoleType.patient,
-    undefined,
-    undefined,
-  )
-  static user(userId: string): UserRole {
-    return new UserRole(UserRoleType.user, undefined, userId)
-  }
-}
 
 export class Credential {
   // Stored Properties
 
   readonly userId: string
   private readonly claims: Partial<UserClaims>
-
-  // Public getters for testing
-  get userType(): UserType {
-    return this.claims.type ?? UserType.patient
-  }
-
-  // Helper method for testing
-  userHasType(type: UserType): boolean {
-    return this.userType === type
-  }
 
   // Constructor
 
@@ -106,21 +41,15 @@ export class Credential {
 
   // Methods
 
-  check(...roles: UserRole[]): UserRole {
-    const role = roles.find((role) => this.checkSingle(role))
-    if (role !== undefined) return role
-    throw this.permissionDeniedError()
+  checkAuthenticated(): void {
+    if (this.claims.disabled === true) throw this.disabledError()
   }
 
-  async checkAsync(
-    ...promises: Array<() => Promise<UserRole[]> | UserRole[]>
-  ): Promise<UserRole> {
-    for (const promise of promises) {
-      const roles = await promise()
-      const role = roles.find((role) => this.checkSingle(role))
-      if (role !== undefined) return role
+  checkUser(userId: string): void {
+    this.checkAuthenticated()
+    if (this.userId !== userId) {
+      throw this.permissionDeniedError()
     }
-    throw this.permissionDeniedError()
   }
 
   permissionDeniedError(): https.HttpsError {
@@ -132,26 +61,5 @@ export class Credential {
 
   disabledError(): https.HttpsError {
     return new https.HttpsError('permission-denied', 'User is disabled.')
-  }
-
-  // Helpers
-
-  private checkSingle(role: UserRole): boolean {
-    if (this.claims.disabled === true) throw this.disabledError()
-
-    switch (role.type) {
-      case UserRoleType.admin: {
-        return this.claims.type === UserType.admin
-      }
-      case UserRoleType.clinician: {
-        return this.claims.type === UserType.clinician
-      }
-      case UserRoleType.patient: {
-        return this.claims.type === UserType.patient
-      }
-      case UserRoleType.user: {
-        return this.userId === role.userId
-      }
-    }
   }
 }

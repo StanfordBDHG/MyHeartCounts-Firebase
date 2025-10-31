@@ -9,7 +9,6 @@
 import { type AuthData } from 'firebase-functions/v2/tasks'
 import { type Credential } from '../credential/credential.js'
 import { type HistoryService } from '../history/historyService.js'
-import { type MessageService } from '../message/messageService.js'
 import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
 import { type DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { type StaticDataService } from '../seeding/staticData/staticDataService.js'
@@ -34,6 +33,5 @@ export interface ServiceFactory {
 
   // Trigger
 
-  message(): MessageService
   trigger(): TriggerService
 }

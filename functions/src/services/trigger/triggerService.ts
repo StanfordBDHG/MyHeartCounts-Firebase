@@ -100,25 +100,7 @@ export class TriggerServiceImpl implements TriggerService {
   // Methods - Events
 
   async userCreated(userId: string) {
-    try {
-      await this.factory
-        .message()
-        .addMessage(userId, UserMessage.createWelcome({}), { notify: true })
-
-      await this.factory.message().addMessage(
-        userId,
-        UserMessage.createSymptomQuestionnaire({
-          questionnaireReference: QuestionnaireReference.enUS,
-        }),
-        { notify: true },
-      )
-
-      await this.factory
-        .message()
-        .addMessage(userId, UserMessage.createVitals({}), { notify: false })
-    } catch (error) {
-      logger.error(`TriggerService.userCreated(${userId}): ${String(error)}`)
-    }
+    logger.info(`TriggerService.userCreated(${userId}): User created`)
   }
 
   async userUpdated(userId: string) {
@@ -208,12 +190,8 @@ export class TriggerServiceImpl implements TriggerService {
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
-    await this.factory.message().addMessage(
-      userId,
-      UserMessage.createSymptomQuestionnaire({
-        questionnaireReference: QuestionnaireReference.enUS,
-      }),
-      { notify: true },
+    logger.info(
+      `TriggerService.sendSymptomQuestionnaireReminderIfNeeded(${userId}): Reminder skipped`,
     )
   }
 }
