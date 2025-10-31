@@ -190,6 +190,8 @@ export class TriggerServiceImpl implements TriggerService {
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
-    logger.info(`TriggerService.sendSymptomQuestionnaireReminderIfNeeded(${userId}): Reminder skipped`)
+    logger.info(
+      `TriggerService.sendSymptomQuestionnaireReminderIfNeeded(${userId}): Reminder skipped`,
+    )
   }
 }

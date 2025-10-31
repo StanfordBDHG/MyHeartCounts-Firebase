@@ -28,9 +28,7 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
   private readonly databaseService: DatabaseService
   private readonly scoreCalculator: DefaultNicotineScoreCalculator
 
-  constructor(input: {
-    databaseService: DatabaseService
-  }) {
+  constructor(input: { databaseService: DatabaseService }) {
     super()
     this.databaseService = input.databaseService
     this.scoreCalculator = new DefaultNicotineScoreCalculator()

@@ -38,7 +38,6 @@ import { type UserService } from '../user/userService.js'
 export class DefaultServiceFactory implements ServiceFactory {
   // Properties - Options
 
-
   // Properties - Firebase
 
   private readonly auth = new Lazy(() => admin.auth())
@@ -65,7 +64,6 @@ export class DefaultServiceFactory implements ServiceFactory {
   private readonly historyService = new Lazy(
     () => new DatabaseHistoryService(this.databaseService.value),
   )
-
 
   private readonly questionnaireResponseService = new Lazy(
     () =>
@@ -96,7 +94,9 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   // Constructor
 
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
   constructor(options: ServiceFactoryOptions) {
+    // Options parameter required by interface but not currently used
   }
 
   // Methods - User
@@ -130,7 +130,6 @@ export class DefaultServiceFactory implements ServiceFactory {
   }
 
   // Methods - Trigger
-
 
   trigger(): TriggerService {
     return this.triggerService.value
