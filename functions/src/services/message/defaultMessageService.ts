@@ -336,18 +336,6 @@ export class DefaultMessageService implements MessageService {
       input.user ?? (await this.userService.getUser(input.userId))?.content
     if (!user) return
 
-    switch (input.message.content.type) {
-      case UserMessageType.weightGain:
-        break
-      case UserMessageType.welcome:
-        break
-      case UserMessageType.vitals:
-      case UserMessageType.symptomQuestionnaire:
-        break
-      case UserMessageType.preAppointment:
-        break
-    }
-
     const messageData = input.message.content
 
     // Convert LocalizedText objects to Record<string, string>
