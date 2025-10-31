@@ -36,9 +36,6 @@ export {
   beforeUserSignedInFunction as beforeUserSignedIn,
 } from './functions/blocking.js'
 export * from './functions/customSeed.js'
-export * from './functions/dismissMessage.js'
-export * from './functions/registerDevice.js'
-export * from './functions/unregisterDevice.js'
 export * from './functions/updateStaticData.js'
 export * from './functions/updateUserInformation.js'
 export * from './functions/disableUser.js'

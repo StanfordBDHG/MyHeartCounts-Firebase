@@ -15,8 +15,6 @@ import { Credential } from '../credential/credential.js'
 import { FirestoreService } from '../database/firestoreService.js'
 import { DatabaseHistoryService } from '../history/databaseHistoryService.js'
 import { type HistoryService } from '../history/historyService.js'
-import { DefaultMessageService } from '../message/defaultMessageService.js'
-import { type MessageService } from '../message/messageService.js'
 import {
   DietScoreCalculator,
   DietScoringQuestionnaireResponseService,
@@ -40,13 +38,11 @@ import { type UserService } from '../user/userService.js'
 export class DefaultServiceFactory implements ServiceFactory {
   // Properties - Options
 
-  private readonly options: ServiceFactoryOptions
 
   // Properties - Firebase
 
   private readonly auth = new Lazy(() => admin.auth())
   private readonly firestore = new Lazy(() => admin.firestore())
-  private readonly messaging = new Lazy(() => admin.messaging())
   private readonly storage = new Lazy(() => admin.storage())
 
   // Properties - Database Layer
@@ -70,31 +66,20 @@ export class DefaultServiceFactory implements ServiceFactory {
     () => new DatabaseHistoryService(this.databaseService.value),
   )
 
-  private readonly messageService = new Lazy(
-    () =>
-      new DefaultMessageService(
-        this.messaging.value,
-        this.databaseService.value,
-        this.userService.value,
-      ),
-  )
 
   private readonly questionnaireResponseService = new Lazy(
     () =>
       new MultiQuestionnaireResponseService([
         new DietScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
-          messageService: this.messageService.value,
           scoreCalculator: new DietScoreCalculator(),
         }),
         new NicotineScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
-          messageService: this.messageService.value,
           scoreCalculator: new DefaultNicotineScoreCalculator(),
         }),
         new HeartRiskNicotineScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
-          messageService: this.messageService.value,
         }),
         // Add more specific questionnaire response services here
       ]),
@@ -113,7 +98,7 @@ export class DefaultServiceFactory implements ServiceFactory {
   // Constructor
 
   constructor(options: ServiceFactoryOptions) {
-    this.options = options
+    // Options not currently used but kept for interface compatibility
   }
 
   // Methods - User
@@ -148,9 +133,6 @@ export class DefaultServiceFactory implements ServiceFactory {
 
   // Methods - Trigger
 
-  message(): MessageService {
-    return this.messageService.value
-  }
 
   trigger(): TriggerService {
     return this.triggerService.value

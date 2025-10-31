@@ -189,14 +189,6 @@ describeWithEmulators('TriggerService', (env) => {
       // This is a test for a private method, but we can test it through its effects
       await triggerService.sendWeeklySymptomQuestionnaires()
 
-      // Create a questionnaire message manually to ensure there's at least one
-      await env.factory.message().addMessage(
-        patientId,
-        UserMessage.createSymptomQuestionnaire({
-          questionnaireReference: QuestionnaireReference.enUS,
-        }),
-      )
-
       // Check that message is created
       const messagesSnapshot = await env.collections
         .userMessages(patientId)
