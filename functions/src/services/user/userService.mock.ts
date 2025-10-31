@@ -74,7 +74,6 @@ export class MockUserService implements UserService {
       path: 'users/' + userId,
       lastUpdate: new Date(),
       content: new User({
-        type: 'clinician',
         disabled: false,
         dateOfBirth: new Date('1970-01-02'),
         lastActiveDate: new Date('2024-04-04'),

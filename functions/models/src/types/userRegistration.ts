@@ -23,7 +23,6 @@ export const userRegistrationInputConverter = new Lazy(
         participantGroup: optionalish(z.number().int()),
       }),
       encode: (object) => ({
-        type: object.type,
         disabled: object.disabled,
         dateOfBirth:
           object.dateOfBirth ? dateConverter.encode(object.dateOfBirth) : null,
