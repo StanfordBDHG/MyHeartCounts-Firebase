@@ -6,18 +6,15 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import { expect } from 'chai'
 import { disableUser } from './disableUser.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
 describeWithEmulators('function: disableUser', (env) => {
   it('disables an enabled user', async () => {
-    const adminId = await env.createUser({
-    })
+    const adminId = await env.createUser({})
 
-    const userId = await env.createUser({
-    })
+    const userId = await env.createUser({})
 
     const userService = env.factory.user()
 
@@ -44,8 +41,7 @@ describeWithEmulators('function: disableUser', (env) => {
   })
 
   it('keeps disabled users disabled', async () => {
-    const adminId = await env.createUser({
-    })
+    const adminId = await env.createUser({})
 
     const userId = await env.createUser({
       disabled: true,

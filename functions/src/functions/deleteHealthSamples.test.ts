@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import { expect } from 'chai'
 import type { https } from 'firebase-functions/v2'
 import { deleteHealthSamples } from './deleteHealthSamples.js'
@@ -17,8 +16,7 @@ describeWithEmulators(
   'function: deleteHealthSamples (FHIR compliant)',
   (env) => {
     it('should accept requests without confirmation parameter', async () => {
-      const userId = await env.createUser({
-      })
+      const userId = await env.createUser({})
 
       const result = await env.call(
         deleteHealthSamples,
@@ -36,8 +34,7 @@ describeWithEmulators(
     })
 
     it('should validate empty samples array', async () => {
-      const userId = await env.createUser({
-      })
+      const userId = await env.createUser({})
 
       await expectError(
         () =>
@@ -58,8 +55,7 @@ describeWithEmulators(
     })
 
     it('should validate too many samples', async () => {
-      const userId = await env.createUser({
-      })
+      const userId = await env.createUser({})
 
       const tooManyDocumentIds = Array.from(
         { length: 50001 },
@@ -85,8 +81,7 @@ describeWithEmulators(
     })
 
     it('should return async job response for entered-in-error marking', async () => {
-      const userId = await env.createUser({
-      })
+      const userId = await env.createUser({})
 
       const result = await env.call(
         deleteHealthSamples,
@@ -108,10 +103,8 @@ describeWithEmulators(
     })
 
     it('should deny access to other users samples', async () => {
-      const userId1 = await env.createUser({
-      })
-      const userId2 = await env.createUser({
-      })
+      const userId1 = await env.createUser({})
+      const userId2 = await env.createUser({})
 
       await expectError(
         () =>
@@ -131,10 +124,8 @@ describeWithEmulators(
       )
     })
 
-
     it('should handle large batch marking requests', async () => {
-      const userId = await env.createUser({
-      })
+      const userId = await env.createUser({})
 
       // Create a large batch of 1000 document IDs
       const largeBatchDocumentIds = Array.from(

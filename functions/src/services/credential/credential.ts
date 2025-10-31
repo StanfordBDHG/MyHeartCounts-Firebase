@@ -19,7 +19,6 @@ export class Credential {
   readonly userId: string
   private readonly claims: Partial<UserClaims>
 
-
   // Constructor
 
   constructor(authData: AuthData | undefined) {

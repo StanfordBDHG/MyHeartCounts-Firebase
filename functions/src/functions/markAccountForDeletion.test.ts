@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import { expect } from 'chai'
 import { https } from 'firebase-functions/v2'
 import { markAccountForDeletion } from './markAccountForDeletion.js'
@@ -14,8 +13,7 @@ import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
 
 describeWithEmulators('function: markAccountForDeletion', (env) => {
   it('successfully marks a user account for deletion', async () => {
-    const userId = await env.createUser({
-    })
+    const userId = await env.createUser({})
 
     const userService = env.factory.user()
 
@@ -56,8 +54,7 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
   })
 
   it('allows users to mark only their own accounts', async () => {
-    const userId = await env.createUser({
-    })
+    const userId = await env.createUser({})
 
     // This should succeed
     const result = await env.call(
@@ -76,8 +73,7 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
   })
 
   it('prevents marking already deleted accounts', async () => {
-    const userId = await env.createUser({
-    })
+    const userId = await env.createUser({})
 
     // First call should succeed
     await env.call(
@@ -162,8 +158,7 @@ describeWithEmulators('function: markAccountForDeletion', (env) => {
   })
 
   it('stores rich metadata with the deletion request', async () => {
-    const userId = await env.createUser({
-    })
+    const userId = await env.createUser({})
 
     const result = await env.call(
       markAccountForDeletion,

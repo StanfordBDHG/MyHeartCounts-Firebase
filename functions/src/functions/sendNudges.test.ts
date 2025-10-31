@@ -287,5 +287,4 @@ describeWithEmulators('function: sendNudges', (env) => {
       expect(historySnapshot.size).to.equal(0)
     })
   })
-
 })

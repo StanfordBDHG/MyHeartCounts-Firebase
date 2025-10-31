@@ -9,7 +9,6 @@
 import {
   QuestionnaireReference,
   UserMessage,
-  
 } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import { it } from 'mocha'

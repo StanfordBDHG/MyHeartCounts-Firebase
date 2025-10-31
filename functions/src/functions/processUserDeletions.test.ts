@@ -7,7 +7,6 @@
 //
 
 import { Storage } from '@google-cloud/storage'
-
 import { expect } from 'chai'
 import { stub, restore, type SinonStub } from 'sinon'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'

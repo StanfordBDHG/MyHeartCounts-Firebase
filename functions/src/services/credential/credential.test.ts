@@ -14,10 +14,7 @@ import { describe } from 'mocha'
 import { Credential } from './credential.js'
 
 describe('Credential', () => {
-  function createAuthData(
-    userId: string,
-    disabled = false,
-  ): AuthData {
+  function createAuthData(userId: string, disabled = false): AuthData {
     return {
       uid: userId,
       token: {

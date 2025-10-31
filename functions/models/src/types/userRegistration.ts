@@ -64,7 +64,7 @@ export class UserRegistration {
 
   get claims(): UserClaims {
     return {
-      disabled: this.disabled
+      disabled: this.disabled,
     }
   }
 

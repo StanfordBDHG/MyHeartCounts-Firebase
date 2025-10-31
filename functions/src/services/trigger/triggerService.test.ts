@@ -12,7 +12,6 @@ import {
   User,
   UserMessage,
   UserMessageType,
-  
   UserObservationCollection,
   FHIRObservationStatus,
   CodingSystem,
@@ -29,8 +28,7 @@ describeWithEmulators('TriggerService', (env) => {
   let patientId: string
 
   beforeEach(async () => {
-    patientId = await env.createUser({
-    })
+    patientId = await env.createUser({})
   })
 
   describe('service functionality', () => {

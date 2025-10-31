@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {  type UserAuth } from '@stanfordbdhg/myheartcounts-models'
+import { type UserAuth } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { describe } from 'mocha'
