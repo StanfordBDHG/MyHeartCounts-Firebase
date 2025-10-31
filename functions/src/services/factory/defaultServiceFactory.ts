@@ -81,7 +81,6 @@ export class DefaultServiceFactory implements ServiceFactory {
         new HeartRiskNicotineScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
         }),
-        // Add more specific questionnaire response services here
       ]),
   )
 
@@ -98,7 +97,6 @@ export class DefaultServiceFactory implements ServiceFactory {
   // Constructor
 
   constructor(options: ServiceFactoryOptions) {
-    // Options not currently used but kept for interface compatibility
   }
 
   // Methods - User

@@ -100,7 +100,6 @@ export class TriggerServiceImpl implements TriggerService {
   // Methods - Events
 
   async userCreated(userId: string) {
-    // Message service functionality removed
     logger.info(`TriggerService.userCreated(${userId}): User created`)
   }
 
@@ -191,7 +190,6 @@ export class TriggerServiceImpl implements TriggerService {
   }
 
   private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
-    // Message service functionality removed
     logger.info(`TriggerService.sendSymptomQuestionnaireReminderIfNeeded(${userId}): Reminder skipped`)
   }
 }
