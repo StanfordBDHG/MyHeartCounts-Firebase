@@ -100,7 +100,6 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
         scoreCalculator: mockCalculator,
       })
 
@@ -133,7 +132,6 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
         scoreCalculator: mockCalculator,
       })
 
@@ -181,7 +179,6 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
         scoreCalculator: mockCalculator,
       })
 
@@ -220,7 +217,6 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
-        messageService: mockMessageService,
         scoreCalculator: mockCalculator,
       })
 

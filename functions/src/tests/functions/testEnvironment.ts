@@ -7,7 +7,7 @@
 //
 
 import http from 'http'
-import { Lazy, User, type UserType } from '@stanfordbdhg/myheartcounts-models'
+import { Lazy, User } from '@stanfordbdhg/myheartcounts-models'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
 import { type DocumentSnapshot, Timestamp } from 'firebase-admin/firestore'
@@ -126,30 +126,18 @@ export class EmulatorTestEnvironment {
 
   async createUser(
     options: {
-      type: UserType
+      type?: string
       disabled?: boolean
-      clinician?: string
       dateOfEnrollment?: Date
       lastActiveDate?: Date
-      receivesInactivityReminders?: boolean
-      receivesQuestionnaireReminders?: boolean
-      receivesRecommendationUpdates?: boolean
     } & admin.auth.CreateRequest,
   ) {
     const authUser = await this.auth.createUser(options)
     await this.collections.users.doc(authUser.uid).set(
       new User({
-        type: options.type,
         disabled: options.disabled ?? false,
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
-        clinician: options.clinician,
         lastActiveDate: options.lastActiveDate ?? new Date(),
-        receivesInactivityReminders:
-          options.receivesInactivityReminders ?? true,
-        receivesQuestionnaireReminders:
-          options.receivesQuestionnaireReminders ?? true,
-        receivesRecommendationUpdates:
-          options.receivesRecommendationUpdates ?? true,
       }),
     )
     return authUser.uid

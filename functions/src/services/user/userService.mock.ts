@@ -6,11 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  User,
-  type UserAuth,
-  UserType,
-} from '@stanfordbdhg/myheartcounts-models'
+import { User, type UserAuth } from '@stanfordbdhg/myheartcounts-models'
 import { type EnrollUserOptions, type UserService } from './userService.js'
 import { type Document } from '../database/databaseService.js'
 /* eslint-disable @typescript-eslint/require-await */
@@ -75,14 +71,9 @@ export class MockUserService implements UserService {
       path: 'users/' + userId,
       lastUpdate: new Date(),
       content: new User({
-        type: UserType.clinician,
         disabled: false,
         dateOfBirth: new Date('1970-01-02'),
-        clinician: 'mockClinician',
         lastActiveDate: new Date('2024-04-04'),
-        receivesInactivityReminders: true,
-        receivesQuestionnaireReminders: true,
-        receivesRecommendationUpdates: true,
         dateOfEnrollment: new Date('2024-04-02'),
         timeZone: 'America/Los_Angeles',
       }),

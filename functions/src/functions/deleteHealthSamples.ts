@@ -9,7 +9,6 @@
 import { https, logger } from 'firebase-functions/v2'
 import { z } from 'zod'
 import { validatedOnCall } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { HealthSampleDeletionService } from '../services/healthSamples/healthSampleDeletionService.js'
 
@@ -38,7 +37,7 @@ export const deleteHealthSamples = validatedOnCall(
     const credential = factory.credential(request.auth)
     const { userId, collection, documentIds } = request.data
 
-    credential.check(UserRole.admin, UserRole.clinician, UserRole.user(userId))
+    credential.checkUser(userId)
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`
     const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000) // ~1000 samples per minute

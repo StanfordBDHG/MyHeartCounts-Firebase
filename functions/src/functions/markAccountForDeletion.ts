@@ -9,7 +9,6 @@
 import { https, logger } from 'firebase-functions/v2'
 import { z } from 'zod'
 import { validatedOnCall } from './helpers.js'
-import { UserRole } from '../services/credential/credential.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const markAccountForDeletionInputSchema = z.object({})
@@ -35,7 +34,7 @@ export const markAccountForDeletion = validatedOnCall(
       )
     }
 
-    credential.check(UserRole.user(userId))
+    credential.checkUser(userId)
 
     const user = await userService.getUser(userId)
     if (!user) {

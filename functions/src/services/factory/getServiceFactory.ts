@@ -9,12 +9,6 @@
 import { DefaultServiceFactory } from './defaultServiceFactory.js'
 import { type ServiceFactory } from './serviceFactory.js'
 
-export interface ServiceFactoryOptions {
-  allowCaching: boolean
-}
-
-export function getServiceFactory(
-  options: ServiceFactoryOptions = { allowCaching: true },
-): ServiceFactory {
-  return new DefaultServiceFactory(options)
+export function getServiceFactory(): ServiceFactory {
+  return new DefaultServiceFactory()
 }

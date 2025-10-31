@@ -24,7 +24,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/New_York',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -63,7 +62,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/Los_Angeles',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -105,7 +103,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'UTC',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 2,
@@ -139,7 +136,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'Europe/London',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 2,
@@ -169,7 +165,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/Mexico_City',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -203,7 +198,6 @@ describeWithEmulators('function: planNudges', (env) => {
     it('skips users without required fields', async () => {
       const userId = 'test-user-incomplete'
       await env.firestore.collection('users').doc(userId).set({
-        type: 'patient',
         participantGroup: 1,
       })
 
@@ -227,7 +221,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/New_York',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -254,7 +247,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/New_York',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -287,7 +279,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/New_York',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -330,7 +321,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'America/New_York',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
@@ -373,7 +363,6 @@ describeWithEmulators('function: planNudges', (env) => {
         .collection('users')
         .doc(userId)
         .set({
-          type: 'patient',
           timeZone: 'UTC',
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
