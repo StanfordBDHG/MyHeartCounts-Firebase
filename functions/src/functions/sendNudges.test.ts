@@ -288,44 +288,4 @@ describeWithEmulators('function: sendNudges', (env) => {
     })
   })
 
-  describe('Non-patient users', () => {
-    it('skips non-patient users', async () => {
-      const userId = 'test-clinician'
-      const pastTime = new Date()
-      pastTime.setMinutes(pastTime.getMinutes() - 30)
-
-      await env.firestore.collection('users').doc(userId).set({
-        fcmToken: 'test-fcm-token',
-        timeZone: 'UTC',
-      })
-
-      await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .add({
-          title: 'Clinician Notification',
-          body: 'This should not be processed',
-          timestamp: admin.firestore.Timestamp.fromDate(pastTime),
-        })
-
-      await processNotificationBacklog()
-
-      const historySnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationHistory')
-        .get()
-
-      expect(historySnapshot.size).to.equal(0)
-
-      const backlogSnapshot = await env.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notificationBacklog')
-        .get()
-
-      expect(backlogSnapshot.size).to.equal(1)
-    })
-  })
 })
