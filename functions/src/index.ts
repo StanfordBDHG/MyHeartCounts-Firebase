@@ -38,7 +38,6 @@ export {
 export * from './functions/customSeed.js'
 export * from './functions/defaultSeed.js'
 export * from './functions/dismissMessage.js'
-export * from './functions/getUsersInformation.js'
 export * from './functions/registerDevice.js'
 export * from './functions/unregisterDevice.js'
 export * from './functions/updateStaticData.js'
