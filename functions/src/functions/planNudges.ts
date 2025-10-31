@@ -421,7 +421,6 @@ export class NudgeService {
   async createNudgeNotifications(): Promise<void> {
     const regularUsersSnapshot = await this.firestore
       .collection('users')
-      .where('type', '==', 'patient')
       .get()
 
     const manualTriggerSnapshot = await this.firestore

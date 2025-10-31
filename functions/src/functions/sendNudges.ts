@@ -115,7 +115,6 @@ export class NotificationService {
 
     const usersSnapshot = await this.firestore
       .collection('users')
-      .where('type', '==', 'patient')
       .get()
 
     let totalProcessed = 0

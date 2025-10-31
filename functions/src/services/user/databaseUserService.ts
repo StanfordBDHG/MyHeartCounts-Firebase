@@ -175,7 +175,7 @@ export class DatabaseUserService implements UserService {
 
   async getAllPatients(): Promise<Array<Document<User>>> {
     return this.databaseService.getQuery<User>((collections) =>
-      collections.users.where('type', '==', 'patient'),
+      collections.users,
     )
   }
 
