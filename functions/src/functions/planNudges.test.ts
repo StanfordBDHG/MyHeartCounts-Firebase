@@ -28,6 +28,7 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'en',
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -68,6 +69,7 @@ describeWithEmulators('function: planNudges', (env) => {
           userLanguage: 'en',
           genderIdentity: 'female',
           dateOfBirth: new Date('1990-01-01'),
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -109,6 +111,7 @@ describeWithEmulators('function: planNudges', (env) => {
           userLanguage: 'en',
           genderIdentity: 'male',
           dateOfBirth: new Date('1985-01-01'),
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -140,6 +143,7 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 2,
           userLanguage: 'en',
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -169,6 +173,7 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'es',
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -253,6 +258,7 @@ describeWithEmulators('function: planNudges', (env) => {
           userLanguage: 'en',
           genderIdentity: 'female',
           dateOfBirth: new Date('1990-01-01'),
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -286,6 +292,7 @@ describeWithEmulators('function: planNudges', (env) => {
           triggerNudgeGeneration: true,
           genderIdentity: 'female',
           dateOfBirth: new Date('1990-01-01'),
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -325,6 +332,7 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'en',
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
@@ -367,6 +375,7 @@ describeWithEmulators('function: planNudges', (env) => {
           dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
           participantGroup: 1,
           userLanguage: 'fr',
+          didOptInToTrial: true,
         })
 
       await createNudgeNotifications()
