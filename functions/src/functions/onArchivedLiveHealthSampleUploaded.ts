@@ -22,13 +22,26 @@ interface HealthSampleData {
 }
 
 function getCollectionNameFromFileName(fileName: string): string | null {
+  // Check for SensorKit data files first
+  // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zlib
+  const sensorKitPattern = /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zlib$/
+  const sensorKitMatch = fileName.match(sensorKitPattern)
+
+  if (sensorKitMatch) {
+    const sensorKitDataType = sensorKitMatch[1]
+    logger.info(
+      `Extracted SensorKit data type from filename: ${sensorKitDataType}`,
+    )
+    return `SensorKitObservations_${sensorKitDataType}`
+  }
+
   // Extract any HealthKit identifier from filename
   // Matches anything containing "Identifier" (e.g., HKQuantityTypeIdentifierHeartRate, HKCorrelationTypeIdentifierBloodPressure)
   const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/
-  const match = fileName.match(hkIdentifierPattern)
+  const hkMatch = fileName.match(hkIdentifierPattern)
 
-  if (match) {
-    const healthKitIdentifier = match[0]
+  if (hkMatch) {
+    const healthKitIdentifier = hkMatch[0]
     logger.info(
       `Extracted HealthKit identifier from filename: ${healthKitIdentifier}`,
     )
@@ -36,7 +49,7 @@ function getCollectionNameFromFileName(fileName: string): string | null {
   }
 
   logger.error(
-    `Could not extract HealthKit identifier from filename: ${fileName}`,
+    `Could not extract HealthKit or SensorKit identifier from filename: ${fileName}`,
   )
   return null
 }
@@ -49,7 +62,6 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
   },
   async (event) => {
     const filePath = event.data.name
-    const bucket = event.data.bucket
 
     if (!filePath.includes('/liveHealthSamples/')) {
       logger.info(`Skipping file ${filePath} - not in liveHealthSamples folder`)
