@@ -159,14 +159,16 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         `Processing ${observationsData.length} observations for collection ${collectionName}`,
       )
 
-      const batch = admin.firestore().batch()
       const userObservationsCollection = admin
         .firestore()
         .collection('users')
         .doc(userId)
         .collection(collectionName)
 
+      const BATCH_SIZE = 500
       let processedCount = 0
+      let currentBatch = admin.firestore().batch()
+      let batchOperations = 0
 
       for (const observation of observationsData) {
         try {
@@ -180,15 +182,33 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
           }
 
           const docRef = userObservationsCollection.doc(documentId)
-          batch.set(docRef, observation)
+          currentBatch.set(docRef, observation)
+          batchOperations++
           processedCount++
+
+          // If we've reached the batch size limit, commit the current batch and start a new one
+          if (batchOperations >= BATCH_SIZE) {
+            await currentBatch.commit()
+            logger.info(
+              `Committed batch of ${batchOperations} operations for user ${userId}`,
+            )
+            currentBatch = admin.firestore().batch()
+            batchOperations = 0
+          }
         } catch (error) {
           logger.error(`Failed to prepare observation for batch write:`, error)
         }
       }
 
+      // Commit any remaining operations in the final batch
+      if (batchOperations > 0) {
+        await currentBatch.commit()
+        logger.info(
+          `Committed final batch of ${batchOperations} operations for user ${userId}`,
+        )
+      }
+
       if (processedCount > 0) {
-        await batch.commit()
         logger.info(
           `Successfully stored ${processedCount} observations in collection ${collectionName} for user ${userId}`,
         )
