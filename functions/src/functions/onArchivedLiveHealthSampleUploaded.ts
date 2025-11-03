@@ -24,7 +24,8 @@ interface HealthSampleData {
 function getCollectionNameFromFileName(fileName: string): string | null {
   // Check for SensorKit data files first
   // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zlib
-  const sensorKitPattern = /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zlib$/
+  const sensorKitPattern =
+    /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zlib$/
   const sensorKitMatch = fileName.match(sensorKitPattern)
 
   if (sensorKitMatch) {
