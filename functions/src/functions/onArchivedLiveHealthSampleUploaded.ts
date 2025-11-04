@@ -1,7 +1,7 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University
+// SPDX-FileCopyrightText: 2025 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
@@ -22,13 +22,27 @@ interface HealthSampleData {
 }
 
 function getCollectionNameFromFileName(fileName: string): string | null {
+  // Check for SensorKit data files first
+  // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zlib
+  const sensorKitPattern =
+    /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zlib$/
+  const sensorKitMatch = fileName.match(sensorKitPattern)
+
+  if (sensorKitMatch) {
+    const sensorKitDataType = sensorKitMatch[1]
+    logger.info(
+      `Extracted SensorKit data type from filename: ${sensorKitDataType}`,
+    )
+    return `SensorKitObservations_${sensorKitDataType}`
+  }
+
   // Extract any HealthKit identifier from filename
   // Matches anything containing "Identifier" (e.g., HKQuantityTypeIdentifierHeartRate, HKCorrelationTypeIdentifierBloodPressure)
   const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/
-  const match = fileName.match(hkIdentifierPattern)
+  const hkMatch = fileName.match(hkIdentifierPattern)
 
-  if (match) {
-    const healthKitIdentifier = match[0]
+  if (hkMatch) {
+    const healthKitIdentifier = hkMatch[0]
     logger.info(
       `Extracted HealthKit identifier from filename: ${healthKitIdentifier}`,
     )
@@ -36,7 +50,7 @@ function getCollectionNameFromFileName(fileName: string): string | null {
   }
 
   logger.error(
-    `Could not extract HealthKit identifier from filename: ${fileName}`,
+    `Could not extract HealthKit or SensorKit identifier from filename: ${fileName}`,
   )
   return null
 }
@@ -49,7 +63,6 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
   },
   async (event) => {
     const filePath = event.data.name
-    const bucket = event.data.bucket
 
     if (!filePath.includes('/liveHealthSamples/')) {
       logger.info(`Skipping file ${filePath} - not in liveHealthSamples folder`)
@@ -159,14 +172,16 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         `Processing ${observationsData.length} observations for collection ${collectionName}`,
       )
 
-      const batch = admin.firestore().batch()
       const userObservationsCollection = admin
         .firestore()
         .collection('users')
         .doc(userId)
         .collection(collectionName)
 
+      const BATCH_SIZE = 500
       let processedCount = 0
+      let currentBatch = admin.firestore().batch()
+      let batchOperations = 0
 
       for (const observation of observationsData) {
         try {
@@ -180,15 +195,33 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
           }
 
           const docRef = userObservationsCollection.doc(documentId)
-          batch.set(docRef, observation)
+          currentBatch.set(docRef, observation)
+          batchOperations++
           processedCount++
+
+          // If we've reached the batch size limit, commit the current batch and start a new one
+          if (batchOperations >= BATCH_SIZE) {
+            await currentBatch.commit()
+            logger.info(
+              `Committed batch of ${batchOperations} operations for user ${userId}`,
+            )
+            currentBatch = admin.firestore().batch()
+            batchOperations = 0
+          }
         } catch (error) {
           logger.error(`Failed to prepare observation for batch write:`, error)
         }
       }
 
+      // Commit any remaining operations in the final batch
+      if (batchOperations > 0) {
+        await currentBatch.commit()
+        logger.info(
+          `Committed final batch of ${batchOperations} operations for user ${userId}`,
+        )
+      }
+
       if (processedCount > 0) {
-        await batch.commit()
         logger.info(
           `Successfully stored ${processedCount} observations in collection ${collectionName} for user ${userId}`,
         )
