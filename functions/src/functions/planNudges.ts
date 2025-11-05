@@ -298,7 +298,7 @@ export class NudgeService {
 
           // Format selected activities consistently, strips: other
           const selectedActivities = selectedTypes.filter(
-            (type) => type !== 'other',
+            (type: string) => type !== 'other',
           )
           const formattedSelectedTypes =
             selectedActivities.length > 0 ?
