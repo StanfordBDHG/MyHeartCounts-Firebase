@@ -18,8 +18,10 @@ This is an overview of what can be tested:
 - **stateOfChange**: null, 'Precontemplation', 'Contemplation', 'Preparation', 'Action', 'Maintenance'
 - **educationLevel**: null, 'Highschool', 'college', 'collage'
 - **language**: 'en', 'es'
+- **preferredWorkoutTypes**: null, 'run,walk', 'HIIT,strength', 'swim,bicycle', 'yoga/pilates,walk', 'sport,run,strength', 'other', 'other,walk,run', 'other,HIIT,walk,swim,run,sport,strength,bicycle,yoga/pilates'
+- **preferredNotificationTime**: null, '7:00 AM', '12:00 PM', '6:00 PM'
 
-Total permutations at tje moment: 2 × 4 × 6 × 6 × 4 × 2 = **2,304 combinations**
+Total permutations: 2 × 4 × 6 × 6 × 4 × 2 × 9 × 4 = **20,736 combinations**
 
 ## Setup
 
@@ -36,7 +38,7 @@ Total permutations at tje moment: 2 × 4 × 6 × 6 × 4 × 2 = **2,304 combinati
 
 ## Running the Test
 
-### Full Test (All 2,304 permutations)
+### Full Test (All 20,736 permutations)
 ```bash
 npm run test
 ```
@@ -78,12 +80,16 @@ The script will:
 - `stateOfChange`: The stage of change (empty if null)
 - `educationLevel`: The education level (empty if null)
 - `language`: The language ('en' or 'es')
+- `preferredWorkoutTypes`: The preferred workout types (empty if null)
+- `preferredNotificationTime`: The preferred notification time (empty if null)
 - `genderContext`: The generated gender context text
 - `ageContext`: The generated age context text
 - `diseaseContext`: The generated disease context text
 - `stageContext`: The generated stage of change context text
 - `educationContext`: The generated education context text
 - `languageContext`: The generated language context text
+- `activityTypeContext`: The generated activity type context text
+- `notificationTimeContext`: The generated notification time context text
 - `fullPrompt`: The complete prompt sent to the LLM
 - `llmResponse`: The raw JSON response from the LLM
 - `error`: Any error message if the API call failed
