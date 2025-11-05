@@ -14,13 +14,17 @@ import { onDocumentWritten } from 'firebase-functions/v2/firestore'
 import { DatabaseConverter } from '../services/database/databaseConverter.js'
 import { type Document } from '../services/database/databaseService.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+import { defaultServiceAccount } from './helpers.js'
 
 const converter = new DatabaseConverter(
   fhirQuestionnaireResponseConverter.value,
 )
 
 export const onUserQuestionnaireResponseWritten = onDocumentWritten(
-  'users/{userId}/questionnaireResponses/{questionnaireResponseId}',
+  {
+    document: 'users/{userId}/questionnaireResponses/{questionnaireResponseId}',
+    serviceAccount: defaultServiceAccount,
+  },
   async (event) => {
     const triggerService = getServiceFactory().trigger()
 

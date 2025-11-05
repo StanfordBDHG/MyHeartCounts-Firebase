@@ -10,6 +10,7 @@ import { Storage } from '@google-cloud/storage'
 import { logger } from 'firebase-functions/v2'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+import { privilegedServiceAccount } from './helpers.js'
 
 const storage = new Storage()
 
@@ -85,6 +86,7 @@ export const processUserDeletionsScheduled = onSchedule(
     schedule: 'every 30 minutes',
     timeZone: 'UTC',
     timeoutSeconds: 1800,
+    serviceAccount: privilegedServiceAccount,
   },
   async (_event) => {
     logger.info('Starting scheduled user deletion process')

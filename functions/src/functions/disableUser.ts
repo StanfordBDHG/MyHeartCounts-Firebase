@@ -10,7 +10,7 @@ import {
   disableUserInputSchema,
   type DisableUserOutput,
 } from '@stanfordbdhg/myheartcounts-models'
-import { validatedOnCall } from './helpers.js'
+import { validatedOnCall, privilegedServiceAccount } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const disableUser = validatedOnCall(
@@ -25,5 +25,9 @@ export const disableUser = validatedOnCall(
     credential.checkAuthenticated()
 
     await userService.disableUser(userId)
+  },
+  {
+    invoker: 'public',
+    serviceAccount: privilegedServiceAccount,
   },
 )

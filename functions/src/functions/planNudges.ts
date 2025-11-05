@@ -16,6 +16,7 @@ import {
   getPredefinedNudgeMessages,
   type BaseNudgeMessage,
 } from './nudgeMessages.js'
+import { privilegedServiceAccount } from './helpers.js'
 
 enum Disease {
   HEART_FAILURE = 'Heart failure',
@@ -560,6 +561,7 @@ export const onScheduleDailyNudgeCreation = onSchedule(
     schedule: '0 8 * * *',
     timeZone: 'UTC',
     secrets: [openaiApiKeyParam],
+    serviceAccount: privilegedServiceAccount,
   },
   async () => {
     logger.info('Starting daily nudge notification creation')

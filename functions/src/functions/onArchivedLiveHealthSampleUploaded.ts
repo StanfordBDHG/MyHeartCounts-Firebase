@@ -12,6 +12,7 @@ import { type UserObservationCollection } from '@stanfordbdhg/myheartcounts-mode
 import admin from 'firebase-admin'
 import { storage, logger } from 'firebase-functions/v2'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+import { privilegedServiceAccount } from './helpers.js'
 
 const inflateAsync = promisify(zlib.inflate)
 
@@ -60,6 +61,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
     cpu: 2,
     memory: '1GiB',
     timeoutSeconds: 300,
+    serviceAccount: privilegedServiceAccount,
   },
   async (event) => {
     const filePath = event.data.name

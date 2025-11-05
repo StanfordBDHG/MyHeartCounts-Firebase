@@ -12,8 +12,13 @@ import {
   beforeUserSignedIn,
 } from 'firebase-functions/v2/identity'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+import { defaultServiceAccount } from './helpers.js'
 
-export const beforeUserCreatedFunction = beforeUserCreated(async (event) => {
+export const beforeUserCreatedFunction = beforeUserCreated(
+  {
+    serviceAccount: defaultServiceAccount,
+  },
+  async (event) => {
   // Ensure event.data exists
   if (!event.data) {
     logger.error('User data not available in event')
@@ -60,7 +65,11 @@ export const beforeUserCreatedFunction = beforeUserCreated(async (event) => {
   }
 })
 
-export const beforeUserSignedInFunction = beforeUserSignedIn(async (event) => {
+export const beforeUserSignedInFunction = beforeUserSignedIn(
+  {
+    serviceAccount: defaultServiceAccount,
+  },
+  async (event) => {
   try {
     // Ensure event.data exists
     if (!event.data) {
