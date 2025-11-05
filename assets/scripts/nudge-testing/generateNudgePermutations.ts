@@ -174,18 +174,28 @@ class NudgePermutationTester {
       .map((type: string) => type.trim())
     const hasOther = selectedTypes.includes('other')
 
-    let activityTypeContext = `{${preferredWorkoutTypes}} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
+    // Format selected activities consistently, strips: other
+    const selectedActivities = selectedTypes.filter(type => type !== 'other')
+    const formattedSelectedTypes = selectedActivities.length > 0 ?
+      selectedActivities.join(', ') : 'various activities'
 
+    let activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
+    // Handle "other" selections if present in the preferred types
     if (hasOther) {
+      // Only include activities that were NOT selected by the user
       const notChosenTypes = availableWorkoutTypes.filter(
         (type) => type !== 'other' && !selectedTypes.includes(type),
       )
 
-      if (notChosenTypes.length > 0) {
+      if (selectedActivities.length === 0) {
+        // User has only selected "other" with no other options, overwrite activityTypeContext with only this string
+        activityTypeContext = ` The user has indicated that they have preferred activity types other than ${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}. Provide creative recommendations and possible other ways to stay physically active.`
+      } else if (notChosenTypes.length > 0) {
+        // USer has selected "other" plus some activities
         activityTypeContext += ` The user has also indicated that they have other preferred activity types beyond ${notChosenTypes.join(', ')}. Provide creative recommendations and possible other ways to stay physically active.`
       } else {
-        // User has only selected "other" with no other options
-        activityTypeContext += ` The user has indicated that they have other preferred activity types beyond ${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}. Provide creative recommendations and possible other ways to stay physically active.`
+        // User selected all standard activities plus "other"
+        activityTypeContext += ` The user has indicated that they have other preferred activity types beyond the given options. Provide creative recommendations and possible other ways to stay physically active.`
       }
     }
 
