@@ -297,9 +297,13 @@ export class NudgeService {
           const hasOther = selectedTypes.includes('other')
 
           // Format selected activities consistently, strips: other
-          const selectedActivities = selectedTypes.filter(type => type !== 'other')
-          const formattedSelectedTypes = selectedActivities.length > 0 ?
-            selectedActivities.join(', ') : 'various activities'
+          const selectedActivities = selectedTypes.filter(
+            (type) => type !== 'other',
+          )
+          const formattedSelectedTypes =
+            selectedActivities.length > 0 ?
+              selectedActivities.join(', ')
+            : 'various activities'
 
           activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
           // Handle "other" selections if present in the preferred types
