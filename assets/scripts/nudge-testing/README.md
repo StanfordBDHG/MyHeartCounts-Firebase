@@ -93,8 +93,3 @@ The script will:
 - `fullPrompt`: The complete prompt sent to the LLM
 - `llmResponse`: The raw JSON response from the LLM
 - `error`: Any error message if the API call failed
-
-## Notes
-
-- The script includes a 100ms delay between API calls to avoid rate limiting
-- The script uses the same LLM model and parameters as the production code (gpt-4o-2024-08-06)
