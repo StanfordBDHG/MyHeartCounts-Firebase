@@ -12,7 +12,11 @@ import {
   type UpdateStaticDataOutput,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type z } from 'zod'
-import { validatedOnCall, validatedOnRequest, privilegedServiceAccount } from './helpers.js'
+import {
+  validatedOnCall,
+  validatedOnRequest,
+  privilegedServiceAccount,
+} from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { type ServiceFactory } from '../services/factory/serviceFactory.js'
 

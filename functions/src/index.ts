@@ -25,16 +25,17 @@ export const getStudyDefinition = https.onRequest(
     serviceAccount: defaultServiceAccount,
   },
   async (req, res) => {
-  const bucket = 'myheartcounts-firebase.appspot.com' // adjust this to your actual bucket name
-  const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`
+    const bucket = 'myheartcounts-firebase.appspot.com' // adjust this to your actual bucket name
+    const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`
 
-  // Set CORS headers
-  res.set('Access-Control-Allow-Origin', '*')
-  res.set('Access-Control-Allow-Headers', 'Content-Type')
+    // Set CORS headers
+    res.set('Access-Control-Allow-Origin', '*')
+    res.set('Access-Control-Allow-Headers', 'Content-Type')
 
-  // Redirect to the actual file
-  res.redirect(302, file)
-})
+    // Redirect to the actual file
+    res.redirect(302, file)
+  },
+)
 
 export {
   beforeUserCreatedFunction as beforeUserCreated,

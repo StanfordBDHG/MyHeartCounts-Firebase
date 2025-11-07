@@ -9,8 +9,8 @@
 import { Storage } from '@google-cloud/storage'
 import { logger } from 'firebase-functions/v2'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { privilegedServiceAccount } from './helpers.js'
+import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const storage = new Storage()
 

@@ -11,8 +11,8 @@ import * as zlib from 'node:zlib'
 import { type UserObservationCollection } from '@stanfordbdhg/myheartcounts-models'
 import admin from 'firebase-admin'
 import { storage, logger } from 'firebase-functions/v2'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { privilegedServiceAccount } from './helpers.js'
+import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const inflateAsync = promisify(zlib.inflate)
 

@@ -12,11 +12,11 @@ import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import OpenAI from 'openai'
 import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
+import { privilegedServiceAccount } from './helpers.js'
 import {
   getPredefinedNudgeMessages,
   type BaseNudgeMessage,
 } from './nudgeMessages.js'
-import { privilegedServiceAccount } from './helpers.js'
 
 enum Disease {
   HEART_FAILURE = 'Heart failure',
