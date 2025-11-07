@@ -1,3 +1,11 @@
+# 
+# This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
+# 
+# SPDX-FileCopyrightText: 2025 Stanford University
+# 
+# SPDX-License-Identifier: MIT
+# 
+
 #!/usr/bin/env python3
 # For testing rulesets by changing timestams, forcing recomopilation
 
