@@ -16,12 +16,12 @@ This is an overview of what can be tested:
 - **ageGroup**: '<35', '35-50', '51-65', '>65'
 - **disease**: null, 'Heart failure', 'Pulmonary arterial hypertension', 'Diabetes', 'ACHD (simple)', 'ACHD (complex)'
 - **stateOfChange**: null, 'Precontemplation', 'Contemplation', 'Preparation', 'Action', 'Maintenance'
-- **educationLevel**: null, 'Highschool', 'college', 'collage'
+- **educationLevel**: 'Highschool', 'college', 'collage'
 - **language**: 'en', 'es'
-- **preferredWorkoutTypes**: null, 'run,walk', 'HIIT,strength', 'swim,bicycle', 'yoga/pilates,walk', 'sport,run,strength', 'other', 'other,walk,run', 'other,HIIT,walk,swim,run,sport,strength,bicycle,yoga/pilates'
-- **preferredNotificationTime**: null, '7:00 AM', '12:00 PM', '6:00 PM'
+- **preferredWorkoutTypes**: 'run,walk', 'HIIT,strength', 'swim,bicycle', 'yoga/pilates,walk', 'sport,run,strength', 'other', 'other,walk,run', 'other,HIIT,walk,swim,run,sport,strength,bicycle,yoga/pilates'
+- **preferredNotificationTime**: '7:00 AM', '12:00 PM', '6:00 PM'
 
-Total permutations: 2 × 4 × 6 × 6 × 4 × 2 × 9 × 4 = **20,736 combinations**
+Total permutations: 2 × 4 × 6 × 6 × 3 × 2 × 8 × 3 = **13,824 combinations**
 
 ## Setup
 
@@ -38,7 +38,7 @@ Total permutations: 2 × 4 × 6 × 6 × 4 × 2 × 9 × 4 = **20,736 combinations
 
 ## Running the Test
 
-### Full Test (All 20,736 permutations)
+### Full Test (All 13,824 permutations)
 ```bash
 npm run test
 ```
@@ -78,10 +78,10 @@ The script will:
 - `ageGroup`: The age group tested
 - `disease`: The disease condition (empty if null)
 - `stateOfChange`: The stage of change (empty if null)
-- `educationLevel`: The education level (empty if null)
+- `educationLevel`: The education level
 - `language`: The language ('en' or 'es')
-- `preferredWorkoutTypes`: The preferred workout types (empty if null)
-- `preferredNotificationTime`: The preferred notification time (empty if null)
+- `preferredWorkoutTypes`: The preferred workout types
+- `preferredNotificationTime`: The preferred notification time
 - `genderContext`: The generated gender context text
 - `ageContext`: The generated age context text
 - `diseaseContext`: The generated disease context text

@@ -39,10 +39,10 @@ interface TestContext {
   ageGroup: string
   disease: Disease | null
   stateOfChange: StageOfChange | null
-  educationLevel: EducationLevel | null
+  educationLevel: EducationLevel
   language: string
-  preferredWorkoutTypes: string | null
-  preferredNotificationTime: string | null
+  preferredWorkoutTypes: string
+  preferredNotificationTime: string
 }
 
 interface TestResult {
@@ -132,9 +132,7 @@ class NudgePermutationTester {
     }
   }
 
-  private getEducationContext(educationLevel: EducationLevel | null): string {
-    if (!educationLevel) return ''
-
+  private getEducationContext(educationLevel: EducationLevel): string {
     switch (educationLevel) {
       case EducationLevel.HIGHSCHOOL:
         return "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level."
@@ -153,8 +151,7 @@ class NudgePermutationTester {
     return ''
   }
 
-  private getActivityTypeContext(preferredWorkoutTypes: string | null): string {
-    if (!preferredWorkoutTypes) return ''
+  private getActivityTypeContext(preferredWorkoutTypes: string): string {
 
     // Available workout types, edit here if needed down the line
     const availableWorkoutTypes = [
@@ -202,9 +199,7 @@ class NudgePermutationTester {
     return activityTypeContext
   }
 
-  private getNotificationTimeContext(preferredNotificationTime: string | null): string {
-    if (!preferredNotificationTime) return ''
-
+  private getNotificationTimeContext(preferredNotificationTime: string): string {
     return `This user prefers to receive recommendation at ${preferredNotificationTime}. Use the time of day to tailor prompts to try to get that person to be active that day. For example a morning time could be recommending them to get some morning activity done, or planning on doing it later in the day (lunch, post work, etc).`
   }
 
@@ -305,10 +300,9 @@ class NudgePermutationTester {
     const ageOptions = ['<35', '35-50', '51-65', '>65']
     const diseaseOptions = [null, ...Object.values(Disease)]
     const stageOptions = [null, ...Object.values(StageOfChange)]
-    const educationOptions = [null, ...Object.values(EducationLevel)]
+    const educationOptions = [...Object.values(EducationLevel)]
     const languageOptions = ['en', 'es']
     const workoutTypeOptions = [
-      null,
       'run,walk',
       'HIIT,strength',
       'swim,bicycle',
@@ -318,7 +312,7 @@ class NudgePermutationTester {
       'other,walk,run',
       'other,HIIT,walk,swim,run,sport,strength,bicycle,yoga/pilates'
     ]
-    const notificationTimeOptions = [null, '7:00 AM', '12:00 PM', '6:00 PM']
+    const notificationTimeOptions = ['7:00 AM', '12:00 PM', '6:00 PM']
 
     const permutations: TestContext[] = []
 
@@ -335,7 +329,7 @@ class NudgePermutationTester {
                       ageGroup,
                       disease: disease as Disease | null,
                       stateOfChange: stateOfChange as StageOfChange | null,
-                      educationLevel: educationLevel as EducationLevel | null,
+                      educationLevel: educationLevel as EducationLevel,
                       language,
                       preferredWorkoutTypes,
                       preferredNotificationTime,
@@ -397,10 +391,10 @@ class NudgePermutationTester {
         result.context.ageGroup,
         result.context.disease || '',
         result.context.stateOfChange || '',
-        result.context.educationLevel || '',
+        result.context.educationLevel,
         result.context.language,
-        result.context.preferredWorkoutTypes || '',
-        result.context.preferredNotificationTime || '',
+        result.context.preferredWorkoutTypes,
+        result.context.preferredNotificationTime,
         result.genderContext,
         result.ageContext,
         result.diseaseContext,
