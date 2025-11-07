@@ -186,7 +186,7 @@ class NudgePermutationTester {
 
       if (selectedActivities.length === 0) {
         // User has only selected "other" with no other options, overwrite activityTypeContext with only this string
-        activityTypeContext = ` The user has indicated that they have preferred activity types other than ${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}. Provide creative recommendations and possible other ways to stay physically active.`
+        activityTypeContext = `The user indicated that their preferred activity types differ from the available options (${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}). Provide creative recommendations and suggest other ways to stay physically active without relying on the listed options.`
       } else if (notChosenTypes.length > 0) {
         // USer has selected "other" plus some activities
         activityTypeContext += ` The user has also indicated that they have other preferred activity types beyond ${notChosenTypes.join(', ')}. Provide creative recommendations and possible other ways to stay physically active.`
