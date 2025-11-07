@@ -176,7 +176,7 @@ class NudgePermutationTester {
     const formattedSelectedTypes = selectedActivities.length > 0 ?
       selectedActivities.join(', ') : 'various activities'
 
-    let activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
+    let activityTypeContext = `The user's selected these preferred activity types: ${formattedSelectedTypes}. Recommendations should be creative, encouraging, and must be aligned within their preferred activity types.`
     // Handle "other" selections if present in the preferred types
     if (hasOther) {
       // Only include activities that were NOT selected by the user
