@@ -200,7 +200,7 @@ class NudgePermutationTester {
   }
 
   private getNotificationTimeContext(preferredNotificationTime: string): string {
-    return `This user prefers to receive recommendation at ${preferredNotificationTime}. Use the time of day to tailor prompts to try to get that person to be active that day. For example a morning time could be recommending them to get some morning activity done, or planning on doing it later in the day (lunch, post work, etc).`
+    return `The user prefers to receive recommendations at ${preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
   }
 
   private async generateNudgesForContext(context: TestContext): Promise<TestResult> {
