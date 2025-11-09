@@ -217,7 +217,7 @@ class NudgePermutationTester {
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-2024-08-06',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           {
             role: 'user',
