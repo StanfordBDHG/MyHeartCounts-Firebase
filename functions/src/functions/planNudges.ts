@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto'
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
+import { DateTime } from 'luxon'
 import OpenAI from 'openai'
 import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
 import {
@@ -431,19 +432,16 @@ export class NudgeService {
       const nudgeMessage = nudges[dayIndex]
       const nudgeId = randomUUID().toUpperCase()
 
-      const targetDate = new Date()
-      targetDate.setDate(targetDate.getDate() + dayIndex)
+      const [hour, minute] = userData.preferredNotificationTime
+        .split(':')
+        .map(Number)
 
-      const userLocalTime = new Date(
-        targetDate.toLocaleString('en-US', {
-          timeZone: userData.timeZone,
-        }),
-      )
-      userLocalTime.setHours(13, 0, 0, 0)
+      const userDateTime = DateTime.now()
+        .setZone(userData.timeZone)
+        .plus({ days: dayIndex })
+        .set({ hour, minute, second: 0, millisecond: 0 })
 
-      const utcTime = new Date(
-        userLocalTime.toLocaleString('en-US', { timeZone: 'UTC' }),
-      )
+      const utcTime = userDateTime.toUTC().toJSDate()
 
       await this.firestore
         .collection('users')
