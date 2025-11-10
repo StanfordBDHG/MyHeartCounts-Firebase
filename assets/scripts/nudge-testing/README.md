@@ -16,10 +16,12 @@ This is an overview of what can be tested:
 - **ageGroup**: '<35', '35-50', '51-65', '>65'
 - **disease**: null, 'Heart failure', 'Pulmonary arterial hypertension', 'Diabetes', 'ACHD (simple)', 'ACHD (complex)'
 - **stateOfChange**: null, 'Precontemplation', 'Contemplation', 'Preparation', 'Action', 'Maintenance'
-- **educationLevel**: null, 'Highschool', 'college', 'collage'
+- **educationLevel**: 'Highschool', 'college', 'collage'
 - **language**: 'en', 'es'
+- **preferredWorkoutTypes**: 'run,walk', 'HIIT,strength', 'swim,bicycle', 'yoga/pilates,walk', 'sport,run,strength', 'other', 'other,walk,run', 'other,HIIT,walk,swim,run,sport,strength,bicycle,yoga/pilates'
+- **preferredNotificationTime**: '7:00 AM', '12:00 PM', '6:00 PM'
 
-Total permutations at tje moment: 2 × 4 × 6 × 6 × 4 × 2 = **2,304 combinations**
+Total permutations: 2 × 4 × 6 × 6 × 3 × 2 × 8 × 3 = **13,824 combinations**
 
 ## Setup
 
@@ -36,7 +38,7 @@ Total permutations at tje moment: 2 × 4 × 6 × 6 × 4 × 2 = **2,304 combinati
 
 ## Running the Test
 
-### Full Test (All 2,304 permutations)
+### Full Test (All 13,824 permutations)
 ```bash
 npm run test
 ```
@@ -76,19 +78,18 @@ The script will:
 - `ageGroup`: The age group tested
 - `disease`: The disease condition (empty if null)
 - `stateOfChange`: The stage of change (empty if null)
-- `educationLevel`: The education level (empty if null)
+- `educationLevel`: The education level
 - `language`: The language ('en' or 'es')
+- `preferredWorkoutTypes`: The preferred workout types
+- `preferredNotificationTime`: The preferred notification time
 - `genderContext`: The generated gender context text
 - `ageContext`: The generated age context text
 - `diseaseContext`: The generated disease context text
 - `stageContext`: The generated stage of change context text
 - `educationContext`: The generated education context text
 - `languageContext`: The generated language context text
+- `activityTypeContext`: The generated activity type context text
+- `notificationTimeContext`: The generated notification time context text
 - `fullPrompt`: The complete prompt sent to the LLM
 - `llmResponse`: The raw JSON response from the LLM
 - `error`: Any error message if the API call failed
-
-## Notes
-
-- The script includes a 100ms delay between API calls to avoid rate limiting
-- The script uses the same LLM model and parameters as the production code (gpt-4o-2024-08-06)
