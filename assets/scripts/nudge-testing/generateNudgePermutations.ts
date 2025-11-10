@@ -39,8 +39,10 @@ interface TestContext {
   ageGroup: string
   disease: Disease | null
   stateOfChange: StageOfChange | null
-  educationLevel: EducationLevel | null
+  educationLevel: EducationLevel
   language: string
+  preferredWorkoutTypes: string
+  preferredNotificationTime: string
 }
 
 interface TestResult {
@@ -51,6 +53,8 @@ interface TestResult {
   stageContext: string
   educationContext: string
   languageContext: string
+  activityTypeContext: string
+  notificationTimeContext: string
   fullPrompt: string
   llmResponse: string
   error?: string
@@ -128,9 +132,7 @@ class NudgePermutationTester {
     }
   }
 
-  private getEducationContext(educationLevel: EducationLevel | null): string {
-    if (!educationLevel) return ''
-
+  private getEducationContext(educationLevel: EducationLevel): string {
     switch (educationLevel) {
       case EducationLevel.HIGHSCHOOL:
         return "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level."
@@ -149,6 +151,58 @@ class NudgePermutationTester {
     return ''
   }
 
+  private getActivityTypeContext(preferredWorkoutTypes: string): string {
+
+    // Available workout types, edit here if needed down the line
+    const availableWorkoutTypes = [
+      'other',
+      'HIIT',
+      'walk',
+      'swim',
+      'run',
+      'sport',
+      'strength',
+      'bicycle',
+      'yoga/pilates',
+    ]
+
+    const selectedTypes = preferredWorkoutTypes
+      .split(',')
+      .map((type: string) => type.trim())
+    const hasOther = selectedTypes.includes('other')
+
+    // Format selected activities consistently, strips: other
+    const selectedActivities = selectedTypes.filter(type => type !== 'other')
+    const formattedSelectedTypes = selectedActivities.length > 0 ?
+      selectedActivities.join(', ') : 'various activities'
+
+    let activityTypeContext = `The user's selected these preferred activity types: ${formattedSelectedTypes}. Recommendations should be creative, encouraging, and must be aligned within their preferred activity types.`
+    // Handle "other" selections if present in the preferred types
+    if (hasOther) {
+      // Only include activities that were NOT selected by the user
+      const notChosenTypes = availableWorkoutTypes.filter(
+        (type) => type !== 'other' && !selectedTypes.includes(type),
+      )
+
+      if (selectedActivities.length === 0) {
+        // User has only selected "other" with no other options, overwrite activityTypeContext with only this string
+        activityTypeContext = `The user indicated that their preferred activity types differ from the available options (${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}). Provide creative recommendations and suggest other ways to stay physically active without relying on the listed options.`
+      } else if (notChosenTypes.length > 0) {
+        // User selected "other" along with some activities
+        activityTypeContext += `The user indicated that they also prefer activity types beyond the remaining options (${notChosenTypes.join(', ')}). Provide creative recommendations and suggest other ways to stay physically active.`
+      } else {
+        // User selected all standard activities plus "other"
+        activityTypeContext += `The user indicated additional preferred activity types beyond the listed options. Provide creative recommendations and suggest other ways to stay physically active.`
+      }
+    }
+
+    return activityTypeContext
+  }
+
+  private getNotificationTimeContext(preferredNotificationTime: string): string {
+    return `The user prefers to receive recommendations at ${preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
+  }
+
   private async generateNudgesForContext(context: TestContext): Promise<TestResult> {
     const genderContext = this.getGenderContext(context.genderIdentity)
     const ageContext = this.getAgeContext(context.ageGroup)
@@ -156,12 +210,14 @@ class NudgePermutationTester {
     const stageContext = this.getStageContext(context.stateOfChange)
     const educationContext = this.getEducationContext(context.educationLevel)
     const languageContext = this.getLanguageContext(context.language)
+    const activityTypeContext = this.getActivityTypeContext(context.preferredWorkoutTypes)
+    const notificationTimeContext = this.getNotificationTimeContext(context.preferredNotificationTime)
 
-    const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
+    const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increase physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${activityTypeContext} ${notificationTimeContext}`
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-2024-08-06',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           {
             role: 'user',
@@ -216,6 +272,8 @@ class NudgePermutationTester {
         stageContext,
         educationContext,
         languageContext,
+        activityTypeContext,
+        notificationTimeContext,
         fullPrompt: prompt,
         llmResponse,
       }
@@ -228,6 +286,8 @@ class NudgePermutationTester {
         stageContext,
         educationContext,
         languageContext,
+        activityTypeContext: this.getActivityTypeContext(context.preferredWorkoutTypes),
+        notificationTimeContext: this.getNotificationTimeContext(context.preferredNotificationTime),
         fullPrompt: prompt,
         llmResponse: '',
         error: error instanceof Error ? error.message : String(error),
@@ -240,8 +300,19 @@ class NudgePermutationTester {
     const ageOptions = ['<35', '35-50', '51-65', '>65']
     const diseaseOptions = [null, ...Object.values(Disease)]
     const stageOptions = [null, ...Object.values(StageOfChange)]
-    const educationOptions = [null, ...Object.values(EducationLevel)]
+    const educationOptions = [...Object.values(EducationLevel)]
     const languageOptions = ['en', 'es']
+    const workoutTypeOptions = [
+      'run,walk',
+      'HIIT,strength',
+      'swim,bicycle',
+      'yoga/pilates,walk',
+      'sport,run,strength',
+      'other',
+      'other,walk,run',
+      'other,HIIT,walk,swim,run,sport,strength,bicycle,yoga/pilates'
+    ]
+    const notificationTimeOptions = ['7:00 AM', '12:00 PM', '6:00 PM']
 
     const permutations: TestContext[] = []
 
@@ -251,14 +322,20 @@ class NudgePermutationTester {
           for (const stateOfChange of stageOptions) {
             for (const educationLevel of educationOptions) {
               for (const language of languageOptions) {
-                permutations.push({
-                  genderIdentity,
-                  ageGroup,
-                  disease: disease as Disease | null,
-                  stateOfChange: stateOfChange as StageOfChange | null,
-                  educationLevel: educationLevel as EducationLevel | null,
-                  language,
-                })
+                for (const preferredWorkoutTypes of workoutTypeOptions) {
+                  for (const preferredNotificationTime of notificationTimeOptions) {
+                    permutations.push({
+                      genderIdentity,
+                      ageGroup,
+                      disease: disease as Disease | null,
+                      stateOfChange: stateOfChange as StageOfChange | null,
+                      educationLevel: educationLevel as EducationLevel,
+                      language,
+                      preferredWorkoutTypes,
+                      preferredNotificationTime,
+                    })
+                  }
+                }
               }
             }
           }
@@ -291,12 +368,16 @@ class NudgePermutationTester {
       'stateOfChange',
       'educationLevel',
       'language',
+      'preferredWorkoutTypes',
+      'preferredNotificationTime',
       'genderContext',
       'ageContext',
       'diseaseContext',
       'stageContext',
       'educationContext',
       'languageContext',
+      'activityTypeContext',
+      'notificationTimeContext',
       'fullPrompt',
       'llmResponse',
       'error'
@@ -310,14 +391,18 @@ class NudgePermutationTester {
         result.context.ageGroup,
         result.context.disease || '',
         result.context.stateOfChange || '',
-        result.context.educationLevel || '',
+        result.context.educationLevel,
         result.context.language,
+        result.context.preferredWorkoutTypes,
+        result.context.preferredNotificationTime,
         result.genderContext,
         result.ageContext,
         result.diseaseContext,
         result.stageContext,
         result.educationContext,
         result.languageContext,
+        result.activityTypeContext,
+        result.notificationTimeContext,
         result.fullPrompt,
         result.llmResponse,
         result.error || ''
