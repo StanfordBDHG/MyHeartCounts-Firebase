@@ -12,7 +12,6 @@ import { type UserObservationCollection } from '@stanfordbdhg/myheartcounts-mode
 import admin from 'firebase-admin'
 import { storage, logger } from 'firebase-functions/v2'
 import { privilegedServiceAccount } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const inflateAsync = promisify(zlib.inflate)
 
@@ -38,7 +37,7 @@ function getCollectionNameFromFileName(fileName: string): string | null {
   }
 
   // Extract any HealthKit identifier from filename
-  // Matches anything containing "Identifier" (e.g., HKQuantityTypeIdentifierHeartRate, HKCorrelationTypeIdentifierBloodPressure)
+  // Pattern: must include "Identifier"
   const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/
   const hkMatch = fileName.match(hkIdentifierPattern)
 

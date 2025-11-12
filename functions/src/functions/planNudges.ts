@@ -276,14 +276,64 @@ export class NudgeService {
             "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the formal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
         }
 
-        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increae physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext}`
+        // Build preferred activity types context
+        const availableWorkoutTypes = [
+          'other',
+          'HIIT',
+          'walk',
+          'swim',
+          'run',
+          'sport',
+          'strength',
+          'bicycle',
+          'yoga/pilates',
+        ]
+
+        const selectedTypes = userData.preferredWorkoutTypes
+          .split(',')
+          .map((type: string) => type.trim())
+        const hasOther = selectedTypes.includes('other')
+
+        // Format selected activities consistently, strips: other
+        const selectedActivities = selectedTypes.filter(
+          (type: string) => type !== 'other',
+        )
+        const formattedSelectedTypes =
+          selectedActivities.length > 0 ?
+            selectedActivities.join(', ')
+          : 'various activities'
+
+        let activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
+        // Handle "other" selections if present in the preferred types
+        if (hasOther) {
+          // Only include activities that were NOT selected by the user
+          const notChosenTypes = availableWorkoutTypes.filter(
+            (type) => type !== 'other' && !selectedTypes.includes(type),
+          )
+
+          if (selectedActivities.length === 0) {
+            // User has only selected "other" with no other options, overwrite activityTypeContext with only this string
+            activityTypeContext = `The user indicated that their preferred activity types differ from the available options (${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}). Provide creative recommendations and suggest other ways to stay physically active without relying on the listed options.`
+          } else if (notChosenTypes.length > 0) {
+            // User selected "other" along with some activities
+            activityTypeContext += `The user indicated that they also prefer activity types beyond the remaining options (${notChosenTypes.join(', ')}). Provide creative recommendations and suggest other ways to stay physically active.`
+          } else {
+            // User selected all standard activities plus "other"
+            activityTypeContext += `The user indicated additional preferred activity types beyond the listed options. Provide creative recommendations and suggest other ways to stay physically active.`
+          }
+        }
+
+        // Build preferred notification time
+        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Use the time of day to tailor prompts to try to get that person to be active that day. For example a morning time could be recommending them to get some morning activity done, or planning on doing it later in the day (lunch, post work, etc).`
+
+        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increase physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${activityTypeContext} ${notificationTimeContext}`
 
         const openai = new OpenAI({
           apiKey: getOpenaiApiKey(),
         })
 
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o-2024-08-06',
+          model: 'gpt-4.1-2025-04-14',
           messages: [
             {
               role: 'user',

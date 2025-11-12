@@ -40,7 +40,7 @@ export const deleteHealthSamples = validatedOnCall(
     credential.checkUser(userId)
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`
-    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000) // ~1000 samples per minute
+    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000)
 
     logger.info(
       `User '${credential.userId}' initiated async entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
@@ -54,7 +54,6 @@ export const deleteHealthSamples = validatedOnCall(
       },
     )
 
-    // Start async processing - don't await this ...
     const deletionService = new HealthSampleDeletionService()
     deletionService
       .processHealthSamplesEnteredInError(
