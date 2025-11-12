@@ -11,6 +11,7 @@ import {
   fhirQuestionnaireResponseConverter,
 } from '@stanfordbdhg/myheartcounts-models'
 import { onDocumentWritten } from 'firebase-functions/v2/firestore'
+import { defaultServiceAccount } from './helpers.js'
 import { DatabaseConverter } from '../services/database/databaseConverter.js'
 import { type Document } from '../services/database/databaseService.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
@@ -20,7 +21,10 @@ const converter = new DatabaseConverter(
 )
 
 export const onUserQuestionnaireResponseWritten = onDocumentWritten(
-  'users/{userId}/questionnaireResponses/{questionnaireResponseId}',
+  {
+    document: 'users/{userId}/questionnaireResponses/{questionnaireResponseId}',
+    serviceAccount: defaultServiceAccount,
+  },
   async (event) => {
     const triggerService = getServiceFactory().trigger()
 

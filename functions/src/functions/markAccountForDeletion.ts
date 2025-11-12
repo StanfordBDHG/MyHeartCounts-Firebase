@@ -8,7 +8,7 @@
 
 import { https, logger } from 'firebase-functions/v2'
 import { z } from 'zod'
-import { validatedOnCall } from './helpers.js'
+import { validatedOnCall, defaultServiceAccount } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 const markAccountForDeletionInputSchema = z.object({})
@@ -60,5 +60,6 @@ export const markAccountForDeletion = validatedOnCall(
   },
   {
     invoker: 'public',
+    serviceAccount: defaultServiceAccount,
   },
 )

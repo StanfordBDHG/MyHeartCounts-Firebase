@@ -8,7 +8,7 @@
 
 import { https, logger } from 'firebase-functions/v2'
 import { z } from 'zod'
-import { validatedOnCall } from './helpers.js'
+import { validatedOnCall, privilegedServiceAccount } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { HealthSampleDeletionService } from '../services/healthSamples/healthSampleDeletionService.js'
 
@@ -83,5 +83,9 @@ export const deleteHealthSamples = validatedOnCall(
       estimatedDurationMinutes,
       message: `Marking job started. Processing ${documentIds.length} samples as entered-in-error asynchronously.`,
     }
+  },
+  {
+    invoker: 'public',
+    serviceAccount: privilegedServiceAccount,
   },
 )

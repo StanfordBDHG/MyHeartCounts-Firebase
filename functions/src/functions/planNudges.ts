@@ -12,6 +12,7 @@ import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import OpenAI from 'openai'
 import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
+import { privilegedServiceAccount } from './helpers.js'
 import {
   getPredefinedNudgeMessages,
   type BaseNudgeMessage,
@@ -610,6 +611,7 @@ export const onScheduleDailyNudgeCreation = onSchedule(
     schedule: '0 8 * * *',
     timeZone: 'UTC',
     secrets: [openaiApiKeyParam],
+    serviceAccount: privilegedServiceAccount,
   },
   async () => {
     logger.info('Starting daily nudge notification creation')
