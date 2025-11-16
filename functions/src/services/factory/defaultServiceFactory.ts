@@ -18,6 +18,7 @@ import {
   DietScoreCalculator,
   DietScoringQuestionnaireResponseService,
 } from '../questionnaireResponse/dietScoringService.js'
+import { HeartRiskLdlParsingQuestionnaireResponseService } from '../questionnaireResponse/heartRiskLdlParsingService.js'
 import { HeartRiskNicotineScoringQuestionnaireResponseService } from '../questionnaireResponse/heartRiskNicotineScoringService.js'
 import { MultiQuestionnaireResponseService } from '../questionnaireResponse/multiQuestionnaireResponseService.js'
 import {
@@ -76,6 +77,9 @@ export class DefaultServiceFactory implements ServiceFactory {
           scoreCalculator: new DefaultNicotineScoreCalculator(),
         }),
         new HeartRiskNicotineScoringQuestionnaireResponseService({
+          databaseService: this.databaseService.value,
+        }),
+        new HeartRiskLdlParsingQuestionnaireResponseService({
           databaseService: this.databaseService.value,
         }),
       ]),
