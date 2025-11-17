@@ -8,6 +8,7 @@
 
 import admin from 'firebase-admin'
 import { https } from 'firebase-functions'
+import { defaultServiceAccount } from './functions/helpers.js'
 
 // Initialize Firebase with default settings
 admin.initializeApp()
@@ -19,17 +20,22 @@ firestore.settings({
 })
 
 // Get study definition - this will be available at /getStudyDefinition
-export const getStudyDefinition = https.onRequest(async (req, res) => {
-  const bucket = 'myheartcounts-firebase.appspot.com' // adjust this to your actual bucket name
-  const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`
+export const getStudyDefinition = https.onRequest(
+  {
+    serviceAccount: defaultServiceAccount,
+  },
+  async (req, res) => {
+    const bucket = 'myheartcounts-firebase.appspot.com' // adjust this to your actual bucket name
+    const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`
 
-  // Set CORS headers
-  res.set('Access-Control-Allow-Origin', '*')
-  res.set('Access-Control-Allow-Headers', 'Content-Type')
+    // Set CORS headers
+    res.set('Access-Control-Allow-Origin', '*')
+    res.set('Access-Control-Allow-Headers', 'Content-Type')
 
-  // Redirect to the actual file
-  res.redirect(302, file)
-})
+    // Redirect to the actual file
+    res.redirect(302, file)
+  },
+)
 
 export {
   beforeUserCreatedFunction as beforeUserCreated,
