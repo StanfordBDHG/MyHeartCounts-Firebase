@@ -138,26 +138,15 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
       },
       effectiveDateTime: authoredDateTime,
       issued: new Date(),
+      derivedFrom: [
+        {
+          reference: `QuestionnaireResponse/${questionnaireResponseId}`,
+        },
+      ],
       extension: [
         {
           url: 'https://bdh.stanford.edu/fhir/defs/sampleUploadTimeZone',
           valueString: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-        {
-          url: 'https://bdh.stanford.edu/fhir/defs/sourceRevision/source/name',
-          valueString: 'My Heart Counts',
-        },
-        {
-          url: 'https://bdh.stanford.edu/fhir/defs/sourceRevision/source/bundleIdentifier',
-          valueString: 'edu.stanford.MyHeartCounts',
-        },
-        {
-          url: 'https://bdh.stanford.edu/fhir/defs/sourceRevision/version',
-          valueString: '4.0.0 (981)',
-        },
-        {
-          url: 'https://bdh.stanford.edu/fhir/defs/sourceRevision/OSVersion',
-          valueString: '26.1.0',
         },
       ],
     })
