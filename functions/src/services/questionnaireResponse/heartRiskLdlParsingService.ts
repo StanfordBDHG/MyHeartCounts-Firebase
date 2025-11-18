@@ -80,6 +80,10 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
 
       const answer = responseItem.answer[0]
 
+      if (answer.valueQuantity?.value !== undefined) {
+        return answer.valueQuantity.value
+      }
+
       if (answer.valueInteger !== undefined) {
         return answer.valueInteger
       }
