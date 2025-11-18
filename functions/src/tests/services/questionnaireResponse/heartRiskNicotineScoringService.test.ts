@@ -106,7 +106,7 @@ describe('HeartRiskNicotineScoringQuestionnaireResponseService', () => {
           item: [
             {
               linkId: '1a18f004-e6ab-4ee8-d5b2-284389d15e14',
-              answer: [], // No answer provided
+              answer: [],
             },
           ],
         }),

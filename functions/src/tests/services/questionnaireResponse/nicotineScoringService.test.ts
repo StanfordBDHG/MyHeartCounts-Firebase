@@ -194,7 +194,7 @@ describe('NicotineScoringQuestionnaireResponseService', () => {
           item: [
             {
               linkId: 'dcb2277e-fe96-4f45-844a-ef58a9516380',
-              answer: [], // No answer - should return false
+              answer: [],
             },
           ],
         }),
