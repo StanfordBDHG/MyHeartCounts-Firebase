@@ -7,7 +7,7 @@
 //
 
 import { customSeedingOptionsSchema } from '@stanfordbdhg/myheartcounts-models'
-import { validatedOnRequest } from './helpers.js'
+import { validatedOnRequest, privilegedServiceAccount } from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 
 export const customSeed = validatedOnRequest(
@@ -23,5 +23,9 @@ export const customSeed = validatedOnRequest(
     await factory.debugData().seedCustom(data)
     response.write('Success', 'utf8')
     response.end()
+  },
+  {
+    invoker: 'public',
+    serviceAccount: privilegedServiceAccount,
   },
 )
