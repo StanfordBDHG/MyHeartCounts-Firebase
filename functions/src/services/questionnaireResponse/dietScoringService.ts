@@ -29,13 +29,13 @@ export interface ScoreCalculator {
 
 export class DietScoreCalculator implements ScoreCalculator {
   calculate(answers: Record<string, boolean>): Score {
-    // Sum all boolean answers (1 point for each healthy answer)
+    // Sum all boolean answers
     const totalPoints = Object.values(answers).reduce(
       (sum, answer) => sum + (answer ? 1 : 0),
       0,
     )
 
-    // Keep category breakdown for tracking purposes
+    // Keep category breakdown for tracking
     const categoryScores = {
       fruitsVegetables: this.calculateCategoryPoints(
         this.getFruitsVegetablesQuestions(),
@@ -167,11 +167,9 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
     }
 
     try {
-      // Calculate score
       const score = this.calculateScore(response.content)
       if (score === null) return false
 
-      // Store FHIR observation
       await this.storeFHIRObservation(userId, response.id, score)
 
       logger.info(
@@ -202,7 +200,6 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
   ): Record<string, boolean> {
     const answers: Record<string, boolean> = {}
 
-    // All boolean question linkIds from the Diet questionnaire
     const questionLinkIds = [
       // Fruits and Vegetables
       '92a6518b-61dd-442c-8082-09c3457daada',

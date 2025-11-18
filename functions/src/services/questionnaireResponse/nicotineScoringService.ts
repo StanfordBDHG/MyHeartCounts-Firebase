@@ -45,20 +45,20 @@ export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
     // Lookup table based on iOS NicotineExposureCategoryValues enum
     switch (smokingStatus) {
       case 'Never smoked/vaped':
-        return 0 // neverSmoked
+        return 0
       case 'Quit >5 years ago':
-        return 1 // quitMoreThan5YearsAgo
+        return 1
       case 'Quit 1-5 years ago':
-        return 2 // quitWithin1To5Years
+        return 2
       case 'Quit <1 year ago':
-        return 3 // quitWithinLastYearOrIsUsingNDS
+        return 3
       case 'Light smoker/vaper (<10/day)':
       case 'Moderate smoker/vaper (10 to 19/day)':
       case 'Heavy smoker/vaper (>20/day)':
-        return 4 // activelySmoking
+        return 4
       default:
         logger.warn(`Unknown smoking status: ${smokingStatus}`)
-        return 4 // activelySmoking (most conservative)
+        return 4
     }
   }
 }
@@ -91,11 +91,9 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     }
 
     try {
-      // Calculate score
       const score = this.calculateScore(response.content)
       if (score === null) return false
 
-      // Get previous score for comparison (optional)
       const previousScore = await this.getLatestScore(userId)
 
       // Store FHIR observation
@@ -133,7 +131,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   private extractSmokingStatus(
     response: FHIRQuestionnaireResponse,
   ): string | null {
-    // Expected linkId for the nicotine/smoking question
+    // linkId for the nicotine/smoking question
     const linkId = 'dcb2277e-fe96-4f45-844a-ef58a9516380'
 
     try {
