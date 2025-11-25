@@ -393,7 +393,7 @@ export class NudgeService {
       const nudgeMessage = nudges[dayIndex]
       const nudgeId = randomUUID().toUpperCase()
 
-      const preferredTime = userData.preferredNotificationTime || '13:00'
+      const preferredTime = userData.preferredNotificationTime || '09:00'
       const [hour, minute] = preferredTime.split(':').map(Number)
 
       const userDateTime = DateTime.now()
