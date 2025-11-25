@@ -398,8 +398,8 @@ describeWithEmulators('function: planNudges', (env) => {
       )
 
       // Verify that each notification is scheduled for 9:00 AM in America/New_York timezone
-      for (let i = 0; i < timestamps.length; i++) {
-        const utcDate = timestamps[i].toDate()
+      for (const timestamp of timestamps) {
+        const utcDate = timestamp.toDate()
         const localDateTime = DateTime.fromJSDate(utcDate, {
           zone: 'America/New_York',
         })
