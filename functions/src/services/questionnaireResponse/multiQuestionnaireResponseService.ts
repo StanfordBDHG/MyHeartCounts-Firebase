@@ -23,10 +23,11 @@ export class MultiQuestionnaireResponseService extends QuestionnaireResponseServ
     response: Document<FHIRQuestionnaireResponse>,
     options: { isNew: boolean },
   ): Promise<boolean> {
+    let anyHandled = false
     for (const component of this.components) {
       const handled = await component.handle(userId, response, options)
-      if (handled) return true
+      if (handled) anyHandled = true
     }
-    return false
+    return anyHandled
   }
 }

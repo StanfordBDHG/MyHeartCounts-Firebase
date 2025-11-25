@@ -13,6 +13,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { DateTime } from 'luxon'
 import OpenAI from 'openai'
 import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
+import { privilegedServiceAccount } from './helpers.js'
 import {
   getPredefinedNudgeMessages,
   type BaseNudgeMessage,
@@ -257,7 +258,6 @@ export class NudgeService {
               educationContext =
                 "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level."
               break
-            case EducationLevel.COLLEGE:
             case EducationLevel.COLLAGE:
               educationContext =
                 'This person is more highly educated and has some form of higher education. Please write the prompts at the 12th grade reading comprehension level.'
@@ -277,7 +277,6 @@ export class NudgeService {
         }
 
         // Build preferred activity types context
-        // preferredWorkoutTypes is always provided in the real app
         const availableWorkoutTypes = [
           'other',
           'HIIT',
@@ -324,8 +323,7 @@ export class NudgeService {
           }
         }
 
-        // Build preferred notification time context
-        // preferredNotificationTime is always provided in the real app
+        // Build preferred notification time
         const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Use the time of day to tailor prompts to try to get that person to be active that day. For example a morning time could be recommending them to get some morning activity done, or planning on doing it later in the day (lunch, post work, etc).`
 
         const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increase physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${activityTypeContext} ${notificationTimeContext}`
@@ -610,6 +608,7 @@ export const onScheduleDailyNudgeCreation = onSchedule(
     schedule: '0 8 * * *',
     timeZone: 'UTC',
     secrets: [openaiApiKeyParam],
+    serviceAccount: privilegedServiceAccount,
   },
   async () => {
     logger.info('Starting daily nudge notification creation')

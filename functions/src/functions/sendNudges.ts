@@ -10,6 +10,7 @@ import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { DateTime } from 'luxon'
+import { privilegedServiceAccount } from './helpers.js'
 
 interface NotificationBacklogItem {
   title: string
@@ -211,6 +212,7 @@ export const onScheduleNotificationProcessor = onSchedule(
   {
     schedule: '*/15 * * * *',
     timeZone: 'UTC',
+    serviceAccount: privilegedServiceAccount,
   },
   async () => {
     logger.info('Starting notification backlog processing')

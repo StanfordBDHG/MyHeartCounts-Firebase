@@ -12,7 +12,11 @@ import {
   type UpdateStaticDataOutput,
 } from '@stanfordbdhg/myheartcounts-models'
 import { type z } from 'zod'
-import { validatedOnCall, validatedOnRequest } from './helpers.js'
+import {
+  validatedOnCall,
+  validatedOnRequest,
+  privilegedServiceAccount,
+} from './helpers.js'
 import { getServiceFactory } from '../services/factory/getServiceFactory.js'
 import { type ServiceFactory } from '../services/factory/serviceFactory.js'
 
@@ -35,6 +39,10 @@ export const updateStaticData =
         const result: UpdateStaticDataOutput = {}
         response.send({ result })
       },
+      {
+        invoker: 'public',
+        serviceAccount: privilegedServiceAccount,
+      },
     )
   : validatedOnCall(
       'updateStaticData',
@@ -44,5 +52,9 @@ export const updateStaticData =
         factory.credential(request.auth).checkAuthenticated()
         await _updateStaticData(factory, request.data)
         return {}
+      },
+      {
+        invoker: 'public',
+        serviceAccount: privilegedServiceAccount,
       },
     )

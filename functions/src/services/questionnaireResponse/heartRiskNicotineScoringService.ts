@@ -39,7 +39,6 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
     response: Document<FHIRQuestionnaireResponse>,
     options: { isNew: boolean },
   ): Promise<boolean> {
-    // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
       'https://myheartcounts.stanford.edu/fhir/survey/heartRisk',
     ]
@@ -49,11 +48,9 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
     }
 
     try {
-      // Calculate score from smoking question only
       const score = this.calculateScore(response.content)
       if (score === null) return false
 
-      // Store FHIR observation in the same collection as the dedicated nicotine questionnaire
       await this.storeFHIRObservation(userId, response.id, score)
 
       logger.info(
@@ -90,7 +87,6 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
   private extractSmokingStatus(
     response: FHIRQuestionnaireResponse,
   ): string | null {
-    // Expected linkId for the smoking question in Heart Risk questionnaire
     const linkId = '1a18f004-e6ab-4ee8-d5b2-284389d15e14'
 
     try {
@@ -129,7 +125,6 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
       userId,
     )
 
-    // Store in the same collection as the dedicated nicotine questionnaire
     const collectionName =
       'HealthObservations_MHCCustomSampleTypeNicotineExposure'
 
