@@ -9,6 +9,7 @@
 import type { Timestamp } from '@google-cloud/firestore'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
+import { DateTime } from 'luxon'
 import { it, describe } from 'mocha'
 import { createNudgeNotifications } from './planNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
@@ -390,9 +391,6 @@ describeWithEmulators('function: planNudges', (env) => {
 
       expect(backlogSnapshot.size).to.equal(7)
 
-      // Import luxon for timezone-aware validation
-      const { DateTime } = await import('luxon')
-
       const timestamps = backlogSnapshot.docs.map(
         (doc) => doc.data().timestamp as Timestamp,
       )
@@ -436,8 +434,6 @@ describeWithEmulators('function: planNudges', (env) => {
         'Asia/Tokyo', // JST (no DST)
         'Australia/Sydney', // AEDT/AEST
       ]
-
-      const { DateTime } = await import('luxon')
 
       for (let index = 0; index < timezones.length; index++) {
         const timezone = timezones[index]
