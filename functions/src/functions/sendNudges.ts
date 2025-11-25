@@ -9,7 +9,6 @@
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { DateTime } from 'luxon'
 import { privilegedServiceAccount } from './helpers.js'
 
 interface NotificationBacklogItem {
