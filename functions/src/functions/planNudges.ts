@@ -102,43 +102,6 @@ export class NudgeService {
     return Math.floor(timeDiff / (1000 * 60 * 60 * 24))
   }
 
-  async getRecentStepCount(userId: string): Promise<number | null> {
-    try {
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-
-      const stepCountSnapshot = await this.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('HealthObservations_HKQuantityTypeIdentifierStepCount')
-        .where(
-          'startDate',
-          '>=',
-          admin.firestore.Timestamp.fromDate(sevenDaysAgo),
-        )
-        .orderBy('startDate', 'desc')
-        .limit(7)
-        .get()
-
-      if (stepCountSnapshot.empty) {
-        return null
-      }
-
-      const totalSteps = stepCountSnapshot.docs.reduce((sum, doc) => {
-        const data = doc.data()
-        const stepValue = typeof data.value === 'number' ? data.value : 0
-        return sum + stepValue
-      }, 0)
-
-      return Math.round(totalSteps / stepCountSnapshot.size)
-    } catch (error) {
-      logger.warn(
-        `Failed to get step count for user ${userId}: ${String(error)}`,
-      )
-      return null
-    }
-  }
-
   async generateLLMNudges(
     userId: string,
     language: string,
