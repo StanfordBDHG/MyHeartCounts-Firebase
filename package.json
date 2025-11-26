@@ -13,11 +13,12 @@
     "url": "https://github.com/StanfordBDHG/MyHeartCounts-Firebase"
   },
   "dependencies": {
-    "firebase-admin": "^12.1.1"
+    "firebase-admin": "^12.1.1",
+    "luxon": "^3.7.2"
   },
   "scripts": {
     "install": "npm --prefix functions/models install && npm --prefix functions install",
-    "lint": "npm --prefix functions/models run lint && npm --prefix functions run lint", 
+    "lint": "npm --prefix functions/models run lint && npm --prefix functions run lint",
     "lint:fix": "npm --prefix functions/models run lint:fix && npm --prefix functions run lint:fix",
     "lint:strict": "npm --prefix functions/models run lint:strict && npm --prefix functions run lint:strict",
     "build": "npm --prefix functions/models run build && npm --prefix functions run build",
@@ -26,5 +27,8 @@
     "test:ci": "firebase emulators:exec --only auth,firestore,storage 'npm --prefix functions run test:emulators'",
     "serve": "npm --prefix functions run serve",
     "serve:seeded": "npm --prefix functions run serve:seeded"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1"
   }
 }

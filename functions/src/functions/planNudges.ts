@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto'
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
+import { DateTime } from 'luxon'
 import OpenAI from 'openai'
 import { getOpenaiApiKey, openaiApiKeyParam } from '../env.js'
 import { privilegedServiceAccount } from './helpers.js'
@@ -99,43 +100,6 @@ export class NudgeService {
     const now = new Date()
     const timeDiff = now.getTime() - enrollmentDate.getTime()
     return Math.floor(timeDiff / (1000 * 60 * 60 * 24))
-  }
-
-  async getRecentStepCount(userId: string): Promise<number | null> {
-    try {
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-
-      const stepCountSnapshot = await this.firestore
-        .collection('users')
-        .doc(userId)
-        .collection('HealthObservations_HKQuantityTypeIdentifierStepCount')
-        .where(
-          'startDate',
-          '>=',
-          admin.firestore.Timestamp.fromDate(sevenDaysAgo),
-        )
-        .orderBy('startDate', 'desc')
-        .limit(7)
-        .get()
-
-      if (stepCountSnapshot.empty) {
-        return null
-      }
-
-      const totalSteps = stepCountSnapshot.docs.reduce((sum, doc) => {
-        const data = doc.data()
-        const stepValue = typeof data.value === 'number' ? data.value : 0
-        return sum + stepValue
-      }, 0)
-
-      return Math.round(totalSteps / stepCountSnapshot.size)
-    } catch (error) {
-      logger.warn(
-        `Failed to get step count for user ${userId}: ${String(error)}`,
-      )
-      return null
-    }
   }
 
   async generateLLMNudges(
@@ -429,19 +393,15 @@ export class NudgeService {
       const nudgeMessage = nudges[dayIndex]
       const nudgeId = randomUUID().toUpperCase()
 
-      const targetDate = new Date()
-      targetDate.setDate(targetDate.getDate() + dayIndex)
+      const preferredTime = userData.preferredNotificationTime || '09:00'
+      const [hour, minute] = preferredTime.split(':').map(Number)
 
-      const userLocalTime = new Date(
-        targetDate.toLocaleString('en-US', {
-          timeZone: userData.timeZone,
-        }),
-      )
-      userLocalTime.setHours(13, 0, 0, 0)
+      const userDateTime = DateTime.now()
+        .setZone(userData.timeZone)
+        .plus({ days: dayIndex })
+        .set({ hour, minute, second: 0, millisecond: 0 })
 
-      const utcTime = new Date(
-        userLocalTime.toLocaleString('en-US', { timeZone: 'UTC' }),
-      )
+      const utcTime = userDateTime.toUTC().toJSDate()
 
       await this.firestore
         .collection('users')

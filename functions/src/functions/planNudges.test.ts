@@ -9,6 +9,7 @@
 import type { Timestamp } from '@google-cloud/firestore'
 import { expect } from 'chai'
 import admin from 'firebase-admin'
+import { DateTime } from 'luxon'
 import { it, describe } from 'mocha'
 import { createNudgeNotifications } from './planNudges.js'
 import { describeWithEmulators } from '../tests/functions/testEnvironment.js'
@@ -357,6 +358,127 @@ describeWithEmulators('function: planNudges', (env) => {
         const timeDiff = nextTime.getTime() - currentTime.getTime()
         const hoursDiff = timeDiff / (1000 * 60 * 60)
         expect(hoursDiff).to.be.approximately(24, 1) // Allow 1 hour tolerance
+      }
+    })
+
+    it('handles DST transitions correctly - maintains consistent local time', async () => {
+      // This test verifies that nudges scheduled across DST transitions
+      // maintain the same local time (e.g., 9:00 AM) even though UTC time shifts
+      const enrollmentDate = new Date()
+      enrollmentDate.setDate(enrollmentDate.getDate() - 7)
+
+      const userId = 'test-user-dst'
+      await env.firestore
+        .collection('users')
+        .doc(userId)
+        .set({
+          timeZone: 'America/New_York', // Has DST transitions
+          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
+          participantGroup: 1,
+          userLanguage: 'en',
+          preferredNotificationTime: '09:00',
+          didOptInToTrial: true,
+        })
+
+      await createNudgeNotifications()
+
+      const backlogSnapshot = await env.firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notificationBacklog')
+        .orderBy('timestamp')
+        .get()
+
+      expect(backlogSnapshot.size).to.equal(7)
+
+      const timestamps = backlogSnapshot.docs.map(
+        (doc) => doc.data().timestamp as Timestamp,
+      )
+
+      // Verify that each notification is scheduled for 9:00 AM in America/New_York timezone
+      for (const timestamp of timestamps) {
+        const utcDate = timestamp.toDate()
+        const localDateTime = DateTime.fromJSDate(utcDate, {
+          zone: 'America/New_York',
+        })
+
+        // Check that the local hour is 9 (9:00 AM)
+        expect(localDateTime.hour).to.equal(9)
+        expect(localDateTime.minute).to.equal(0)
+      }
+
+      // Verify spacing between notifications
+      // During DST transitions, this could be 23 or 25 hours in UTC but should be 24 hours in local time
+      for (let i = 0; i < timestamps.length - 1; i++) {
+        const currentTime = timestamps[i].toDate()
+        const nextTime = timestamps[i + 1].toDate()
+        const timeDiff = nextTime.getTime() - currentTime.getTime()
+        const hoursDiff = timeDiff / (1000 * 60 * 60)
+
+        // Allow 2 hour tolerance to account for DST transitions
+        // Most days will be 24 hours, but DST transition days can be 23 or 25 hours in UTC
+        expect(hoursDiff).to.be.at.least(23)
+        expect(hoursDiff).to.be.at.most(25)
+      }
+    })
+
+    it('handles multiple timezones correctly', async () => {
+      const enrollmentDate = new Date()
+      enrollmentDate.setDate(enrollmentDate.getDate() - 7)
+
+      // Create users in different timezones
+      const timezones = [
+        'America/New_York', // EST/EDT
+        'America/Los_Angeles', // PST/PDT
+        'Europe/London', // GMT/BST
+        'Asia/Tokyo', // JST (no DST)
+        'Australia/Sydney', // AEDT/AEST
+      ]
+
+      for (let index = 0; index < timezones.length; index++) {
+        const timezone = timezones[index]
+        const userId = `test-user-tz-${index}`
+        await env.firestore
+          .collection('users')
+          .doc(userId)
+          .set({
+            timeZone: timezone,
+            dateOfEnrollment:
+              admin.firestore.Timestamp.fromDate(enrollmentDate),
+            participantGroup: 1,
+            userLanguage: 'en',
+            preferredNotificationTime: '10:00',
+            didOptInToTrial: true,
+          })
+      }
+
+      await createNudgeNotifications()
+
+      // Verify each user gets nudges at their local 10:00 AM
+      for (let index = 0; index < timezones.length; index++) {
+        const timezone = timezones[index]
+        const userId = `test-user-tz-${index}`
+        const backlogSnapshot = await env.firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notificationBacklog')
+          .orderBy('timestamp')
+          .get()
+
+        expect(backlogSnapshot.size).to.equal(7)
+
+        const timestamps = backlogSnapshot.docs.map(
+          (doc) => doc.data().timestamp as Timestamp,
+        )
+
+        // Verify each notification is at 10:00 AM in the user's timezone
+        for (const timestamp of timestamps) {
+          const utcDate = timestamp.toDate()
+          const localDateTime = DateTime.fromJSDate(utcDate, { zone: timezone })
+
+          expect(localDateTime.hour).to.equal(10)
+          expect(localDateTime.minute).to.equal(0)
+        }
       }
     })
   })
