@@ -146,11 +146,9 @@ export class NudgeService {
         // Build gender context
         let genderContext = ''
         if (genderIdentity === 'male') {
-          genderContext =
-            'This participant is male.'
+          genderContext = 'This participant is male.'
         } else {
-          genderContext =
-            'This participant is female.'
+          genderContext = 'This participant is female.'
         }
 
         // Build disease context
