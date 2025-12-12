@@ -60,6 +60,30 @@ export class NudgeService {
 
   // Methods
 
+  private mapStageOfChangeKey(key: string | undefined): StageOfChange | null {
+    if (!key) return null
+
+    switch (key.toLowerCase()) {
+      case 'a':
+      case 'b':
+      case 'g':
+      case 'h':
+      case 'i':
+        return StageOfChange.MAINTENANCE
+      case 'c':
+        return StageOfChange.PRECONTEMPLATION
+      case 'd':
+        return StageOfChange.CONTEMPLATION
+      case 'e':
+        return StageOfChange.PREPARATION
+      case 'f':
+        return StageOfChange.ACTION
+      default:
+        logger.warn(`Unknown stage of change key: ${key}`)
+        return null
+    }
+  }
+
   private calculateAge(dateOfBirth: Date, present: Date = new Date()): number {
     const yearDiff = present.getFullYear() - dateOfBirth.getFullYear()
     const monthDiff = present.getMonth() - dateOfBirth.getMonth()
@@ -122,7 +146,7 @@ export class NudgeService {
         const genderIdentity = userData.genderIdentity || 'female'
         const dateOfBirth = userData.dateOfBirth
         const disease = userData.disease
-        const stateOfChange = userData.stateOfChange
+        const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange)
         const educationLevel = userData.educationLevel
 
         // Calculate age from dateOfBirth
@@ -184,8 +208,8 @@ export class NudgeService {
 
         // Build stage of change context
         let stageContext = ''
-        if (stateOfChange) {
-          switch (stateOfChange as StageOfChange) {
+        if (stageOfChange) {
+          switch (stageOfChange) {
             case StageOfChange.PRECONTEMPLATION:
               stageContext =
                 'This person is in the pre-contemplation stage of exercise change. This person does not plan to start exercising in the next six months and does not consider their current behavior a problem.'
@@ -205,10 +229,6 @@ export class NudgeService {
             case StageOfChange.MAINTENANCE:
               stageContext =
                 'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages. New activities should be avoided. Be as neutral as possible with the generated nudge.'
-              break
-            default:
-              logger.warn(`Unknown stage of change: ${stateOfChange}`)
-              stageContext = ''
               break
           }
         }
