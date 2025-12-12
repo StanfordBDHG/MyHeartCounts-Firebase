@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// Note: in this version, the activity type context is removed from the prompt.
+
 import { randomUUID } from 'crypto'
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
@@ -57,6 +59,30 @@ export class NudgeService {
   }
 
   // Methods
+
+  private mapStageOfChangeKey(key: string | undefined): StageOfChange | null {
+    if (!key) return null
+
+    switch (key.toLowerCase()) {
+      case 'a':
+      case 'b':
+      case 'g':
+      case 'h':
+      case 'i':
+        return StageOfChange.MAINTENANCE
+      case 'c':
+        return StageOfChange.PRECONTEMPLATION
+      case 'd':
+        return StageOfChange.CONTEMPLATION
+      case 'e':
+        return StageOfChange.PREPARATION
+      case 'f':
+        return StageOfChange.ACTION
+      default:
+        logger.warn(`Unknown stage of change key: ${key}`)
+        return null
+    }
+  }
 
   private calculateAge(dateOfBirth: Date, present: Date = new Date()): number {
     const yearDiff = present.getFullYear() - dateOfBirth.getFullYear()
@@ -120,7 +146,7 @@ export class NudgeService {
         const genderIdentity = userData.genderIdentity || 'female'
         const dateOfBirth = userData.dateOfBirth
         const disease = userData.disease
-        const stateOfChange = userData.stateOfChange
+        const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange)
         const educationLevel = userData.educationLevel
 
         // Calculate age from dateOfBirth
@@ -133,22 +159,20 @@ export class NudgeService {
           if (currentAge < 35) {
             ageContext = `This participant is ${currentAge} years old and should be prompted to think about the short-term benefits of exercise on their mood, energy, and health.`
           } else if (currentAge <= 50) {
-            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions.`
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise.`
           } else if (currentAge <= 65) {
-            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.`
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.`
           } else {
-            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).`
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).`
           }
         }
 
         // Build gender context
         let genderContext = ''
         if (genderIdentity === 'male') {
-          genderContext =
-            'This participant is male and may respond better to prompts about playing sports or doing individual activities (i.e., cycling, running/treadmill, walks in the neighborhood, going to the gym)'
+          genderContext = 'This participant is male.'
         } else {
-          genderContext =
-            'This participant is female and may respond better to prompts about group fitness classes and activities with friends.'
+          genderContext = 'This participant is female.'
         }
 
         // Build disease context
@@ -184,8 +208,8 @@ export class NudgeService {
 
         // Build stage of change context
         let stageContext = ''
-        if (stateOfChange) {
-          switch (stateOfChange as StageOfChange) {
+        if (stageOfChange) {
+          switch (stageOfChange) {
             case StageOfChange.PRECONTEMPLATION:
               stageContext =
                 'This person is in the pre-contemplation stage of exercise change. This person does not plan to start exercising in the next six months and does not consider their current behavior a problem.'
@@ -205,10 +229,6 @@ export class NudgeService {
             case StageOfChange.MAINTENANCE:
               stageContext =
                 'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages. New activities should be avoided. Be as neutral as possible with the generated nudge.'
-              break
-            default:
-              logger.warn(`Unknown stage of change: ${stateOfChange}`)
-              stageContext = ''
               break
           }
         }
@@ -287,9 +307,9 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Use the time of day to tailor prompts to try to get that person to be active that day. For example a morning time could be recommending them to get some morning activity done, or planning on doing it later in the day (lunch, post work, etc).`
+        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
 
-        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increase physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${activityTypeContext} ${notificationTimeContext}`
+        const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels.  Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having ""title"" and ""body"" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk activities without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information:" +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`
 
         const openai = new OpenAI({
           apiKey: getOpenaiApiKey(),
