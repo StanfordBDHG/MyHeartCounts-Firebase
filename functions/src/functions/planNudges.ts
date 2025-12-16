@@ -59,6 +59,24 @@ export class NudgeService {
   }
 
   // Methods
+  //TODO Update this
+  private mapComorbidityKeyToDisease(key: string): Disease | null {
+    switch (key) {
+      case 'heartFailure':
+        return Disease.HEART_FAILURE
+      case 'pulmonaryArterialHypertension':
+        return Disease.PULMONARY_ARTERIAL_HYPERTENSION
+      case 'diabetes':
+        return Disease.DIABETES
+      case 'adultCongenitalHeartDisease':
+        return Disease.ACHD_SIMPLE
+      case 'coronaryArteryDisease':
+        return null
+      default:
+        logger.warn(`Unknown comorbidity key: ${key}`)
+        return null
+    }
+  }
 
   private mapStageOfChangeKey(key: string | undefined): StageOfChange | null {
     if (!key) return null
@@ -145,7 +163,7 @@ export class NudgeService {
         // Build detailed personalization context
         const genderIdentity = userData.genderIdentity || 'female'
         const dateOfBirth = userData.dateOfBirth
-        const disease = userData.disease
+        const comorbidities = userData.comorbidities || {}
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange)
         const educationLevel = userData.educationLevel
 
@@ -175,34 +193,52 @@ export class NudgeService {
           genderContext = 'This participant is female.'
         }
 
-        // Build disease context
+        // Build disease context from comorbidities
         let diseaseContext = ''
-        if (disease) {
-          switch (disease as Disease) {
-            case Disease.HEART_FAILURE:
-              diseaseContext =
-                'This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.'
-              break
-            case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
-              diseaseContext =
-                'This participant has pulmonary arterial hypertension (PAH), a condition characterized by high blood pressure in the arteries of the lungs, which makes the right side of the heart work harder to pump blood. PAH is a progressive disease that increases the risk of heart failure, reduced physical capacity, and early mortality. While it cannot be cured, treatments and lifestyle strategies such as regular physical activity can improve exercise tolerance, heart function, and overall quality of life.'
-              break
-            case Disease.DIABETES:
-              diseaseContext =
-                'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
-              break
-            case Disease.ACHD_SIMPLE:
-              diseaseContext =
-                'This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.'
-              break
-            case Disease.ACHD_COMPLEX:
-              diseaseContext =
-                'This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.'
-              break
-            default:
-              logger.warn(`Unknown disease type: ${disease}`)
-              diseaseContext = ''
-              break
+        const diseaseContexts: string[] = []
+
+        if (comorbidities && typeof comorbidities === 'object') {
+          const comorbidityKeys = Object.keys(comorbidities)
+
+          for (const comorbidityKey of comorbidityKeys) {
+            const disease = this.mapComorbidityKeyToDisease(comorbidityKey)
+
+            if (!disease) {
+              continue
+            }
+
+            let context = ''
+            switch (disease) {
+              case Disease.HEART_FAILURE:
+                context =
+                  'This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.'
+                break
+              case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
+                context =
+                  'This participant has pulmonary arterial hypertension (PAH), a condition characterized by high blood pressure in the arteries of the lungs, which makes the right side of the heart work harder to pump blood. PAH is a progressive disease that increases the risk of heart failure, reduced physical capacity, and early mortality. While it cannot be cured, treatments and lifestyle strategies such as regular physical activity can improve exercise tolerance, heart function, and overall quality of life.'
+                break
+              case Disease.DIABETES:
+                context =
+                  'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
+                break
+              case Disease.ACHD_SIMPLE:
+                context =
+                  'This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.'
+                break
+              case Disease.ACHD_COMPLEX:
+                context =
+                  'This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.'
+                break
+            }
+
+            if (context) {
+              diseaseContexts.push(context)
+            }
+          }
+
+          // Combine all disease contexts
+          if (diseaseContexts.length > 0) {
+            diseaseContext = diseaseContexts.join(' Additionally, ')
           }
         }
 
