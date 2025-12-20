@@ -217,7 +217,7 @@ class NudgePermutationTester {
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-5.2-2025-12-11',
         messages: [
           {
             role: 'user',
@@ -258,8 +258,6 @@ class NudgePermutationTester {
             },
           },
         },
-        max_tokens: 1000,
-        temperature: 0.7,
       })
 
       const llmResponse = response.choices[0].message.content || ''
@@ -391,7 +389,6 @@ class NudgePermutationTester {
         result.context.stateOfChange || '',
         result.context.educationLevel,
         result.context.language,
-        result.context.preferredWorkoutTypes,
         result.context.preferredNotificationTime,
         result.genderContext,
         result.ageContext,
@@ -399,7 +396,6 @@ class NudgePermutationTester {
         result.stageContext,
         result.educationContext,
         result.languageContext,
-        result.activityTypeContext,
         result.notificationTimeContext,
         result.fullPrompt,
         result.llmResponse,

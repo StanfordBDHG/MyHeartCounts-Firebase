@@ -21,7 +21,7 @@ import {
   type BaseNudgeMessage,
 } from './nudgeMessages.js'
 
-enum Disease {
+enum Disease { //TODO update in next PR with final comorbidities
   HEART_FAILURE = 'Heart failure',
   PULMONARY_ARTERIAL_HYPERTENSION = 'Pulmonary arterial hypertension',
   DIABETES = 'Diabetes',
@@ -59,7 +59,7 @@ export class NudgeService {
   }
 
   // Methods
-  //TODO Update this
+  //TODO Update this with final comorbidites
   private mapComorbidityKeyToDisease(key: string): Disease | null {
     switch (key) {
       case 'heartFailure':
@@ -73,7 +73,7 @@ export class NudgeService {
       case 'coronaryArteryDisease':
         return null
       default:
-        logger.warn(`Unknown comorbidity key: ${key}`)
+        logger.warn(`Not mapped: ${key}`)
         return null
     }
   }
@@ -81,7 +81,7 @@ export class NudgeService {
   private mapStageOfChangeKey(key: string | undefined): StageOfChange | null {
     if (!key) return null
 
-    switch (key.toLowerCase()) {
+    switch (key.toLowerCase()) { //map keys to SoCs. Multiswitch case for maintenance SoC.
       case 'a':
       case 'b':
       case 'g':
@@ -352,7 +352,7 @@ export class NudgeService {
         })
 
         const response = await openai.chat.completions.create({
-          model: 'gpt-4.1-2025-04-14',
+          model: 'gpt-5.2-2025-12-11',
           messages: [
             {
               role: 'user',
@@ -395,8 +395,6 @@ export class NudgeService {
               },
             },
           },
-          max_tokens: 1000,
-          temperature: 0.7,
         })
 
         const parsedContent = JSON.parse(
