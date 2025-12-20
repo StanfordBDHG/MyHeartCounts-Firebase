@@ -81,7 +81,9 @@ export class NudgeService {
   private mapStageOfChangeKey(key: string | undefined): StageOfChange | null {
     if (!key) return null
 
-    switch (key.toLowerCase()) { //map keys to SoCs. Multiswitch case for maintenance SoC.
+    switch (
+      key.toLowerCase() //map keys to SoCs. Multiswitch case for maintenance SoC.
+    ) {
       case 'a':
       case 'b':
       case 'g':
