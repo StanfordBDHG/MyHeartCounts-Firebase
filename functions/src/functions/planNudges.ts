@@ -59,7 +59,8 @@ export class NudgeService {
 
   // Methods
 
-  private mapComorbidityKeyToDisease(key: string): Disease | null { // These are defined for iOS in https://github.com/StanfordBDHG/MyHeartCounts-iOS/blob/main/MyHeartCounts/Account/Demographics/Comorbidities.swift.
+  private mapComorbidityKeyToDisease(key: string): Disease | null {
+    // These are defined for iOS in https://github.com/StanfordBDHG/MyHeartCounts-iOS/blob/main/MyHeartCounts/Account/Demographics/Comorbidities.swift.
     switch (key) {
       case 'heartFailure':
         return Disease.HEART_FAILURE
