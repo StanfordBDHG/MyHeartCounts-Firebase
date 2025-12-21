@@ -21,10 +21,11 @@ import {
   type BaseNudgeMessage,
 } from './nudgeMessages.js'
 
-enum Disease { // TODO update in next PR with final comorbidities
+enum Disease {
   HEART_FAILURE = 'Heart failure',
   PULMONARY_ARTERIAL_HYPERTENSION = 'Pulmonary arterial hypertension',
   DIABETES = 'Diabetes',
+  CORONARY_ARTERY_DISEASE = 'Coronary artery disease',
   ACHD_SIMPLE = 'ACHD (simple)',
   ACHD_COMPLEX = 'ACHD (complex)',
 }
@@ -59,8 +60,8 @@ export class NudgeService {
   }
 
   // Methods
-  //TODO Update this with final comorbidites
-  private mapComorbidityKeyToDisease(key: string): Disease | null {
+
+  private mapComorbidityKeyToDisease(key: string): Disease | null { // These are defined for iOS in https://github.com/StanfordBDHG/MyHeartCounts-iOS/blob/main/MyHeartCounts/Account/Demographics/Comorbidities.swift.
     switch (key) {
       case 'heartFailure':
         return Disease.HEART_FAILURE
@@ -68,12 +69,14 @@ export class NudgeService {
         return Disease.PULMONARY_ARTERIAL_HYPERTENSION
       case 'diabetes':
         return Disease.DIABETES
-      case 'adultCongenitalHeartDisease':
-        return Disease.ACHD_SIMPLE
       case 'coronaryArteryDisease':
-        return null
+        return Disease.CORONARY_ARTERY_DISEASE
+      case 'adultCongenitalHeartDisease':
+        return Disease.ACHD_COMPLEX
+      case 'congenitalHeartDisease2':
+        return Disease.ACHD_SIMPLE
       default:
-        logger.warn(`Not mapped: ${key}`)
+        logger.warn(`Not mapped for ComorbidityKeyToDisease: ${key}`)
         return null
     }
   }
@@ -99,7 +102,7 @@ export class NudgeService {
       case 'f':
         return StageOfChange.ACTION
       default:
-        logger.warn(`Unknown stage of change key: ${key}`)
+        logger.warn(`Not mapped for StageOfChangeKey: ${key}`)
         return null
     }
   }
@@ -217,11 +220,15 @@ export class NudgeService {
                 break
               case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
                 context =
-                  'This participant has pulmonary arterial hypertension (PAH), a condition characterized by high blood pressure in the arteries of the lungs, which makes the right side of the heart work harder to pump blood. PAH is a progressive disease that increases the risk of heart failure, reduced physical capacity, and early mortality. While it cannot be cured, treatments and lifestyle strategies such as regular physical activity can improve exercise tolerance, heart function, and overall quality of life.'
+                  'The participant has Pulmonary Arterial Hypertension (PAH); however, their specific WHO Functional Class is unknown. Activity should focus on increasing functional mobility and reducing sedentary time (NEAT), and intensity must be regulated via the Talk Test (able to speak in full sentences). Keep activity recommendations gentle and actionable.'
                 break
               case Disease.DIABETES:
                 context =
                   'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
+                break
+              case Disease.CORONARY_ARTERY_DISEASE:
+                context =
+                  'This participant has Coronary Artery Disease. Recommend gentle, low-to-moderate activity that supports fitness, mood, and energy. Emphasize functional mobility and NEAT with short, frequent step-based bouts. Regulate intensity via the Talk Test (full sentences), include a longer warm-up and easy cool-down, and avoid chest discomfort. Keep recommendations simple and actionable.'
                 break
               case Disease.ACHD_SIMPLE:
                 context =
