@@ -21,7 +21,7 @@ import {
   type BaseNudgeMessage,
 } from './nudgeMessages.js'
 
-enum Disease { //TODO update in next PR with final comorbidities
+enum Disease { // TODO update in next PR with final comorbidities
   HEART_FAILURE = 'Heart failure',
   PULMONARY_ARTERIAL_HYPERTENSION = 'Pulmonary arterial hypertension',
   DIABETES = 'Diabetes',
