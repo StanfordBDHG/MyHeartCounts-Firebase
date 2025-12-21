@@ -199,6 +199,7 @@ export class NudgeService {
         }
 
         // Build disease context from comorbidities
+        // Background: The use of disease-specific messaging comes from clinical research and exercise science, which show that people with different medical conditions have very different physiological limitations, risks, and opportunities for improvement. For example, exercise has strong therapeutic benefits across heart failure, pulmonary hypertension, diabetes, and congenital heart disease, but the type, intensity, and framing of recommendations need to be tailored to the condition. By grounding guidance in both evidence and lived experience, messaging can promote safety while motivating individuals to engage in sustainable activity. Each condition reflects unique communication needs. For some diseases, like diabetes or mild congenital heart disease, messaging can be more motivational, goal-oriented, and performance-driven because the physiological reserve allows for more vigorous activity. For others, like pulmonary hypertension, heart failure, or complex congenital heart disease, recommendations need to emphasize pacing, safety, and quality of life over intensity or competition. This approach ensures that guidance is both empowering and realistic, helping participants engage in exercise that supports their health while respecting their limitations.
         let diseaseContext = ''
         const diseaseContexts: string[] = []
 
@@ -252,6 +253,7 @@ export class NudgeService {
         }
 
         // Build stage of change context
+        // Background: The Stages of Change model (Transtheoretical Model) was developed by psychologists James Prochaska and Carlo DiClemente in the late 1970s while studying how people quit smoking. Their research showed that behavior change isn’t a single event but a process people move through in stages, often cycling forward and backward before a new behavior becomes lasting. Since then, the model has been widely applied to health behaviors like exercise, diet, and medication adherence. Each stage reflects different needs: building awareness in precontemplation, resolving ambivalence in contemplation, planning in preparation, reinforcing routines in action, and preventing relapse in maintenance. This model emphasizes that change is not all-or-nothing but a cycle, and matching support to a person’s stage makes long-term success more likely.
         let stageContext = ''
         if (stageOfChange) {
           switch (stageOfChange) {
@@ -279,7 +281,7 @@ export class NudgeService {
         }
 
         // Build education level context
-        // The idea of tailoring content to education level comes from research in health communication and literacy, which shows that people understand and act on information more effectively when it’s written at a level that matches their background. Someone with a high school education or less may benefit from clear, simple language and shorter sentences, while someone with college-level education is typically more comfortable with complex ideas and vocabulary. Matching the reading level helps reduce barriers to understanding and ensures that messages are accessible rather than overwhelming or condescending. Each level reflects different communication needs: for those with less formal education, the focus is on clarity and plain language, while for those with higher education, the focus can shift to nuance and more detailed explanation. This approach recognizes that effective communication isn’t “one-size-fits-all” but should adapt to the audience to maximize understanding and impact.
+        // Background: The idea of tailoring content to education level comes from research in health communication and literacy, which shows that people understand and act on information more effectively when it’s written at a level that matches their background. Someone with a high school education or less may benefit from clear, simple language and shorter sentences, while someone with college-level education is typically more comfortable with complex ideas and vocabulary. Matching the reading level helps reduce barriers to understanding and ensures that messages are accessible rather than overwhelming or condescending. Each level reflects different communication needs: for those with less formal education, the focus is on clarity and plain language, while for those with higher education, the focus can shift to nuance and more detailed explanation. This approach recognizes that effective communication isn’t “one-size-fits-all” but should adapt to the audience to maximize understanding and impact.
         let educationContext = ''
         if (educationLevel) {
           switch (educationLevel as EducationLevel) {
