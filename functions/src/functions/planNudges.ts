@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-// Note: in this version, the activity type context is removed from the prompt.
-
 import { randomUUID } from 'crypto'
 import admin from 'firebase-admin'
 import { logger } from 'firebase-functions'
@@ -305,53 +303,6 @@ export class NudgeService {
         if (isSpanish) {
           languageContext =
             "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the formal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
-        }
-
-        // Build preferred activity types context
-        const availableWorkoutTypes = [
-          'other',
-          'HIIT',
-          'walk',
-          'swim',
-          'run',
-          'sport',
-          'strength',
-          'bicycle',
-          'yoga/pilates',
-        ]
-
-        const selectedTypes = userData.preferredWorkoutTypes
-          .split(',')
-          .map((type: string) => type.trim())
-        const hasOther = selectedTypes.includes('other')
-
-        // Format selected activities consistently, strips: other
-        const selectedActivities = selectedTypes.filter(
-          (type: string) => type !== 'other',
-        )
-        const formattedSelectedTypes =
-          selectedActivities.length > 0 ?
-            selectedActivities.join(', ')
-          : 'various activities'
-
-        let activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
-        // Handle "other" selections if present in the preferred types
-        if (hasOther) {
-          // Only include activities that were NOT selected by the user
-          const notChosenTypes = availableWorkoutTypes.filter(
-            (type) => type !== 'other' && !selectedTypes.includes(type),
-          )
-
-          if (selectedActivities.length === 0) {
-            // User has only selected "other" with no other options, overwrite activityTypeContext with only this string
-            activityTypeContext = `The user indicated that their preferred activity types differ from the available options (${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}). Provide creative recommendations and suggest other ways to stay physically active without relying on the listed options.`
-          } else if (notChosenTypes.length > 0) {
-            // User selected "other" along with some activities
-            activityTypeContext += `The user indicated that they also prefer activity types beyond the remaining options (${notChosenTypes.join(', ')}). Provide creative recommendations and suggest other ways to stay physically active.`
-          } else {
-            // User selected all standard activities plus "other"
-            activityTypeContext += `The user indicated additional preferred activity types beyond the listed options. Provide creative recommendations and suggest other ways to stay physically active.`
-          }
         }
 
         // Build preferred notification time
