@@ -97,7 +97,7 @@ export class DatabaseUserService implements UserService {
         const userRef = collections.users.doc(userId)
         const userData = new User({
           disabled: false,
-          participantGroup: Math.random() < 0.5 ? 1 : 2, //this selects the participant group for a given user
+          participantGroup: Math.random() < 0.5 ? 1 : 2, // This selects the participant group for a given user
           lastActiveDate: new Date(),
           dateOfEnrollment: new Date(),
         })
