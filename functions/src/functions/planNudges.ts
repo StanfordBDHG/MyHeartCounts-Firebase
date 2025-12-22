@@ -23,6 +23,7 @@ enum Disease {
   HEART_FAILURE = 'Heart failure',
   PULMONARY_ARTERIAL_HYPERTENSION = 'Pulmonary arterial hypertension',
   DIABETES = 'Diabetes',
+  CORONARY_ARTERY_DISEASE = 'Coronary artery disease',
   ACHD_SIMPLE = 'ACHD (simple)',
   ACHD_COMPLEX = 'ACHD (complex)',
 }
@@ -57,6 +58,53 @@ export class NudgeService {
   }
 
   // Methods
+
+  private mapComorbidityKeyToDisease(key: string): Disease | null {
+    // These are defined for iOS in https://github.com/StanfordBDHG/MyHeartCounts-iOS/blob/main/MyHeartCounts/Account/Demographics/Comorbidities.swift.
+    switch (key) {
+      case 'heartFailure':
+        return Disease.HEART_FAILURE
+      case 'pulmonaryArterialHypertension':
+        return Disease.PULMONARY_ARTERIAL_HYPERTENSION
+      case 'diabetes':
+        return Disease.DIABETES
+      case 'coronaryArteryDisease':
+        return Disease.CORONARY_ARTERY_DISEASE
+      case 'adultCongenitalHeartDisease':
+        return Disease.ACHD_COMPLEX
+      case 'congenitalHeartDisease2':
+        return Disease.ACHD_SIMPLE
+      default:
+        logger.warn(`Not mapped for ComorbidityKeyToDisease: ${key}`)
+        return null
+    }
+  }
+
+  private mapStageOfChangeKey(key: string | undefined): StageOfChange | null {
+    if (!key) return null
+
+    switch (
+      key.toLowerCase() //map keys to SoCs. Multiswitch case for maintenance SoC.
+    ) {
+      case 'a':
+      case 'b':
+      case 'g':
+      case 'h':
+      case 'i':
+        return StageOfChange.MAINTENANCE
+      case 'c':
+        return StageOfChange.PRECONTEMPLATION
+      case 'd':
+        return StageOfChange.CONTEMPLATION
+      case 'e':
+        return StageOfChange.PREPARATION
+      case 'f':
+        return StageOfChange.ACTION
+      default:
+        logger.warn(`Not mapped for StageOfChangeKey: ${key}`)
+        return null
+    }
+  }
 
   private calculateAge(dateOfBirth: Date, present: Date = new Date()): number {
     const yearDiff = present.getFullYear() - dateOfBirth.getFullYear()
@@ -119,8 +167,8 @@ export class NudgeService {
         // Build detailed personalization context
         const genderIdentity = userData.genderIdentity || 'female'
         const dateOfBirth = userData.dateOfBirth
-        const disease = userData.disease
-        const stateOfChange = userData.stateOfChange
+        const comorbidities = userData.comorbidities || {}
+        const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange)
         const educationLevel = userData.educationLevel
 
         // Calculate age from dateOfBirth
@@ -133,59 +181,81 @@ export class NudgeService {
           if (currentAge < 35) {
             ageContext = `This participant is ${currentAge} years old and should be prompted to think about the short-term benefits of exercise on their mood, energy, and health.`
           } else if (currentAge <= 50) {
-            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions.`
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise.`
           } else if (currentAge <= 65) {
-            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.`
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.`
           } else {
-            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).`
+            ageContext = `This participant is ${currentAge} years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).`
           }
         }
 
         // Build gender context
         let genderContext = ''
         if (genderIdentity === 'male') {
-          genderContext =
-            'This participant is male and may respond better to prompts about playing sports or doing individual activities (i.e., cycling, running/treadmill, walks in the neighborhood, going to the gym)'
+          genderContext = 'This participant is male.'
         } else {
-          genderContext =
-            'This participant is female and may respond better to prompts about group fitness classes and activities with friends.'
+          genderContext = 'This participant is female.'
         }
 
-        // Build disease context
+        // Build disease context from comorbidities
+        // Background: The use of disease-specific messaging comes from clinical research and exercise science, which show that people with different medical conditions have very different physiological limitations, risks, and opportunities for improvement. For example, exercise has strong therapeutic benefits across heart failure, pulmonary hypertension, diabetes, and congenital heart disease, but the type, intensity, and framing of recommendations need to be tailored to the condition. By grounding guidance in both evidence and lived experience, messaging can promote safety while motivating individuals to engage in sustainable activity. Each condition reflects unique communication needs. For some diseases, like diabetes or mild congenital heart disease, messaging can be more motivational, goal-oriented, and performance-driven because the physiological reserve allows for more vigorous activity. For others, like pulmonary hypertension, heart failure, or complex congenital heart disease, recommendations need to emphasize pacing, safety, and quality of life over intensity or competition. This approach ensures that guidance is both empowering and realistic, helping participants engage in exercise that supports their health while respecting their limitations.
         let diseaseContext = ''
-        if (disease) {
-          switch (disease as Disease) {
-            case Disease.HEART_FAILURE:
-              diseaseContext =
-                'This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.'
-              break
-            case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
-              diseaseContext =
-                'This participant has pulmonary arterial hypertension (PAH), a condition characterized by high blood pressure in the arteries of the lungs, which makes the right side of the heart work harder to pump blood. PAH is a progressive disease that increases the risk of heart failure, reduced physical capacity, and early mortality. While it cannot be cured, treatments and lifestyle strategies such as regular physical activity can improve exercise tolerance, heart function, and overall quality of life.'
-              break
-            case Disease.DIABETES:
-              diseaseContext =
-                'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
-              break
-            case Disease.ACHD_SIMPLE:
-              diseaseContext =
-                'This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.'
-              break
-            case Disease.ACHD_COMPLEX:
-              diseaseContext =
-                'This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.'
-              break
-            default:
-              logger.warn(`Unknown disease type: ${disease}`)
-              diseaseContext = ''
-              break
+        const diseaseContexts: string[] = []
+
+        if (comorbidities && typeof comorbidities === 'object') {
+          const comorbidityKeys = Object.keys(comorbidities)
+
+          for (const comorbidityKey of comorbidityKeys) {
+            const disease = this.mapComorbidityKeyToDisease(comorbidityKey)
+
+            if (!disease) {
+              continue
+            }
+
+            let context = ''
+            switch (disease) {
+              case Disease.HEART_FAILURE:
+                context =
+                  'This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.'
+                break
+              case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
+                context =
+                  'The participant has Pulmonary Arterial Hypertension (PAH); however, their specific WHO Functional Class is unknown. Activity should focus on increasing functional mobility and reducing sedentary time (NEAT), and intensity must be regulated via the Talk Test (able to speak in full sentences). Keep activity recommendations gentle and actionable.'
+                break
+              case Disease.DIABETES:
+                context =
+                  'This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.'
+                break
+              case Disease.CORONARY_ARTERY_DISEASE:
+                context =
+                  'This participant has Coronary Artery Disease. Recommend gentle, low-to-moderate activity that supports fitness, mood, and energy. Emphasize functional mobility and NEAT with short, frequent step-based bouts. Regulate intensity via the Talk Test (full sentences), include a longer warm-up and easy cool-down, and avoid chest discomfort. Keep recommendations simple and actionable.'
+                break
+              case Disease.ACHD_SIMPLE:
+                context =
+                  'This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.'
+                break
+              case Disease.ACHD_COMPLEX:
+                context =
+                  'This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.'
+                break
+            }
+
+            if (context) {
+              diseaseContexts.push(context)
+            }
+          }
+
+          // Combine all disease contexts
+          if (diseaseContexts.length > 0) {
+            diseaseContext = diseaseContexts.join(' Additionally, ')
           }
         }
 
         // Build stage of change context
+        // Background: The Stages of Change model (Transtheoretical Model) was developed by psychologists James Prochaska and Carlo DiClemente in the late 1970s while studying how people quit smoking. Their research showed that behavior change isn’t a single event but a process people move through in stages, often cycling forward and backward before a new behavior becomes lasting. Since then, the model has been widely applied to health behaviors like exercise, diet, and medication adherence. Each stage reflects different needs: building awareness in precontemplation, resolving ambivalence in contemplation, planning in preparation, reinforcing routines in action, and preventing relapse in maintenance. This model emphasizes that change is not all-or-nothing but a cycle, and matching support to a person’s stage makes long-term success more likely.
         let stageContext = ''
-        if (stateOfChange) {
-          switch (stateOfChange as StageOfChange) {
+        if (stageOfChange) {
+          switch (stageOfChange) {
             case StageOfChange.PRECONTEMPLATION:
               stageContext =
                 'This person is in the pre-contemplation stage of exercise change. This person does not plan to start exercising in the next six months and does not consider their current behavior a problem.'
@@ -206,14 +276,11 @@ export class NudgeService {
               stageContext =
                 'This person is in the maintenance stage of exercise change. This person has maintained their exercise routine for more than six months and wants to sustain that change by avoiding relapses to previous stages. New activities should be avoided. Be as neutral as possible with the generated nudge.'
               break
-            default:
-              logger.warn(`Unknown stage of change: ${stateOfChange}`)
-              stageContext = ''
-              break
           }
         }
 
         // Build education level context
+        // Background: The idea of tailoring content to education level comes from research in health communication and literacy, which shows that people understand and act on information more effectively when it’s written at a level that matches their background. Someone with a high school education or less may benefit from clear, simple language and shorter sentences, while someone with college-level education is typically more comfortable with complex ideas and vocabulary. Matching the reading level helps reduce barriers to understanding and ensures that messages are accessible rather than overwhelming or condescending. Each level reflects different communication needs: for those with less formal education, the focus is on clarity and plain language, while for those with higher education, the focus can shift to nuance and more detailed explanation. This approach recognizes that effective communication isn’t “one-size-fits-all” but should adapt to the audience to maximize understanding and impact.
         let educationContext = ''
         if (educationLevel) {
           switch (educationLevel as EducationLevel) {
@@ -239,64 +306,17 @@ export class NudgeService {
             "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the formal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
         }
 
-        // Build preferred activity types context
-        const availableWorkoutTypes = [
-          'other',
-          'HIIT',
-          'walk',
-          'swim',
-          'run',
-          'sport',
-          'strength',
-          'bicycle',
-          'yoga/pilates',
-        ]
-
-        const selectedTypes = userData.preferredWorkoutTypes
-          .split(',')
-          .map((type: string) => type.trim())
-        const hasOther = selectedTypes.includes('other')
-
-        // Format selected activities consistently, strips: other
-        const selectedActivities = selectedTypes.filter(
-          (type: string) => type !== 'other',
-        )
-        const formattedSelectedTypes =
-          selectedActivities.length > 0 ?
-            selectedActivities.join(', ')
-          : 'various activities'
-
-        let activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
-        // Handle "other" selections if present in the preferred types
-        if (hasOther) {
-          // Only include activities that were NOT selected by the user
-          const notChosenTypes = availableWorkoutTypes.filter(
-            (type) => type !== 'other' && !selectedTypes.includes(type),
-          )
-
-          if (selectedActivities.length === 0) {
-            // User has only selected "other" with no other options, overwrite activityTypeContext with only this string
-            activityTypeContext = `The user indicated that their preferred activity types differ from the available options (${availableWorkoutTypes.filter((type) => type !== 'other').join(', ')}). Provide creative recommendations and suggest other ways to stay physically active without relying on the listed options.`
-          } else if (notChosenTypes.length > 0) {
-            // User selected "other" along with some activities
-            activityTypeContext += `The user indicated that they also prefer activity types beyond the remaining options (${notChosenTypes.join(', ')}). Provide creative recommendations and suggest other ways to stay physically active.`
-          } else {
-            // User selected all standard activities plus "other"
-            activityTypeContext += `The user indicated additional preferred activity types beyond the listed options. Provide creative recommendations and suggest other ways to stay physically active.`
-          }
-        }
-
         // Build preferred notification time
-        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Use the time of day to tailor prompts to try to get that person to be active that day. For example a morning time could be recommending them to get some morning activity done, or planning on doing it later in the day (lunch, post work, etc).`
+        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
 
-        const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increase physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${activityTypeContext} ${notificationTimeContext}`
+        const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels.  Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk activities without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information:" +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`
 
         const openai = new OpenAI({
           apiKey: getOpenaiApiKey(),
         })
 
         const response = await openai.chat.completions.create({
-          model: 'gpt-4.1-2025-04-14',
+          model: 'gpt-5.2-2025-12-11',
           messages: [
             {
               role: 'user',
@@ -339,8 +359,6 @@ export class NudgeService {
               },
             },
           },
-          max_tokens: 1000,
-          temperature: 0.7,
         })
 
         const parsedContent = JSON.parse(

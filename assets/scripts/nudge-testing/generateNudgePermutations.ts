@@ -76,11 +76,11 @@ class NudgePermutationTester {
       case '<35':
         return 'This participant is 28 years old and should be prompted to think about the short-term benefits of exercise on their mood, energy, and health.'
       case '35-50':
-        return 'This participant is 42 years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions.'
+        return 'This participant is 42 years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise.'
       case '51-65':
-        return 'This participant is 58 years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.'
+        return 'This participant is 58 years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age.'
       case '>65':
-        return 'This participant is 72 years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer - exercise is strongly protective against all these long-term conditions. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).'
+        return 'This participant is 72 years old and in addition to thinking about the short-term benefits of exercise on their mood, energy, and health, should also now be thinking about their long-term risk of chronic disease development, such as cardiovascular disease, dementia, and cancer, unless they already have a chromic condition. IF THEY ALREADY HAVE A CHRONIC CONDITION, they should be thinking about inproving quality of life through exercise. At this age, they should also be thinking about adding elements of weight bearing exercise into their routines, to promote bone health and prevent fractures that could lead to rapid clinical decline as they age. Finally, they should be considering lower impact sports and activities (e.g., walks and hikes instead of runs).'
       default:
         return ''
     }
@@ -88,9 +88,9 @@ class NudgePermutationTester {
 
   private getGenderContext(genderIdentity: string): string {
     if (genderIdentity === 'male') {
-      return 'This participant is male and may respond better to prompts about playing sports or doing individual activities (i.e., cycling, running/treadmill, walks in the neighborhood, going to the gym)'
+      return 'This participant is male.'
     } else {
-      return 'This participant is female and may respond better to prompts about group fitness classes and activities with friends.'
+      return 'This participant is female.'
     }
   }
 
@@ -176,7 +176,7 @@ class NudgePermutationTester {
     const formattedSelectedTypes = selectedActivities.length > 0 ?
       selectedActivities.join(', ') : 'various activities'
 
-    let activityTypeContext = `The user's selected these preferred activity types: ${formattedSelectedTypes}. Recommendations should be creative, encouraging, and must be aligned within their preferred activity types.`
+    let activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`
     // Handle "other" selections if present in the preferred types
     if (hasOther) {
       // Only include activities that were NOT selected by the user
@@ -200,7 +200,7 @@ class NudgePermutationTester {
   }
 
   private getNotificationTimeContext(preferredNotificationTime: string): string {
-    return `The user prefers to receive recommendations at ${preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
+    return `This user prefers to receive recommendation at ${preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
   }
 
   private async generateNudgesForContext(context: TestContext): Promise<TestResult> {
@@ -213,11 +213,11 @@ class NudgePermutationTester {
     const activityTypeContext = this.getActivityTypeContext(context.preferredWorkoutTypes)
     const notificationTimeContext = this.getNotificationTimeContext(context.preferredNotificationTime)
 
-    const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels. This message is sent in the morning so the user has all day to increase physical activity levels. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. TRY TO BE AS NEUTRAL AS POSSBILE IN THE TONE OF THE NUDGE. NEVER USE EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${activityTypeContext} ${notificationTimeContext}`
+    const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels.  Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having ""title"" and ""body"" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk activities without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information:" +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-5.2-2025-12-11',
         messages: [
           {
             role: 'user',
@@ -258,8 +258,6 @@ class NudgePermutationTester {
             },
           },
         },
-        max_tokens: 1000,
-        temperature: 0.7,
       })
 
       const llmResponse = response.choices[0].message.content || ''
@@ -301,7 +299,7 @@ class NudgePermutationTester {
     const diseaseOptions = [null, ...Object.values(Disease)]
     const stageOptions = [null, ...Object.values(StageOfChange)]
     const educationOptions = [...Object.values(EducationLevel)]
-    const languageOptions = ['en', 'es']
+    const languageOptions = ['en', 'en']
     const workoutTypeOptions = [
       'run,walk',
       'HIIT,strength',
@@ -368,7 +366,6 @@ class NudgePermutationTester {
       'stateOfChange',
       'educationLevel',
       'language',
-      'preferredWorkoutTypes',
       'preferredNotificationTime',
       'genderContext',
       'ageContext',
@@ -376,7 +373,6 @@ class NudgePermutationTester {
       'stageContext',
       'educationContext',
       'languageContext',
-      'activityTypeContext',
       'notificationTimeContext',
       'fullPrompt',
       'llmResponse',
@@ -393,7 +389,6 @@ class NudgePermutationTester {
         result.context.stateOfChange || '',
         result.context.educationLevel,
         result.context.language,
-        result.context.preferredWorkoutTypes,
         result.context.preferredNotificationTime,
         result.genderContext,
         result.ageContext,
@@ -401,7 +396,6 @@ class NudgePermutationTester {
         result.stageContext,
         result.educationContext,
         result.languageContext,
-        result.activityTypeContext,
         result.notificationTimeContext,
         result.fullPrompt,
         result.llmResponse,
