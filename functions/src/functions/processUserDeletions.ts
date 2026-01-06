@@ -7,6 +7,7 @@
 //
 
 import { Storage } from '@google-cloud/storage'
+import admin from 'firebase-admin'
 import { logger } from 'firebase-functions/v2'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { privilegedServiceAccount } from './helpers.js'
@@ -49,20 +50,21 @@ export async function processUserDeletions(): Promise<void> {
   const userService = factory.user()
 
   try {
-    const users = await userService.getAllPatients()
-    const usersToDelete = users.filter(
-      (user) => (user.content as any).toBeDeleted === true,
-    )
+    const firestore = admin.firestore()
+    const snapshot = await firestore
+      .collection('users')
+      .where('toBeDeleted', '==', true)
+      .get()
 
-    if (usersToDelete.length === 0) {
+    if (snapshot.empty) {
       logger.info('No users marked for deletion found')
       return
     }
 
-    logger.info(`Found ${usersToDelete.length} users marked for deletion`)
+    logger.info(`Found ${snapshot.size} users marked for deletion`)
 
-    for (const user of usersToDelete) {
-      const userId = user.id
+    for (const doc of snapshot.docs) {
+      const userId = doc.id
 
       try {
         logger.info(`Processing deletion for user ${userId}`)
