@@ -73,9 +73,14 @@ jobs:
     environment: ${{ needs.determineenvironment.outputs.environment }}
     outputs:
       FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      FIREBASE_PROJECT_ID_PRODUCTION_US: ${{ vars.FIREBASE_PROJECT_ID_PRODUCTION_US }}
+      FIREBASE_PROJECT_ID_PRODUCTION_UK: ${{ vars.FIREBASE_PROJECT_ID_PRODUCTION_UK }}
     steps:
       - run: |
-          echo "Injecting Environment Variables In Deployment Workflow: ${{ vars.FIREBASE_PROJECT_ID }}"
+          echo "Injecting Environment Variables In Deployment Workflow"
+          echo "FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}"
+          echo "FIREBASE_PROJECT_ID_PRODUCTION_US: ${{ vars.FIREBASE_PROJECT_ID_PRODUCTION_US }}"
+          echo "FIREBASE_PROJECT_ID_PRODUCTION_UK: ${{ vars.FIREBASE_PROJECT_ID_PRODUCTION_UK }}"
 
   buildandtest:
     name: Build and Test
@@ -112,7 +117,7 @@ jobs:
     with:
       customcommand: "npm run prepare"
       environment: production
-      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
+      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID_PRODUCTION_US }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64_PRODUCTION_US }}
 
@@ -127,6 +132,6 @@ jobs:
     with:
       customcommand: "npm run prepare"
       environment: production
-      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID }}'
+      arguments: '--project ${{ needs.vars.outputs.FIREBASE_PROJECT_ID_PRODUCTION_UK }}'
     secrets:
       GOOGLE_APPLICATION_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64_PRODUCTION_UK }}
