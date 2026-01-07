@@ -30,13 +30,12 @@ service cloud.firestore {
 
       allow write: if isUser(userId);
     }
-    match /feedback/{id} {
 
-      allow create: if isUser(userId);
+    match /feedback/{feedbackId} {
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid;
       
-      allow write: if isUser(userId);
-
-      allow read: if false;
+      allow read, update, delete: if false;
   }
   }
 }
