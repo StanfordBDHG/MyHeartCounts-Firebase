@@ -6,14 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { promisify } from 'node:util'
-import * as zlib from 'node:zlib'
+import { decompress } from 'fzstd'
 import { type UserObservationCollection } from '@stanfordbdhg/myheartcounts-models'
 import admin from 'firebase-admin'
 import { storage, logger } from 'firebase-functions/v2'
 import { privilegedServiceAccount } from './helpers.js'
-
-const inflateAsync = promisify(zlib.inflate)
 
 interface HealthSampleData {
   userId: string
@@ -23,9 +20,9 @@ interface HealthSampleData {
 
 function getCollectionNameFromFileName(fileName: string): string | null {
   // Check for SensorKit data files first
-  // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zlib
+  // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zstd
   const sensorKitPattern =
-    /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zlib$/
+    /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zstd$/
   const sensorKitMatch = fileName.match(sensorKitPattern)
 
   if (sensorKitMatch) {
@@ -107,7 +104,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
 
       let decompressedData: Buffer
       try {
-        decompressedData = await inflateAsync(fileBuffer)
+        decompressedData = decompress(fileBuffer)
         logger.info(`Decompressed data size: ${decompressedData.length} bytes`)
       } catch (error) {
         logger.error(`Failed to decompress file ${fileName}:`, error)
