@@ -6,10 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { decompress } from 'fzstd'
 import { type UserObservationCollection } from '@stanfordbdhg/myheartcounts-models'
 import admin from 'firebase-admin'
 import { storage, logger } from 'firebase-functions/v2'
+import { decompress } from 'fzstd'
 import { privilegedServiceAccount } from './helpers.js'
 
 interface HealthSampleData {
