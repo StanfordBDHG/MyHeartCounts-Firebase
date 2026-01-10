@@ -104,7 +104,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
 
       let decompressedData: Buffer
       try {
-        decompressedData = decompress(fileBuffer)
+        decompressedData = Buffer.from(decompress(fileBuffer))
         logger.info(`Decompressed data size: ${decompressedData.length} bytes`)
       } catch (error) {
         logger.error(`Failed to decompress file ${fileName}:`, error)
