@@ -105,3 +105,13 @@ export function getNicotineObservationConfig(): QuestionnaireObservationConfig {
     ucumCode: '{count}',
   }
 }
+
+export function getWho5ObservationConfig(): QuestionnaireObservationConfig {
+  return {
+    customCode: 'who5-wellbeing-score',
+    display: 'WHO-5 Well-Being Score',
+    unit: 'count',
+    unitSystem: 'http://unitsofmeasure.org',
+    ucumCode: '{count}',
+  }
+}
