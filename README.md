@@ -6,9 +6,6 @@ SPDX-License-Identifier: MIT
 
 # Stanford MyHeart Counts Open-Source-Project
 
-> [!NOTE]  
-> This repository contains code that is work in progress.
-
 Firebase cloud hosting infrastructure for the Stanford MyHeart Counts project.
 
 ## Behavior

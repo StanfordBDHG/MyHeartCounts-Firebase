@@ -26,6 +26,10 @@ import {
   NicotineScoringQuestionnaireResponseService,
 } from '../questionnaireResponse/nicotineScoringService.js'
 import { type QuestionnaireResponseService } from '../questionnaireResponse/questionnaireResponseService.js'
+import {
+  DefaultWho5ScoreCalculator,
+  Who5ScoringQuestionnaireResponseService,
+} from '../questionnaireResponse/who5ScoringService.js'
 import { DebugDataService } from '../seeding/debugData/debugDataService.js'
 import { StaticDataService } from '../seeding/staticData/staticDataService.js'
 import {
@@ -71,6 +75,10 @@ export class DefaultServiceFactory implements ServiceFactory {
         new DietScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
           scoreCalculator: new DietScoreCalculator(),
+        }),
+        new Who5ScoringQuestionnaireResponseService({
+          databaseService: this.databaseService.value,
+          scoreCalculator: new DefaultWho5ScoreCalculator(),
         }),
         new NicotineScoringQuestionnaireResponseService({
           databaseService: this.databaseService.value,
