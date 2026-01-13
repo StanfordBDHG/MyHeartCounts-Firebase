@@ -55,10 +55,23 @@ This can be especially useful if you're using an operating system like Windows, 
 
 ## Data Structure
 
+My Heart Counts Firebase makes extensive usage of both the Firestore Database (NoSQL cloud database) and Firebase Cloud Storage (object storage service).
+
+### Firestore Database
+
+|Path|Purpose|
+|-|-|
+|TODO|TOMORROW|
+
+### Firebase Cloud Storage
+
+|Path|Purpose|
+|-|-|
+|TODO|TOMORROW|
 
 ## Testing
 
-We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`. To set the flag that you'll be testing with enabled emulators, run env `EMULATORS_ACTIVE=true TZ=UTC`.
+We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`.
 
 ## Contributing
 
