@@ -3,6 +3,9 @@ This source file is part of the Stanford Biodesign Digital Health MyHeart Counts
 SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
 SPDX-License-Identifier: MIT
 -->
+[![Build and Test](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml)
+[![CodeQL](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/codeql.yml)
+[![Deployment](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/deployment.yml/badge.svg?branch=main)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/deployment.yml)
 
 # My Heart Counts
 
