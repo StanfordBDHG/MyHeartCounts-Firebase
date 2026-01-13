@@ -24,7 +24,7 @@ function getCollectionNameFromFileName(fileName: string): string | null {
 describe('onArchivedLiveHealthSampleUploaded', () => {
   describe('getCollectionNameFromFileName', () => {
     it('should extract HKQuantityTypeIdentifier from filename', () => {
-      const fileName = 'HKQuantityTypeIdentifierHeartRate_ABC123.json.zlib'
+      const fileName = 'HKQuantityTypeIdentifierHeartRate_ABC123.json.zstd'
       const result = getCollectionNameFromFileName(fileName)
       expect(result).to.equal(
         'HealthObservations_HKQuantityTypeIdentifierHeartRate',
@@ -32,7 +32,7 @@ describe('onArchivedLiveHealthSampleUploaded', () => {
     })
 
     it('should extract HKCorrelationTypeIdentifier from filename', () => {
-      const fileName = 'HKCorrelationTypeIdentifierBloodPressure_456.json.zlib'
+      const fileName = 'HKCorrelationTypeIdentifierBloodPressure_456.json.zstd'
       const result = getCollectionNameFromFileName(fileName)
       expect(result).to.equal(
         'HealthObservations_HKCorrelationTypeIdentifierBloodPressure',
@@ -40,7 +40,7 @@ describe('onArchivedLiveHealthSampleUploaded', () => {
     })
 
     it('should extract HKCategoryTypeIdentifier from filename', () => {
-      const fileName = 'HKCategoryTypeIdentifierSleepAnalysis_789.json.zlib'
+      const fileName = 'HKCategoryTypeIdentifierSleepAnalysis_789.json.zstd'
       const result = getCollectionNameFromFileName(fileName)
       expect(result).to.equal(
         'HealthObservations_HKCategoryTypeIdentifierSleepAnalysis',
@@ -48,7 +48,7 @@ describe('onArchivedLiveHealthSampleUploaded', () => {
     })
 
     it('should return null for filename without HealthKit identifier', () => {
-      const fileName = 'someRandomFile_123.json.zlib'
+      const fileName = 'someRandomFile_123.json.zstd'
       const result = getCollectionNameFromFileName(fileName)
       expect(result).to.be.null
     })
@@ -60,7 +60,7 @@ describe('onArchivedLiveHealthSampleUploaded', () => {
     })
 
     it('should handle custom identifiers containing "Identifier"', () => {
-      const fileName = 'CustomHealthIdentifierExample_999.json.zlib'
+      const fileName = 'CustomHealthIdentifierExample_999.json.zstd'
       const result = getCollectionNameFromFileName(fileName)
       expect(result).to.equal(
         'HealthObservations_CustomHealthIdentifierExample',
@@ -89,22 +89,22 @@ describe('onArchivedLiveHealthSampleUploaded', () => {
 
     it('should validate correct liveHealthSamples path', () => {
       const filePath =
-        'users/test-user-123/liveHealthSamples/HKQuantityTypeIdentifierHeartRate_ABC123.json.zlib'
+        'users/test-user-123/liveHealthSamples/HKQuantityTypeIdentifierHeartRate_ABC123.json.zstd'
       expect(isValidHealthSamplesPath(filePath)).to.be.true
     })
 
     it('should reject files not in liveHealthSamples folder', () => {
-      const filePath = 'users/test-user-123/otherFolder/file.zlib'
+      const filePath = 'users/test-user-123/otherFolder/file.zstd'
       expect(isValidHealthSamplesPath(filePath)).to.be.false
     })
 
     it('should reject invalid file path structure', () => {
-      const filePath = 'invalid/path/structure.zlib'
+      const filePath = 'invalid/path/structure.zstd'
       expect(isValidHealthSamplesPath(filePath)).to.be.false
     })
 
     it('should reject missing userId in path', () => {
-      const filePath = 'users//liveHealthSamples/file.zlib'
+      const filePath = 'users//liveHealthSamples/file.zstd'
       expect(isValidHealthSamplesPath(filePath)).to.be.false
     })
 
