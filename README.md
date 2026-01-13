@@ -22,7 +22,29 @@ Addtionally, a collection of various scripts in [assets/scripts](assets/scripts)
 > [!NOTE]  
 > Do you want to learn more about the Stanford Spezi Template Application and how to use, extend, and modify this application? Check out the [Stanford Spezi Template Application documentation](https://stanfordspezi.github.io/SpeziTemplateApplication).
 
-## Usage
+
+## Data Structure
+
+My Heart Counts Firebase makes extensive usage of both the Firestore Database (NoSQL cloud database) and Firebase Cloud Storage (object storage service).
+
+### Firestore Database
+
+|Path|Purpose|
+|-|-|
+|TODO|TOMORROW|
+
+### Firebase Cloud Storage
+
+|Path|Purpose|
+|-|-|
+|TODO|TOMORROW|
+
+
+## Development
+
+This section contains developer information to kickstart local- and cloud development using the ressources from this repository.
+
+### Infrastructure Overview
 
 To use Firebase functions for your own project or to emulate them for client applications, this section will help to give an overview of the different packages in use and how to install, build, test and launch them.
 
@@ -30,6 +52,8 @@ This repository contains two separate packages.
 
 - The package located in [functions/models](functions/models) contains model types including decoding/encoding functions and useful extensions that are shared between the Firebase functions.
 - The package located in [functions](functions) contains the Firebase functions and services that are called from these functions. This package has a local dependency on the package in [functions/models](functions/models). Therefore, the functions package does not work (e. g. for linting, building, etc) without building the models package first.
+
+### Project Scripts
 
 To make this structure simpler to use, we provide different scripts as part of the [package.json](package.json) file in the root directory of this repository. The file ensures execution order between the two packages. We only document the scripts located in this file, since they cover the most common use cases, feel free to have a look at the individual package.json files of the respective packages to get a deeper understanding and more package-focused operations.
 
@@ -53,27 +77,11 @@ docker compose up
 
 This can be especially useful if you're using an operating system like Windows, as scripts contain OS-specific commands that may not work the same way across different platforms.
 
-## Data Structure
-
-My Heart Counts Firebase makes extensive usage of both the Firestore Database (NoSQL cloud database) and Firebase Cloud Storage (object storage service).
-
-### Firestore Database
-
-|Path|Purpose|
-|-|-|
-|TODO|TOMORROW|
-
-### Firebase Cloud Storage
-
-|Path|Purpose|
-|-|-|
-|TODO|TOMORROW|
-
-## Testing
+### Development
 
 We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`.
 
-## Contributing
+### Contributing
 
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/StanfordBDHG/.github/blob/main/CONTRIBUTING.md) and the [contributor covenant code of conduct](https://github.com/StanfordBDHG/.github/blob/main/CODE_OF_CONDUCT.md) first.
 
