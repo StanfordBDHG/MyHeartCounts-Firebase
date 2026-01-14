@@ -150,10 +150,10 @@ flowchart TD
     R -->|Process data| Y[Create FHIR Observation]
     U -->|Parse cholesterol data| Z[Create FHIR Observation]
 
-    W -->|Store in Firestore| AA[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeDietMEPAScore]
-    X -->|Store in Firestore| AB[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeNicotineExposure]
-    Y -->|Store in Firestore| AC[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeHeartRiskNicotine]
-    Z -->|Store in Firestore| AD[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeLDL]
+    W -->|Store in Firestore| AA[users/USER-ID/HealthObservations_MHCCustomSampleTypeDietMEPAScore]
+    X -->|Store in Firestore| AB[users/USER-ID/HealthObservations_MHCCustomSampleTypeNicotineExposure]
+    Y -->|Store in Firestore| AC[users/USER-ID/HealthObservations_MHCCustomSampleTypeHeartRiskNicotine]
+    Z -->|Store in Firestore| AD[users/USER-ID/HealthObservations_MHCCustomSampleTypeLDL]
 
     AA --> AE[Log Success]
     AB --> AE
