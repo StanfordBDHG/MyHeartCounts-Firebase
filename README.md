@@ -85,13 +85,13 @@ To make this structure simpler to use, we provide different scripts as part of t
 
 |Command|Purpose|
 |-|-|
-|npm run install|Installs dependencies (incl. dev dependencies) for both packages.|
-|npm run clean|Cleans existing build artifacts for both packages.|
-|npm run build|Builds both packages. If you have added or removed files in one of the packages, make sure to clean before using this command.|
-|npm run lint|Lints both packages. Make sure to build before using this command. You may want to append `:fix` to fix existing issues automatically or `:strict` to make sure the command does not succeed with existing warnings or errors.|
-|npm run prepare|Combines cleaning, installing and building both packages.|
-|npm run test:ci|Tests the Firebase functions with emulators running and with test coverage collection active.|
-|npm run serve:seeded|Starts up the relevant emulators for MyHeart Counts and seeds them. Make sure to build the project first before executing this command.|
+|`npm run install`|Installs dependencies (incl. dev dependencies) for both packages.|
+|`npm run clean`|Cleans existing build artifacts for both packages.|
+|`npm run build`|Builds both packages. If you have added or removed files in one of the packages, make sure to clean before using this command.|
+|`npm run lint`|Lints both packages. Make sure to build before using this command. You may want to append `:fix` to fix existing issues automatically or `:strict` to make sure the command does not succeed with existing warnings or errors.|
+|`npm run prepare`|Combines cleaning, installing and building both packages.|
+|`npm run test:ci`|Tests the Firebase functions with emulators running and with test coverage collection active.|
+|`npm run serve:seeded`|Starts up the relevant emulators for MyHeart Counts and seeds them. Make sure to build the project first before executing this command.|
 
 For using the emulators for client applications, it is probably easiest to call `npm run prepare` whenever files could have changed (e.g. when changing branch or pulling new changes) and then calling `npm run serve:seeded` to start up the emulators in a seeded state. Both of these commands are performed in the root directory of this repository.
 
