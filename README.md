@@ -9,8 +9,12 @@ SPDX-License-Identifier: MIT
 
 # My Heart Counts
 
-The [My Heart Counts (MHC) application](https://myheartcounts.stanford.edu) is a [Spezi](https://github.com/StanfordSpezi)-based large-scale cardiovascular study application, developed at Stanford University. This is the repo for 
-This is the repository for the backend infrastructure, running on Google Firebase. The iOS Application can be found in [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository.
+The [My Heart Counts (MHC) application](https://myheartcounts.stanford.edu) is a [Spezi](https://github.com/StanfordSpezi)-based large-scale cardiovascular study application, developed at Stanford University. 
+
+This is the repository for the backend infrastructure, running on Google Firebase. 
+
+The iOS Application can be found in [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository.
+
 The study itself with its contents is defined in [StanfordBDHG/MyHeartCounts-StudyDefinitions](https://github.com/StanfordBDHG/MyHeartCounts-StudyDefinitions).
 
 Key features of the backend infrastructure include:
