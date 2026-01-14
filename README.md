@@ -107,6 +107,70 @@ This can be especially useful if you're using an operating system like Windows, 
 
 We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`.
 
+### Data Flows
+
+#### Questionaire Processing
+
+```mermaid
+flowchart TD
+    A[User uploads Questionnaire Response] -->|Firestore write event| B[onUserQuestionnaireResponseWritten]
+    B -->|Converts Firestore data| C[TriggerService.questionnaireResponseWritten]
+    C -->|Determines if new/updated| D{After document exists?}
+
+    D -->|No| E[End - Document deleted]
+    D -->|Yes| F[MultiQuestionnaireResponseService.handle]
+
+    F -->|Iterates through components| G[DietScoringService]
+    F -->|Iterates through components| H[NicotineScoringService]
+    F -->|Iterates through components| I[HeartRiskNicotineScoringService]
+    F -->|Iterates through components| J[HeartRiskLdlParsingService]
+
+    G -->|Checks questionnaire URL| K{Matches Diet questionnaire?}
+    K -->|Yes| L[Calculate Diet Score]
+    K -->|No| M[Skip - Return false]
+
+    H -->|Checks questionnaire URL| N{Matches Nicotine questionnaire?}
+    N -->|Yes| O[Extract smoking status]
+    N -->|No| P[Skip - Return false]
+
+    I -->|Checks questionnaire URL| Q{Matches Heart Risk Nicotine?}
+    Q -->|Yes| R[Process Heart Risk Nicotine]
+    Q -->|No| S[Skip - Return false]
+
+    J -->|Checks questionnaire URL| T{Matches LDL questionnaire?}
+    T -->|Yes| U[Parse LDL values]
+    T -->|No| V[Skip - Return false]
+
+    L -->|Score calculated| W[Create FHIR Observation]
+    O -->|Convert to score 0-4| X[Create FHIR Observation]
+    R -->|Process data| Y[Create FHIR Observation]
+    U -->|Parse cholesterol data| Z[Create FHIR Observation]
+
+    W -->|Store in Firestore| AA[users/{userId}/healthObservations/Diet]
+    X -->|Store in Firestore| AB[users/{userId}/healthObservations/NicotineExposure]
+    Y -->|Store in Firestore| AC[users/{userId}/healthObservations/HeartRiskNicotine]
+    Z -->|Store in Firestore| AD[users/{userId}/healthObservations/LDL]
+
+    AA --> AE[Log Success]
+    AB --> AE
+    AC --> AE
+    AD --> AE
+    AE --> AF[Return handled status]
+
+    M --> AF
+    P --> AF
+    S --> AF
+    V --> AF
+
+    AF --> AG{Any service handled?}
+    AG -->|Yes| AH[Log: Handled questimonnaire response]
+    AG -->|No| AI[Log: No handler found]
+
+    AH --> AJ[End]
+    AI --> AJ
+    E --> AJ
+```
+
 ### Contributing
 
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/StanfordBDHG/.github/blob/main/CONTRIBUTING.md) and the [contributor covenant code of conduct](https://github.com/StanfordBDHG/.github/blob/main/CODE_OF_CONDUCT.md) first.
