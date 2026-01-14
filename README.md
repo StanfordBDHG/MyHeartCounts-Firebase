@@ -44,6 +44,7 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |Path|Purpose|Fields|
 |-|-|-|
 |`/feedback/{UUID}`|Collection for Participant-Submitted Feedback|`accountId`, `appBuildNumber`, `appVersion`, `date`, `deviceInfo` (`model`, `osVersion`, `systemName`), `message`, `timeZone` (`identifier`)|
+|/users/{USER-ID}/|User Document|`biologicalSexAtBirth`, `bloodType`, `comorbidities` (Disease : year), `dateOfBirth`, `dateOfEnrollment`, `didOptInToTrial`, `disabled`, `fcmToken`, `futureStudies`, `heightInCM`, `householdIncomeUS`, `language`, `lastActiveDate`, `lastSignedConsentDate`, `lastSignedConsentVersion`, `latinoStatus`, `mhcGenderIdentity`, `mostRecentOnboardingStep`, `participantGroup`, `preferredNotificationTime`, `preferredWorkoutTypes`, `raceEthnicity`, `timeZone`, `usRegion`, `weightInKG` |
 
 ### Firebase Cloud Storage
 
