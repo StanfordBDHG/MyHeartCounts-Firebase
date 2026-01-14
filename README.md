@@ -41,9 +41,9 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 
 ### Firestore Database
 
-|Path|Purpose|
-|-|-|
-|TODO|TOMORROW|
+|Path|Purpose|Fields|
+|-|-|-|
+|/feedback/{UUID}|Collection for Participant-Submitted Feedback|`accountId`, `appBuildNumber`, `appVersion`, `date`, `deviceInfo` (`model`, `osVersion`, `systemName`), `message`, `timeZone` (`identifier`)|
 
 ### Firebase Cloud Storage
 
