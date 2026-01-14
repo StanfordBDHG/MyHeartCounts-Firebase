@@ -40,8 +40,11 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 
 |Path|Purpose|
 |-|-|
-|TODO|TOMORROW|
-
+|/public/mhcStudyBundle.spezistudybundle.aar|This it the Study definition bundle auto-build by the workflow in [MyHeartCounts-StudyDefinitions](https://github.com/StanfordBDHG/MyHeartCounts-StudyDefinitions/blob/main/.github/workflows/publish-study-definition.yml)|
+|/user/{USER-ID}/consent|PDF Files of every consent the user gave (this could be multiple in the case of consent revisions)|
+|/user/{USER-ID}/historicalHealthSamples|We collect health samples that were recorded before the user enrolled into the app, compress them via zstd and store them as-is in the folder historicalHealthSamples for future analytics|
+|/user/{USER-ID}/liveHealthSamples|Most recorded ongoing (new) health samples get directly uploaded into the Firestore NoSQL Database - however, if a large amount of data has accumulated, we archive these samples for server-side decoding and upload them into liveHealthSamples. **This folder will be empty most of the time!** On Upload, the function [onArchivedLiveHealthSampleUploaded.ts](functions/src/functions/onArchivedLiveHealthSampleUploaded.ts) gets triggered which upon successful unpacking and storing into the Firestore Database deletes the live health sample archive.|
+|/user/{USER-ID}/SensorKit/{SENSOR.IDENTIFIER}|Samples from Apple's SensorKit Framework, sorted in sub-folders by the [sensor identifier name](https://developer.apple.com/documentation/sensorkit/).|
 
 ## Development
 
