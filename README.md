@@ -36,10 +36,10 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |-|-|-|
 |`{USER-ID}`|The Firebase-Generated Account User-ID|`vqzvMTfki9hD0yqTcVVW8XsKf6g2`|
 |`{UUID}`|Randomly generated Sample ID|`BCD7D622-0CDC-4194-A008-3452C9C95546`|
-|`{HEALTHKIT.IDENTIFIER}`|HealthKit Identifier / [HKQuantityTypeIdentifier](https://developer.apple.com/documentation/healthkit/hkquantitytypeidentifier)|
-|`{SENSORKIT.IDENTIFIER}`|[Sensor identifier name](https://developer.apple.com/documentation/sensorkit/) from the SensorKit Framework|com.apple.SensorKit.ambientPressure|
-|`{MHCCUSTOM.IDENTIFIER}`|Custom Sample Type defined for the My Heart Counts Study|MHCHealthObservationTimedWalkingTestResultIdentifier|
-|`{TIMESTAMP}`|Timestamp|2025-11-17T22:44:09Z_2025-11-17T23:44:09Z|
+|`{HEALTHKIT.IDENTIFIER}`|HealthKit Identifier / [HKQuantityTypeIdentifier](https://developer.apple.com/documentation/healthkit/hkquantitytypeidentifier)|`HKClinicalTypeIdentifierAllergyRecord`|
+|`{SENSORKIT.IDENTIFIER}`|[Sensor identifier name](https://developer.apple.com/documentation/sensorkit/) from the SensorKit Framework|`com.apple.SensorKit.ambientPressure`|
+|`{MHCCUSTOM.IDENTIFIER}`|Custom Sample Type defined for the My Heart Counts Study|`MHCHealthObservationTimedWalkingTestResultIdentifier`|
+|`{TIMESTAMP}`|Timestamp|`2025-11-17T22:44:09Z_2025-11-17T23:44:09Z`|
 
 ### Firestore Database
 
