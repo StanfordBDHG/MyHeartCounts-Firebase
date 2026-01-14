@@ -146,10 +146,10 @@ flowchart TD
     R -->|Process data| Y[Create FHIR Observation]
     U -->|Parse cholesterol data| Z[Create FHIR Observation]
 
-    W -->|Store in Firestore| AA[users/{userId}/healthObservations/Diet]
-    X -->|Store in Firestore| AB[users/{userId}/healthObservations/NicotineExposure]
-    Y -->|Store in Firestore| AC[users/{userId}/healthObservations/HeartRiskNicotine]
-    Z -->|Store in Firestore| AD[users/{userId}/healthObservations/LDL]
+    W -->|Store in Firestore| AA[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeDietMEPAScore]
+    X -->|Store in Firestore| AB[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeNicotineExposure]
+    Y -->|Store in Firestore| AC[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeHeartRiskNicotine]
+    Z -->|Store in Firestore| AD[users/{USER-ID}/HealthObservations_MHCCustomSampleTypeLDL]
 
     AA --> AE[Log Success]
     AB --> AE
@@ -163,12 +163,30 @@ flowchart TD
     V --> AF
 
     AF --> AG{Any service handled?}
-    AG -->|Yes| AH[Log: Handled questimonnaire response]
+    AG -->|Yes| AH[Log: Handled questionnaire response]
     AG -->|No| AI[Log: No handler found]
 
     AH --> AJ[End]
     AI --> AJ
     E --> AJ
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#fff4e1
+    style F fill:#ffe1f5
+    style G fill:#e1ffe1
+    style H fill:#e1ffe1
+    style I fill:#e1ffe1
+    style J fill:#e1ffe1
+    style W fill:#f5e1ff
+    style X fill:#f5e1ff
+    style Y fill:#f5e1ff
+    style Z fill:#f5e1ff
+    style AA fill:#ffe1e1
+    style AB fill:#ffe1e1
+    style AC fill:#ffe1e1
+    style AD fill:#ffe1e1
+    style AJ fill:#d3d3d3
 ```
 
 ### Contributing
