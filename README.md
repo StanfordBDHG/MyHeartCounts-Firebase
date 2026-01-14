@@ -55,10 +55,9 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |`/users/{USER-ID}/notificationBacklog/{UUID}`|Backlog of Notifications to send|`body`, `category`, `generatedAt`, `id`, `isLLMGenerated`, `timestamp`, `title`|
 |`/users/{USER-ID}/notificationHistory/{UUID}`|History of send notifications|`body`, `errorMessage`, `generatedAt`, `isLLMGenerated`, `originalTimestamp`, `processedTimestamp`, `status`, `title`|
 |`/users/{USER-ID}/notificationTracking/{UUID}`|Tracks the Notification Status|`event`, `notificationId`, `timeZone`, `timestamp`|
-|`/users/{USER-ID}/SensorKitObservations_deviceUsageReport/{UUID}`|Debug Info about Sensor Kit Hardware Environment|FHIR Observation for custom MHC sample|See [https://hl7.org/fhir/R4/observation.html](FHIR observation documentation)|
-|`/users/{USER-ID}/HealthObservations_{MHCCUSTOM.IDENTIFIER}/{UUID}`|FHIR Observation for custom MHC sample|See [https://hl7.org/fhir/R4/observation.html](FHIR observation documentation)|
-|`/users/{USER-ID}/HealthObservations_{HEALTHKIT.IDENTIFIER}/{UUID}`|FHIR Observation for given health kit type|See [https://hl7.org/fhir/R4/observation.html](FHIR observation documentation)|
-|`/users/{USER-ID}/HealthObservations_{SENSORKIT.IDENTIFIER}/{Timestamp}`|FHIR Observation for given sensor kit type|See [https://hl7.org/fhir/R4/observation.html](FHIR observation documentation)|
+|`/users/{USER-ID}/SensorKitObservations_deviceUsageReport/{UUID}`|Debug Info about Sensor Kit Hardware Environment|FHIR Observation for custom MHC sample|See [FHIR observation documentation](https://hl7.org/fhir/R4/observation.html)|
+|`/users/{USER-ID}/HealthObservations_{HEALTHKIT.IDENTIFIER}/{UUID}`|FHIR Observation for given health kit type|See [FHIR observation documentation](https://hl7.org/fhir/R4/observation.html)|
+|`/users/{USER-ID}/HealthObservations_{SENSORKIT.IDENTIFIER}/{Timestamp}`|FHIR Observation for given sensor kit type|See [FHIR observation documentation](https://hl7.org/fhir/R4/observation.html)|
 
 ### Firebase Cloud Storage
 
