@@ -39,7 +39,7 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |`{HEALTHKIT.IDENTIFIER}`|HealthKit Identifier / [HKQuantityTypeIdentifier](https://developer.apple.com/documentation/healthkit/hkquantitytypeidentifier)|`HKClinicalTypeIdentifierAllergyRecord`|
 |`{SENSORKIT.IDENTIFIER}`|[Sensor identifier name](https://developer.apple.com/documentation/sensorkit/) from the SensorKit Framework|`com.apple.SensorKit.ambientPressure`|
 |`{MHCCUSTOM.IDENTIFIER}`|Custom Sample Type defined for the My Heart Counts Study|`MHCHealthObservationTimedWalkingTestResultIdentifier`|
-|`{TIMESTAMP}`|Timestamp|`2025-11-17T22:44:09Z_2025-11-17T23:44:09Z`|
+|`{TIMESTAMP}`|ISO 8601 Timestamp, delimited by an underscore (_) for time ranges|`2025-11-17T22:44:09Z_2025-11-17T23:44:09Z`|
 
 ### Firestore Database
 
@@ -47,7 +47,7 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |-|-|-|
 |`/feedback/{UUID}`|Collection for Participant-Submitted Feedback|`accountId`, `appBuildNumber`, `appVersion`, `date`, `deviceInfo` (`model`, `osVersion`, `systemName`), `message`, `timeZone` (`identifier`)|
 |`/users/{USER-ID}`|User Document|`biologicalSexAtBirth`, `bloodType`, `comorbidities` (Disease : year), `dateOfBirth`, `dateOfEnrollment`, `didOptInToTrial`, `disabled`, `fcmToken`, `futureStudies`, `heightInCM`, `householdIncomeUS`, `language`, `lastActiveDate`, `lastSignedConsentDate`, `lastSignedConsentVersion`, `latinoStatus`, `mhcGenderIdentity`, `mostRecentOnboardingStep`, `participantGroup`, `preferredNotificationTime`, `preferredWorkoutTypes`, `raceEthnicity`, `timeZone`, `usRegion`, `weightInKG`|
-|`/users/{USER-ID}/questionnaireResponses/{UUID}`|FHIR questionnaire responses|See [https://build.fhir.org/questionnaireresponse.html](FHIR questionnaireresponse documentation)|
+|`/users/{USER-ID}/questionnaireResponses/{UUID}`|FHIR questionnaire responses|See [FHIR questionnaireresponse documentation](https://build.fhir.org/questionnaireresponse.html)|
 |`/users/{USER-ID}/notificationBacklog/{UUID}`|Backlog of Notifications to send|`body`, `category`, `generatedAt`, `id`, `isLLMGenerated`, `timestamp`, `title`|
 |`/users/{USER-ID}/notificationHistory/{UUID}`|History of send notifications|`body`, `errorMessage`, `generatedAt`, `isLLMGenerated`, `originalTimestamp`, `processedTimestamp`, `status`, `title`|
 |`/users/{USER-ID}/notificationTracking/{UUID}`|Tracks the Notification Status|`event`, `notificationId`, `timeZone`, `timestamp`|
