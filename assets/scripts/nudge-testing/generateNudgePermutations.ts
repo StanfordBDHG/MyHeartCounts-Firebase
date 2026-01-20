@@ -9,7 +9,10 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import OpenAI from 'openai'
+import { type ModelBackend } from './backends/ModelBackend.js'
+import { BackendFactory } from './backends/BackendFactory.js'
+import { MODEL_CONFIGS, type ModelConfig } from './config/models.js'
+import { MLXPythonBackend } from './backends/MLXPythonBackend.js'
 
 // Type definitions matching planNudges.ts
 enum Disease {
@@ -47,6 +50,9 @@ interface TestContext {
 
 interface TestResult {
   context: TestContext
+  modelId: string
+  provider: string
+  backendType: string
   genderContext: string
   ageContext: string
   diseaseContext: string
@@ -57,19 +63,19 @@ interface TestResult {
   notificationTimeContext: string
   fullPrompt: string
   llmResponse: string
+  latencyMs?: number
   error?: string
 }
 
 class NudgePermutationTester {
-  private openai: OpenAI
   private results: TestResult[] = []
+  private modelsToTest: ModelConfig[] = []
 
-  constructor(apiKey: string) {
-    this.openai = new OpenAI({
-      apiKey: apiKey,
-    })
-  }
-
+  constructor(
+    private openAIApiKey: string | undefined,
+    private pythonServiceUrl: string = 'http://localhost:8000',
+    private secureGPTApiKey: string | undefined = undefined,
+  ) {}
 
   private getAgeContext(ageGroup: string): string {
     switch (ageGroup) {
@@ -203,7 +209,11 @@ class NudgePermutationTester {
     return `This user prefers to receive recommendation at ${preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`
   }
 
-  private async generateNudgesForContext(context: TestContext): Promise<TestResult> {
+  private async generateNudgesForContext(
+    context: TestContext,
+    backend: ModelBackend,
+    modelConfig: ModelConfig,
+  ): Promise<TestResult> {
     const genderContext = this.getGenderContext(context.genderIdentity)
     const ageContext = this.getAgeContext(context.ageGroup)
     const diseaseContext = this.getDiseaseContext(context.disease)
@@ -213,57 +223,25 @@ class NudgePermutationTester {
     const activityTypeContext = this.getActivityTypeContext(context.preferredWorkoutTypes)
     const notificationTimeContext = this.getNotificationTimeContext(context.preferredNotificationTime)
 
-    const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels.  Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having ""title"" and ""body"" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk activities without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information:" +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`
+    const prompt = `Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user in increase physical activity levels.  Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk activities without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods.`
+    const startTime = Date.now()
 
     try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-5.2-2025-12-11',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'nudge_messages',
-            schema: {
-              type: 'object',
-              properties: {
-                nudges: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      title: {
-                        type: 'string',
-                        description: 'Short summary/call to action for the push notification',
-                      },
-                      body: {
-                        type: 'string',
-                        description: 'Motivational message content for the push notification',
-                      },
-                    },
-                    required: ['title', 'body'],
-                    additionalProperties: false,
-                  },
-                  minItems: 7,
-                  maxItems: 7,
-                  description: 'Exactly 7 nudge messages',
-                },
-              },
-              required: ['nudges'],
-              additionalProperties: false,
-            },
-          },
-        },
-      })
+      const timeout = modelConfig.config?.timeout ? modelConfig.config.timeout * 1000 : 60000
+      const options = {
+        maxTokens: 512,
+        temperature: 0.7,
+        timeout,
+      }
 
-      const llmResponse = response.choices[0].message.content || ''
+      const llmResponse = await backend.generate(prompt, options)
+      const latencyMs = Date.now() - startTime
 
       return {
         context,
+        modelId: modelConfig.id,
+        provider: modelConfig.provider,
+        backendType: modelConfig.provider,
         genderContext,
         ageContext,
         diseaseContext,
@@ -274,20 +252,26 @@ class NudgePermutationTester {
         notificationTimeContext,
         fullPrompt: prompt,
         llmResponse,
+        latencyMs,
       }
     } catch (error) {
+      const latencyMs = Date.now() - startTime
       return {
         context,
+        modelId: modelConfig.id,
+        provider: modelConfig.provider,
+        backendType: modelConfig.provider,
         genderContext,
         ageContext,
         diseaseContext,
         stageContext,
         educationContext,
         languageContext,
-        activityTypeContext: this.getActivityTypeContext(context.preferredWorkoutTypes),
-        notificationTimeContext: this.getNotificationTimeContext(context.preferredNotificationTime),
+        activityTypeContext,
+        notificationTimeContext,
         fullPrompt: prompt,
         llmResponse: '',
+        latencyMs,
         error: error instanceof Error ? error.message : String(error),
       }
     }
@@ -360,6 +344,9 @@ class NudgePermutationTester {
 
   private writeResultsToCSV(results: TestResult[], filename: string): void {
     const headers = [
+      'modelId',
+      'provider',
+      'backendType',
       'genderIdentity',
       'ageGroup',
       'disease',
@@ -376,6 +363,7 @@ class NudgePermutationTester {
       'notificationTimeContext',
       'fullPrompt',
       'llmResponse',
+      'latencyMs',
       'error'
     ]
 
@@ -383,6 +371,9 @@ class NudgePermutationTester {
 
     for (const result of results) {
       const row = [
+        result.modelId,
+        result.provider,
+        result.backendType,
         result.context.genderIdentity,
         result.context.ageGroup,
         result.context.disease || '',
@@ -399,6 +390,7 @@ class NudgePermutationTester {
         result.notificationTimeContext,
         result.fullPrompt,
         result.llmResponse,
+        result.latencyMs?.toString() || '',
         result.error || ''
       ].map(value => this.escapeCSVValue(String(value)))
 
@@ -417,7 +409,40 @@ class NudgePermutationTester {
     return shuffled
   }
 
+  async checkPythonServiceHealth(): Promise<boolean> {
+    try {
+      const testBackend = new MLXPythonBackend(
+        { id: 'test', provider: 'mlx-python', displayName: 'test', enabled: true },
+        this.pythonServiceUrl
+      )
+      return await testBackend.checkHealth()
+    } catch {
+      return false
+    }
+  }
+
+  setModelsToTest(models: ModelConfig[]): void {
+    this.modelsToTest = models
+  }
+
   async runAllPermutations(maxPermutations?: number, randomize = false): Promise<void> {
+    if (this.modelsToTest.length === 0) {
+      throw new Error('No models configured for testing. Use --model, --models, or --provider to select models.')
+    }
+
+    // Check Python service health if MLX models are being tested
+    const hasMLXModels = this.modelsToTest.some(m => m.provider === 'mlx-python')
+    if (hasMLXModels) {
+      const isHealthy = await this.checkPythonServiceHealth()
+      if (!isHealthy) {
+        console.warn(`Warning: Python service at ${this.pythonServiceUrl} is not available. MLX models will be skipped.`)
+        this.modelsToTest = this.modelsToTest.filter(m => m.provider !== 'mlx-python')
+        if (this.modelsToTest.length === 0) {
+          throw new Error('No models available for testing. Python service is required for MLX models.')
+        }
+      }
+    }
+
     const allPermutations = this.generateAllPermutations()
 
     let permutationsToTest: TestContext[]
@@ -434,47 +459,171 @@ class NudgePermutationTester {
 
     console.log(`Generated ${allPermutations.length} total permutations`)
     console.log(`Testing ${permutationsToTest.length} permutations${randomize ? ' (randomly selected)' : ''}`)
+    console.log(`Testing ${this.modelsToTest.length} model(s): ${this.modelsToTest.map(m => m.id).join(', ')}`)
 
     let completed = 0
-    for (const context of permutationsToTest) {
-      console.log(`Processing permutation ${completed + 1}/${permutationsToTest.length}...`)
-      const result = await this.generateNudgesForContext(context)
-      this.results.push(result)
-      completed++
+    const totalTests = this.modelsToTest.length * permutationsToTest.length
 
-      // Add small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100))
+    // Run models sequentially
+    for (const modelConfig of this.modelsToTest) {
+      console.log(`\nTesting model: ${modelConfig.id} (${modelConfig.provider})`)
+
+      let backend: ModelBackend
+      try {
+        backend = BackendFactory.create(modelConfig, this.openAIApiKey, this.pythonServiceUrl, this.secureGPTApiKey)
+      } catch (error) {
+        console.error(`Failed to create backend for ${modelConfig.id}: ${error instanceof Error ? error.message : String(error)}`)
+        continue
+      }
+
+      // Test each permutation with this model
+      for (const context of permutationsToTest) {
+        console.log(`Processing permutation ${completed + 1}/${totalTests} (model: ${modelConfig.id})...`)
+        const result = await this.generateNudgesForContext(context, backend, modelConfig)
+        this.results.push(result)
+        completed++
+
+        // Add small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
     }
 
+    // Generate filename
+    let modelIds: string
+    if (this.modelsToTest.length === 1) {
+      // Single model: use full model ID
+      modelIds = this.modelsToTest[0].id.replace(/\//g, '-')
+    } else if (this.modelsToTest.length <= 3) {
+      // 2-3 models: use shortened model IDs
+      modelIds = this.modelsToTest
+        .map(m => m.id.split('/').pop())
+        .join('_')
+    } else {
+      // 4+ models: use provider and count to keep filename short
+      const providers = [...new Set(this.modelsToTest.map(m => m.provider))]
+      if (providers.length === 1) {
+        modelIds = `${providers[0]}_${this.modelsToTest.length}models`
+      } else {
+        modelIds = `multi-provider_${this.modelsToTest.length}models`
+      }
+    }
+    
     const suffix = maxPermutations ? `_sample_${maxPermutations}${randomize ? '_random' : ''}` : '_full'
     const __filename = fileURLToPath(import.meta.url)
     const __dirname = path.dirname(__filename)
-    const outputPath = path.join(__dirname, `nudge_permutations_results${suffix}.csv`)
+    const outputPath = path.join(__dirname, `nudge_permutations_results_${modelIds}${suffix}.csv`)
     this.writeResultsToCSV(this.results, outputPath)
-    console.log(`Results written to ${outputPath}`)
+    console.log(`\nResults written to ${outputPath}`)
   }
 }
 
+function parseCLIArgs(): {
+  maxPermutations?: number
+  randomize: boolean
+  modelIds?: string[]
+  provider?: string
+  pythonServiceUrl?: string
+} {
+  const args = process.argv.slice(2)
+  const result: {
+    maxPermutations?: number
+    randomize: boolean
+    modelIds?: string[]
+    provider?: string
+    pythonServiceUrl?: string
+  } = {
+    randomize: false,
+  }
+
+  if (args.includes('--sample')) {
+    const index = args.indexOf('--sample')
+    result.maxPermutations = parseInt(args[index + 1]) || 10
+  }
+
+  if (args.includes('--random')) {
+    result.randomize = true
+  }
+
+  if (args.includes('--model')) {
+    const index = args.indexOf('--model')
+    result.modelIds = [args[index + 1]]
+  }
+
+  if (args.includes('--models')) {
+    const index = args.indexOf('--models')
+    result.modelIds = args[index + 1].split(',').map(id => id.trim())
+  }
+
+  if (args.includes('--provider')) {
+    const index = args.indexOf('--provider')
+    result.provider = args[index + 1]
+  }
+
+  if (args.includes('--python-service-url')) {
+    const index = args.indexOf('--python-service-url')
+    result.pythonServiceUrl = args[index + 1]
+  }
+
+  return result
+}
+
+function selectModels(
+  cliArgs: ReturnType<typeof parseCLIArgs>,
+): ModelConfig[] {
+  let models = MODEL_CONFIGS.filter(m => m.enabled)
+
+  // Filter by provider
+  if (cliArgs.provider && cliArgs.provider !== 'all') {
+    models = models.filter(m => m.provider === cliArgs.provider)
+  }
+
+  // Filter by specific model IDs
+  if (cliArgs.modelIds) {
+    models = models.filter(m => cliArgs.modelIds!.includes(m.id))
+  }
+
+  // Default: if no filters, use OpenAI only (backward compatible)
+  if (!cliArgs.provider && !cliArgs.modelIds) {
+    models = models.filter(m => m.provider === 'openai')
+  }
+
+  return models
+}
+
 async function main() {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    console.error('OPENAI_API_KEY environment variable is required')
+  const cliArgs = parseCLIArgs()
+  const openAIApiKey = process.env.OPENAI_API_KEY
+  const secureGPTApiKey = process.env.SECUREGPT_API_KEY
+  const pythonServiceUrl = cliArgs.pythonServiceUrl || 'http://localhost:8000'
+
+  const modelsToTest = selectModels(cliArgs)
+
+  if (modelsToTest.length === 0) {
+    console.error('No models selected for testing. Use --model, --models, or --provider to select models.')
     process.exit(1)
   }
 
-  // Check for command line arguments to limit permutations
-  const args = process.argv.slice(2)
-  const maxPermutations = args.includes('--sample') ? parseInt(args[args.indexOf('--sample') + 1]) || 10 : undefined
-  const randomize = args.includes('--random')
+  const needsOpenAI = modelsToTest.some(m => m.provider === 'openai')
+  if (needsOpenAI && !openAIApiKey) {
+    console.error('OPENAI_API_KEY environment variable is required for OpenAI models')
+    process.exit(1)
+  }
 
-  if (maxPermutations) {
-    console.log(`Starting nudge permutation testing (sample mode: ${maxPermutations} permutations${randomize ? ', randomly selected' : ''})...`)
+  const needsSecureGPT = modelsToTest.some(m => m.provider === 'securegpt')
+  if (needsSecureGPT && !secureGPTApiKey) {
+    console.error('SECUREGPT_API_KEY environment variable is required for SecureGPT models')
+    process.exit(1)
+  }
+
+  if (cliArgs.maxPermutations) {
+    console.log(`Starting nudge permutation testing (sample mode: ${cliArgs.maxPermutations} permutations${cliArgs.randomize ? ', randomly selected' : ''})...`)
   } else {
     console.log('Starting nudge permutation testing (full mode: all permutations)...')
   }
 
-  const tester = new NudgePermutationTester(apiKey)
-  await tester.runAllPermutations(maxPermutations, randomize)
+  const tester = new NudgePermutationTester(openAIApiKey, pythonServiceUrl, secureGPTApiKey)
+  tester.setModelsToTest(modelsToTest)
+  await tester.runAllPermutations(cliArgs.maxPermutations, cliArgs.randomize)
   console.log('Testing complete!')
 }
 

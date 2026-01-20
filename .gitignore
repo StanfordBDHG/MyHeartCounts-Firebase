@@ -143,3 +143,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 /downloads
+
+# Python bytecode
+__pycache__/

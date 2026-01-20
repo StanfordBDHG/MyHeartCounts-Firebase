@@ -10,7 +10,8 @@
     "test:sample": "npm run build && node dist/generateNudgePermutations.js --sample 10",
     "test:sample-custom": "npm run build && node dist/generateNudgePermutations.js --sample",
     "test:random": "npm run build && node dist/generateNudgePermutations.js --sample 10 --random",
-    "test:random-custom": "npm run build && node dist/generateNudgePermutations.js --sample --random"
+    "test:random-custom": "npm run build && node dist/generateNudgePermutations.js --sample --random",
+    "start:python-service": "cd python_service && python -m uvicorn mlx_service:app --reload"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0",
