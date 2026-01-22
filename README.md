@@ -13,7 +13,7 @@ The [My Heart Counts (MHC) application](https://myheartcounts.stanford.edu) is a
 
 This is the repository for the backend infrastructure, running on Google Firebase. 
 
-The iOS Application can be found in [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository.
+The iOS Application can be found in the [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository, the repository for the data analysis side of this study can be found over at [StanfordBDHG/MyHeartCounts-DataAnalysis](https://github.com/StanfordBDHG/MyHeartCounts-DataAnalysis).
 
 The study itself with its contents is defined in [StanfordBDHG/MyHeartCounts-StudyDefinitions](https://github.com/StanfordBDHG/MyHeartCounts-StudyDefinitions).
 
