@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # Nudge Permutation Testing Script
 
-This script generates all possible permutations of the personalization context used in the `planNudges.ts` function and captures the LLM responses for analysis. It supports multiple model backends including OpenAI API and local MLX models.
+This script generates all possible permutations of the personalization context used in the `planNudges.ts` function and captures the LLM responses for analysis. It supports multiple model backends including OpenAI API, SecureGPT, and local MLX models via HuggingFace.
 
 ## Context Variables Tested
 
@@ -221,6 +221,7 @@ The CSV output includes the following columns:
 The script uses a backend abstraction layer that supports multiple model providers:
 
 - **OpenAIBackend** - Handles OpenAI API calls
+- **SecureGPTBackend** - Handles SecureGPT API calls
 - **MLXPythonBackend** - Communicates with Python MLX service via HTTP
 - **BackendFactory** - Creates appropriate backend instances
 
