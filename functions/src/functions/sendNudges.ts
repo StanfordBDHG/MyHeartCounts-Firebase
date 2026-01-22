@@ -56,6 +56,7 @@ export class NotificationService {
 
   async sendNotificationToUser(
     userId: string,
+    documentId: string,
     title: string,
     body: string,
     fcmToken: string,
@@ -108,7 +109,8 @@ export class NotificationService {
       .collection('users')
       .doc(userId)
       .collection('notificationHistory')
-      .add(archiveData)
+      .doc(documentId)
+      .set(archiveData)
   }
 
   async processNotificationBacklog(): Promise<void> {
@@ -162,10 +164,12 @@ export class NotificationService {
                   .collection('users')
                   .doc(userId)
                   .collection('notificationHistory')
-                  .add(archiveData)
+                  .doc(backlogDoc.id)
+                  .set(archiveData)
               } else {
                 await this.sendNotificationToUser(
                   userId,
+                  backlogDoc.id,
                   backlogItem.title,
                   backlogItem.body,
                   userData.fcmToken,
