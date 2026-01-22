@@ -1,3 +1,9 @@
+# This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
+#
+# SPDX-FileCopyrightText: 2025 Stanford University
+#
+# SPDX-License-Identifier: MIT
+
 mlx>=0.18.0
 mlx-lm>=0.20.0
 fastapi>=0.115.0
