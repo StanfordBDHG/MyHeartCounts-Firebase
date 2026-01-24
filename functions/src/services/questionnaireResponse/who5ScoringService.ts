@@ -198,7 +198,7 @@ export class Who5ScoringQuestionnaireResponseService extends QuestionnaireRespon
       userId,
     )
 
-    const collectionName = 'HealthObservations_MHCCustomSampleTypeWHO5WellBeing'
+    const collectionName = 'HealthObservations_MHCCustomSampleTypeWHO5Score'
 
     return this.databaseService.runTransaction((collections, transaction) => {
       const ref = collections
