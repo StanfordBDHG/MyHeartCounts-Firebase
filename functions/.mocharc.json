@@ -1,4 +1,0 @@
-{
-  "spec": "lib/**/*.test.js",
-  "timeout": 60000
-}
