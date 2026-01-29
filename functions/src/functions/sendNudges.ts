@@ -71,6 +71,9 @@ export class NotificationService {
       const notificationMessage = {
         token: fcmToken,
         notification: { title, body },
+        data: {
+          notificationId: documentId,
+        },
       }
 
       const sendResult = await this.messaging.send(notificationMessage)
