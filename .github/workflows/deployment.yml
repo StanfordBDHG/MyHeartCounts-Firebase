@@ -12,6 +12,8 @@ on:
   push:
     branches:
       - main
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       environment:
@@ -50,7 +52,9 @@ jobs:
       - name: Determine Environment
         id: set-env
         run: |
-          if [[ -z "${{ inputs.environment }}" ]]; then
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [[ -z "${{ inputs.environment }}" ]]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
           else
             echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
