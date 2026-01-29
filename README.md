@@ -104,9 +104,17 @@ docker compose up
 
 This can be especially useful if you're using an operating system like Windows, as scripts contain OS-specific commands that may not work the same way across different platforms.
 
-### Development
+### Testing
 
 We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`.
+
+### Deployment Overview
+
+For this study, we choose to have three environments to test, stage and then run the code in production:
+
+- **My Heart Counts Development** serves as the internal testing playground for iterating rapidly. Deployed to manually via CLI, not via a pipeline.
+- **tds/development** is the staging environment hosted by [Stanford Technology and Digital Solutions of the School of Medicine and Stanford Health Care](https://med.stanford.edu/irt.html). We publish to this environment via [the CI pipeline](.github/workflows/deployment.yml) on push to main and make sure that every setting matches the production environment 1:1 (Service Account Rules, Notification Settings, Tokens, API Keys).
+- **tds/production** is the production environment of the My Heart Counts Study in the US. It is also hosted by [Stanford Technology and Digital Solutions of the School of Medicine and Stanford Health Care](https://med.stanford.edu/irt.html). We publish here via [the CI pipeline](.github/workflows/deployment.yml) on release, in sync if needed with the iOS deployment.
 
 ### Data Flows
 
