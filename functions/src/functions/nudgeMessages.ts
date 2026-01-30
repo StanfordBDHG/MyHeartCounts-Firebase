@@ -15,7 +15,17 @@ interface BaseNudgeMessage {
 const predefinedNudgesEn: BaseNudgeMessage[] = [
   {
     title: 'MHC Activity Reminder',
-    body: "Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.",
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
+    isLLMGenerated: false,
+  },
+  {
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
+    isLLMGenerated: false,
+  },
+  {
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
@@ -35,17 +45,7 @@ const predefinedNudgesEn: BaseNudgeMessage[] = [
   },
   {
     title: 'MHC Activity Reminder',
-    body: "Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.",
-    isLLMGenerated: false,
-  },
-  {
-    title: 'MHC Activity Reminder',
     body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
-    isLLMGenerated: false,
-  },
-  {
-    title: 'MHC Activity Reminder',
-    body: "Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.",
     isLLMGenerated: false,
   },
 ]
