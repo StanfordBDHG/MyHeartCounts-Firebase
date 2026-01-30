@@ -6,31 +6,31 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { randomUUID } from 'crypto'
+import { randomUUID } from "crypto";
 import {
   Score,
   type FHIRQuestionnaireResponse,
   type FHIRObservation,
-} from '@stanfordbdhg/myheartcounts-models'
-import { logger } from 'firebase-functions'
+} from "@stanfordbdhg/myheartcounts-models";
+import { logger } from "firebase-functions";
 import {
   scoreToObservation,
   getNicotineObservationConfig,
   type QuestionnaireObservationConfig,
-} from './fhirObservationConverter.js'
-import { QuestionnaireResponseService } from './questionnaireResponseService.js'
+} from "./fhirObservationConverter.js";
+import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
 import {
   type Document,
   type DatabaseService,
-} from '../database/databaseService.js'
+} from "../database/databaseService.js";
 
 export interface NicotineScoreCalculator {
-  calculate(smokingStatus: string): Score
+  calculate(smokingStatus: string): Score;
 }
 
 export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
   calculate(smokingStatus: string): Score {
-    const overallScore = this.smokingStatusToScore(smokingStatus)
+    const overallScore = this.smokingStatusToScore(smokingStatus);
 
     return new Score({
       date: new Date(),
@@ -38,42 +38,42 @@ export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
       domainScores: {
         statusScore: overallScore,
       },
-    })
+    });
   }
 
   private smokingStatusToScore(smokingStatus: string): number {
     // Lookup table based on iOS NicotineExposureCategoryValues enum
     switch (smokingStatus) {
-      case 'Never smoked/vaped':
-        return 0
-      case 'Quit >5 years ago':
-        return 1
-      case 'Quit 1-5 years ago':
-        return 2
-      case 'Quit <1 year ago':
-        return 3
-      case 'Light smoker/vaper (<10/day)':
-      case 'Moderate smoker/vaper (10 to 19/day)':
-      case 'Heavy smoker/vaper (>20/day)':
-        return 4
+      case "Never smoked/vaped":
+        return 0;
+      case "Quit >5 years ago":
+        return 1;
+      case "Quit 1-5 years ago":
+        return 2;
+      case "Quit <1 year ago":
+        return 3;
+      case "Light smoker/vaper (<10/day)":
+      case "Moderate smoker/vaper (10 to 19/day)":
+      case "Heavy smoker/vaper (>20/day)":
+        return 4;
       default:
-        logger.warn(`Unknown smoking status: ${smokingStatus}`)
-        return 4
+        logger.warn(`Unknown smoking status: ${smokingStatus}`);
+        return 4;
     }
   }
 }
 
 export class NicotineScoringQuestionnaireResponseService extends QuestionnaireResponseService {
-  private readonly databaseService: DatabaseService
-  private readonly scoreCalculator: NicotineScoreCalculator
+  private readonly databaseService: DatabaseService;
+  private readonly scoreCalculator: NicotineScoreCalculator;
 
   constructor(input: {
-    databaseService: DatabaseService
-    scoreCalculator: NicotineScoreCalculator
+    databaseService: DatabaseService;
+    scoreCalculator: NicotineScoreCalculator;
   }) {
-    super()
-    this.databaseService = input.databaseService
-    this.scoreCalculator = input.scoreCalculator
+    super();
+    this.databaseService = input.databaseService;
+    this.scoreCalculator = input.scoreCalculator;
   }
 
   async handle(
@@ -83,48 +83,48 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
-      'https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure',
-    ]
+      "https://myheartcounts.stanford.edu/fhir/survey/nicotineExposure",
+    ];
 
     if (!targetQuestionnaireUrls.includes(response.content.questionnaire)) {
-      return false
+      return false;
     }
 
     try {
-      const score = this.calculateScore(response.content)
-      if (score === null) return false
+      const score = this.calculateScore(response.content);
+      if (score === null) return false;
 
-      const previousScore = await this.getLatestScore(userId)
+      const previousScore = await this.getLatestScore(userId);
 
       // Store FHIR observation
-      await this.storeFHIRObservation(userId, response.id, score)
+      await this.storeFHIRObservation(userId, response.id, score);
 
       logger.info(
         `NicotineScoringService: Processed nicotine questionnaire response for user ${userId}, overall score: ${score.overallScore}`,
-      )
+      );
 
-      return true
+      return true;
     } catch (error) {
       logger.error(
         `NicotineScoringService: Error processing nicotine questionnaire response for user ${userId}: ${String(error)}`,
-      )
-      throw error
+      );
+      throw error;
     }
   }
 
   private calculateScore(response: FHIRQuestionnaireResponse): Score | null {
     try {
-      const smokingStatus = this.extractSmokingStatus(response)
+      const smokingStatus = this.extractSmokingStatus(response);
       if (smokingStatus === null) {
         logger.warn(
-          'No smoking status found in nicotine questionnaire response',
-        )
-        return null
+          "No smoking status found in nicotine questionnaire response",
+        );
+        return null;
       }
-      return this.scoreCalculator.calculate(smokingStatus)
+      return this.scoreCalculator.calculate(smokingStatus);
     } catch (error) {
-      logger.error(`Failed to calculate nicotine score: ${String(error)}`)
-      return null
+      logger.error(`Failed to calculate nicotine score: ${String(error)}`);
+      return null;
     }
   }
 
@@ -132,26 +132,26 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     response: FHIRQuestionnaireResponse,
   ): string | null {
     // linkId for the nicotine/smoking question
-    const linkId = 'dcb2277e-fe96-4f45-844a-ef58a9516380'
+    const linkId = "dcb2277e-fe96-4f45-844a-ef58a9516380";
 
     try {
-      const responseItem = response.leafResponseItem(linkId)
+      const responseItem = response.leafResponseItem(linkId);
       if (!responseItem?.answer || responseItem.answer.length === 0) {
-        return null
+        return null;
       }
 
-      const answer = responseItem.answer[0]
+      const answer = responseItem.answer[0];
       if (answer.valueCoding?.display) {
-        return answer.valueCoding.display
+        return answer.valueCoding.display;
       }
 
-      logger.warn(`No valueCoding.display found for linkId '${linkId}'`)
-      return null
+      logger.warn(`No valueCoding.display found for linkId '${linkId}'`);
+      return null;
     } catch (error) {
       logger.warn(
         `Failed to extract smoking status for ${linkId}: ${String(error)}`,
-      )
-      return null
+      );
+      return null;
     }
   }
 
@@ -159,26 +159,26 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     userId: string,
   ): Promise<Document<Score> | undefined> {
     const collectionName =
-      'HealthObservations_MHCCustomSampleTypeNicotineExposure'
+      "HealthObservations_MHCCustomSampleTypeNicotineExposure";
     const result = await this.databaseService.getQuery<FHIRObservation>(
       (collections) =>
         collections
           .userHealthObservations(userId, collectionName)
-          .orderBy('effectiveDateTime', 'desc')
+          .orderBy("effectiveDateTime", "desc")
           .limit(1),
-    )
+    );
 
-    const latestObservation = result.at(0)
-    if (!latestObservation) return undefined
+    const latestObservation = result.at(0);
+    if (!latestObservation) return undefined;
 
     // Convert FHIR observation back to Score
-    const score = this.observationToScore(latestObservation.content)
+    const score = this.observationToScore(latestObservation.content);
     return {
       id: latestObservation.id,
       content: score,
       path: latestObservation.path,
       lastUpdate: latestObservation.lastUpdate,
-    }
+    };
   }
 
   private observationToScore(observation: FHIRObservation): Score {
@@ -186,7 +186,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       overallScore: observation.valueQuantity?.value ?? 0,
       date: observation.effectiveDateTime ?? new Date(),
       domainScores: {},
-    })
+    });
   }
 
   private async storeFHIRObservation(
@@ -194,24 +194,24 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
     questionnaireResponseId: string,
     score: Score,
   ): Promise<void> {
-    const config = getNicotineObservationConfig()
-    const observationId = randomUUID()
+    const config = getNicotineObservationConfig();
+    const observationId = randomUUID();
     const observation = scoreToObservation(
       score,
       config,
       questionnaireResponseId,
       observationId,
       userId,
-    )
+    );
 
     const collectionName =
-      'HealthObservations_MHCCustomSampleTypeNicotineExposure'
+      "HealthObservations_MHCCustomSampleTypeNicotineExposure";
 
     return this.databaseService.runTransaction((collections, transaction) => {
       const ref = collections
         .userHealthObservations(userId, collectionName)
-        .doc(observationId)
-      transaction.set(ref, observation)
-    })
+        .doc(observationId);
+      transaction.set(ref, observation);
+    });
   }
 }

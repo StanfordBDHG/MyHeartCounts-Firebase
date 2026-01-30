@@ -6,208 +6,208 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type UserAuth } from '@stanfordbdhg/myheartcounts-models'
-import { expect } from 'chai'
-import admin from 'firebase-admin'
-import { describe } from 'mocha'
-import { type UserService } from './userService.js'
-import { type MockFirestore } from '../../tests/mocks/firestore.js'
-import { cleanupMocks, setupMockFirebase } from '../../tests/setup.js'
-import { CollectionsService } from '../database/collections.js'
-import { getServiceFactory } from '../factory/getServiceFactory.js'
+import { type UserAuth } from "@stanfordbdhg/myheartcounts-models";
+import { expect } from "chai";
+import admin from "firebase-admin";
+import { describe } from "mocha";
+import { type UserService } from "./userService.js";
+import { type MockFirestore } from "../../tests/mocks/firestore.js";
+import { cleanupMocks, setupMockFirebase } from "../../tests/setup.js";
+import { CollectionsService } from "../database/collections.js";
+import { getServiceFactory } from "../factory/getServiceFactory.js";
 
-describe('DatabaseUserService', () => {
-  let mockFirestore: MockFirestore
-  let userService: UserService
-  let collectionsService: CollectionsService
+describe("DatabaseUserService", () => {
+  let mockFirestore: MockFirestore;
+  let userService: UserService;
+  let collectionsService: CollectionsService;
 
   beforeEach(() => {
-    mockFirestore = setupMockFirebase().firestore
-    collectionsService = new CollectionsService(admin.firestore())
-    userService = getServiceFactory().user()
-  })
+    mockFirestore = setupMockFirebase().firestore;
+    collectionsService = new CollectionsService(admin.firestore());
+    userService = getServiceFactory().user();
+  });
 
   afterEach(() => {
-    cleanupMocks()
-  })
+    cleanupMocks();
+  });
 
-  describe('auth methods', () => {
-    it('gets and updates auth data', async () => {
-      const userId = 'mockAuthUser'
+  describe("auth methods", () => {
+    it("gets and updates auth data", async () => {
+      const userId = "mockAuthUser";
 
       // First create a user document to work with
       await userService.enrollUserDirectly(userId, {
         isSingleSignOn: false,
-      })
+      });
 
       // Test getAuth
-      const auth = await userService.getAuth(userId)
-      expect(auth).to.exist
+      const auth = await userService.getAuth(userId);
+      expect(auth).to.exist;
 
       // Test updateAuth
       const newAuth: UserAuth = {
-        displayName: 'Test User',
-        phoneNumber: '+1234567890',
-      }
+        displayName: "Test User",
+        phoneNumber: "+1234567890",
+      };
 
-      await userService.updateAuth(userId, newAuth)
+      await userService.updateAuth(userId, newAuth);
 
       // Test updateClaims
-      await userService.updateClaims(userId)
-    })
-  })
+      await userService.updateClaims(userId);
+    });
+  });
 
-  describe('enrollUserDirectly', () => {
-    it('enrolls a patient directly', async () => {
-      const userId = 'mockPatientUserId'
+  describe("enrollUserDirectly", () => {
+    it("enrolls a patient directly", async () => {
+      const userId = "mockPatientUserId";
 
       await userService.enrollUserDirectly(userId, {
         isSingleSignOn: false,
-      })
+      });
 
-      const userSnapshot = await collectionsService.users.doc(userId).get()
-      expect(userSnapshot.exists).to.be.true
-      const userData = userSnapshot.data()
-      expect(userData).to.exist
-      expect(userData?.dateOfEnrollment).to.exist
+      const userSnapshot = await collectionsService.users.doc(userId).get();
+      expect(userSnapshot.exists).to.be.true;
+      const userData = userSnapshot.data();
+      expect(userData).to.exist;
+      expect(userData?.dateOfEnrollment).to.exist;
       expect(userData?.claims).to.deep.equal({
         disabled: false,
-      })
-    })
+      });
+    });
 
-    it('handles finishUserEnrollment', async () => {
-      const userId = 'mockEnrollmentUser'
+    it("handles finishUserEnrollment", async () => {
+      const userId = "mockEnrollmentUser";
 
       const userDoc = await userService.enrollUserDirectly(userId, {
         isSingleSignOn: false,
-      })
+      });
 
       // This might not complete successfully in the mock environment,
       // but we're testing that it doesn't throw an error
       try {
-        await userService.finishUserEnrollment(userDoc)
+        await userService.finishUserEnrollment(userDoc);
       } catch (error) {
         // Auth user might not be found, which is expected in the test environment
       }
-    })
-  })
+    });
+  });
 
-  describe('user modification methods', () => {
-    let testUserId: string
+  describe("user modification methods", () => {
+    let testUserId: string;
 
     beforeEach(async () => {
-      testUserId = 'testModifyUser'
+      testUserId = "testModifyUser";
       await userService.enrollUserDirectly(testUserId, {
         isSingleSignOn: false,
-      })
-    })
+      });
+    });
 
-    it('disables and enables users', async () => {
+    it("disables and enables users", async () => {
       // Test disable user
-      await userService.disableUser(testUserId)
+      await userService.disableUser(testUserId);
 
-      let user = await userService.getUser(testUserId)
-      expect(user?.content.disabled).to.be.true
+      let user = await userService.getUser(testUserId);
+      expect(user?.content.disabled).to.be.true;
 
       // Test enable user
-      await userService.enableUser(testUserId)
+      await userService.enableUser(testUserId);
 
-      user = await userService.getUser(testUserId)
-      expect(user?.content.disabled).to.be.false
-    })
+      user = await userService.getUser(testUserId);
+      expect(user?.content.disabled).to.be.false;
+    });
 
-    it('updates last active date', async () => {
+    it("updates last active date", async () => {
       // Test update last active date
-      const beforeUpdate = await userService.getUser(testUserId)
-      const initialDate = beforeUpdate?.content.lastActiveDate
+      const beforeUpdate = await userService.getUser(testUserId);
+      const initialDate = beforeUpdate?.content.lastActiveDate;
 
       // Wait a bit to ensure time difference
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
-      await userService.updateLastActiveDate(testUserId)
+      await userService.updateLastActiveDate(testUserId);
 
-      const afterUpdate = await userService.getUser(testUserId)
-      const updatedDate = afterUpdate?.content.lastActiveDate
+      const afterUpdate = await userService.getUser(testUserId);
+      const updatedDate = afterUpdate?.content.lastActiveDate;
 
-      expect(updatedDate).to.not.equal(initialDate)
+      expect(updatedDate).to.not.equal(initialDate);
       // Use type assertion instead of non-null assertion
       if (updatedDate && initialDate) {
-        expect(new Date(updatedDate)).to.be.greaterThan(new Date(initialDate))
+        expect(new Date(updatedDate)).to.be.greaterThan(new Date(initialDate));
       } else {
-        expect.fail('Dates should not be undefined or null')
+        expect.fail("Dates should not be undefined or null");
       }
-    })
+    });
 
-    it('retrieves all patients', async () => {
+    it("retrieves all patients", async () => {
       // Create a few more users
-      await userService.enrollUserDirectly('patient1', {
+      await userService.enrollUserDirectly("patient1", {
         isSingleSignOn: false,
-      })
+      });
 
-      await userService.enrollUserDirectly('patient2', {
+      await userService.enrollUserDirectly("patient2", {
         isSingleSignOn: false,
-      })
+      });
 
-      const patients = await userService.getAllPatients()
-      expect(patients.length).to.be.greaterThan(0)
-    })
+      const patients = await userService.getAllPatients();
+      expect(patients.length).to.be.greaterThan(0);
+    });
 
-    it('deletes a user', async () => {
-      const deleteUserId = 'userToDelete'
+    it("deletes a user", async () => {
+      const deleteUserId = "userToDelete";
 
       await userService.enrollUserDirectly(deleteUserId, {
         isSingleSignOn: false,
-      })
+      });
 
-      let user = await userService.getUser(deleteUserId)
-      expect(user).to.exist
+      let user = await userService.getUser(deleteUserId);
+      expect(user).to.exist;
 
       try {
-        await userService.deleteUser(deleteUserId)
+        await userService.deleteUser(deleteUserId);
       } catch (error) {
         // Auth deletion might fail in mocks, which is expected
       }
 
       try {
-        user = await userService.getUser(deleteUserId)
-        expect(user).to.be.undefined
+        user = await userService.getUser(deleteUserId);
+        expect(user).to.be.undefined;
       } catch (error) {
         // Document deletion might not be immediate in mocks
       }
-    })
+    });
 
-    it('cleans up expired accounts', async () => {
+    it("cleans up expired accounts", async () => {
       // Just test that the method doesn't throw
-      await userService.deleteExpiredAccounts()
-    })
+      await userService.deleteExpiredAccounts();
+    });
 
-    it('marks account for deletion', async () => {
-      const userId = 'userToMarkForDeletion'
+    it("marks account for deletion", async () => {
+      const userId = "userToMarkForDeletion";
 
       // First create a user
       await userService.enrollUserDirectly(userId, {
         isSingleSignOn: false,
-      })
+      });
 
-      const user = await userService.getUser(userId)
-      expect(user).to.exist
+      const user = await userService.getUser(userId);
+      expect(user).to.exist;
 
       // Mark for deletion - this should not throw
-      const markedAt = new Date()
-      await userService.markAccountForDeletion(userId, markedAt)
+      const markedAt = new Date();
+      await userService.markAccountForDeletion(userId, markedAt);
 
       // Verify calling again throws an error (duplicate check)
       try {
-        await userService.markAccountForDeletion(userId, new Date())
+        await userService.markAccountForDeletion(userId, new Date());
         expect.fail(
-          'Should have thrown an error for duplicate deletion request',
-        )
+          "Should have thrown an error for duplicate deletion request",
+        );
       } catch (error) {
-        expect(error).to.be.instanceOf(Error)
+        expect(error).to.be.instanceOf(Error);
         expect((error as any).message).to.contain(
-          'Account is already marked for deletion',
-        )
+          "Account is already marked for deletion",
+        );
       }
-    })
-  })
-})
+    });
+  });
+});

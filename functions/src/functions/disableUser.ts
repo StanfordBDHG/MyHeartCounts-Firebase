@@ -9,25 +9,25 @@
 import {
   disableUserInputSchema,
   type DisableUserOutput,
-} from '@stanfordbdhg/myheartcounts-models'
-import { validatedOnCall, privilegedServiceAccount } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/myheartcounts-models";
+import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const disableUser = validatedOnCall(
-  'disableUser',
+  "disableUser",
   disableUserInputSchema,
   async (request): Promise<DisableUserOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    const userId = request.data.userId
-    const userService = factory.user()
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    const userId = request.data.userId;
+    const userService = factory.user();
 
-    credential.checkAuthenticated()
+    credential.checkAuthenticated();
 
-    await userService.disableUser(userId)
+    await userService.disableUser(userId);
   },
   {
-    invoker: 'public',
+    invoker: "public",
     serviceAccount: privilegedServiceAccount,
   },
-)
+);

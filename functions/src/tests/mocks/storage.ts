@@ -8,21 +8,21 @@
 
 export class MockStorage {
   bucket(): MockStorageBucket {
-    return new MockStorageBucket(this)
+    return new MockStorageBucket(this);
   }
 }
 
 export class MockStorageBucket {
-  private storage: MockStorage
+  private storage: MockStorage;
 
   constructor(storage: MockStorage) {
-    this.storage = storage
+    this.storage = storage;
   }
 
   upload(
     path: string,
     options?: { destination?: string; contentType?: string },
   ): Promise<void> {
-    return Promise.resolve()
+    return Promise.resolve();
   }
 }

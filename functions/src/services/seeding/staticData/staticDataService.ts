@@ -6,21 +6,21 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type CachingStrategy } from '@stanfordbdhg/myheartcounts-models'
-import { z } from 'zod'
-import { type DatabaseService } from '../../database/databaseService.js'
-import { SeedingService } from '../seedingService.js'
+import { type CachingStrategy } from "@stanfordbdhg/myheartcounts-models";
+import { z } from "zod";
+import { type DatabaseService } from "../../database/databaseService.js";
+import { SeedingService } from "../seedingService.js";
 
 export class StaticDataService extends SeedingService {
   // Properties
 
-  private databaseService: DatabaseService
+  private databaseService: DatabaseService;
 
   // Constructor
 
   constructor(databaseService: DatabaseService) {
-    super({ useIndicesAsKeys: true, path: './data/' })
-    this.databaseService = databaseService
+    super({ useIndicesAsKeys: true, path: "./data/" });
+    this.databaseService = databaseService;
   }
 
   // Methods

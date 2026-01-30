@@ -9,17 +9,17 @@
 import {
   dateConverter,
   SchemaConverter,
-} from '@stanfordbdhg/myheartcounts-models'
-import { type DocumentSnapshot } from 'firebase-admin/firestore'
-import { type Change } from 'firebase-functions'
-import { z } from 'zod'
+} from "@stanfordbdhg/myheartcounts-models";
+import { type DocumentSnapshot } from "firebase-admin/firestore";
+import { type Change } from "firebase-functions";
+import { z } from "zod";
 
 export const historyChangeItemConverter = new SchemaConverter({
   schema: z.object({
     path: z.string(),
     date: dateConverter.schema,
     data: z.unknown(),
-    type: z.enum(['created', 'updated', 'deleted']).optional(),
+    type: z.enum(["created", "updated", "deleted"]).optional(),
     before: z.unknown().optional(),
   }),
   encode: (object) => ({
@@ -29,12 +29,12 @@ export const historyChangeItemConverter = new SchemaConverter({
     type: object.type ?? null,
     before: object.before === undefined ? null : object.before,
   }),
-})
+});
 export type HistoryChangeItem = z.output<
   typeof historyChangeItemConverter.schema
->
+>;
 
 export interface HistoryService {
-  isEmpty(): Promise<boolean>
-  recordChange(change: Change<DocumentSnapshot>): Promise<void>
+  isEmpty(): Promise<boolean>;
+  recordChange(change: Change<DocumentSnapshot>): Promise<void>;
 }

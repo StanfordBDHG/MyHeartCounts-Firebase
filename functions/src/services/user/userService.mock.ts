@@ -6,91 +6,91 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { User, type UserAuth } from '@stanfordbdhg/myheartcounts-models'
-import { type EnrollUserOptions, type UserService } from './userService.js'
-import { type Document } from '../database/databaseService.js'
+import { User, type UserAuth } from "@stanfordbdhg/myheartcounts-models";
+import { type EnrollUserOptions, type UserService } from "./userService.js";
+import { type Document } from "../database/databaseService.js";
 
 export class MockUserService implements UserService {
   // Methods - Auth
 
   async getAuth(userId: string): Promise<UserAuth> {
     switch (userId) {
-      case 'mockClinician':
+      case "mockClinician":
         return {
-          displayName: 'Dr. XXX',
-        }
-      case 'mockUser':
+          displayName: "Dr. XXX",
+        };
+      case "mockUser":
         return {
-          displayName: 'John Doe',
-        }
+          displayName: "John Doe",
+        };
       default:
         return {
-          displayName: 'Unknown',
-        }
+          displayName: "Unknown",
+        };
     }
   }
 
   async updateAuth(userId: string, user: UserAuth): Promise<void> {
-    return
+    return;
   }
 
   async updateClaims(userId: string): Promise<void> {
-    return
+    return;
   }
 
   async enrollUserDirectly(
     userId: string,
     options: EnrollUserOptions,
   ): Promise<Document<User>> {
-    return this.getUser(userId)
+    return this.getUser(userId);
   }
 
   async finishUserEnrollment(user: Document<User>): Promise<void> {
-    return
+    return;
   }
 
   // Methods - User
 
   async disableUser(userId: string): Promise<void> {
-    return
+    return;
   }
 
   async enableUser(userId: string): Promise<void> {
-    return
+    return;
   }
 
   async getAllPatients(): Promise<Array<Document<User>>> {
-    return []
+    return [];
   }
 
   async getUser(userId: string): Promise<Document<User>> {
     return {
       id: userId,
-      path: 'users/' + userId,
+      path: "users/" + userId,
       lastUpdate: new Date(),
       content: new User({
         disabled: false,
-        dateOfBirth: new Date('1970-01-02'),
-        lastActiveDate: new Date('2024-04-04'),
-        dateOfEnrollment: new Date('2024-04-02'),
-        timeZone: 'America/Los_Angeles',
+        dateOfBirth: new Date("1970-01-02"),
+        lastActiveDate: new Date("2024-04-04"),
+        dateOfEnrollment: new Date("2024-04-02"),
+        timeZone: "America/Los_Angeles",
       }),
-    }
+    };
   }
 
   async updateLastActiveDate(userId: string): Promise<void> {
-    return
+    return;
   }
 
   async markAccountForDeletion(userId: string, markedAt: Date): Promise<void> {
-    return
+    return;
   }
 
   async deleteUser(userId: string): Promise<void> {
-    return
+    return;
   }
 
   async deleteExpiredAccounts(): Promise<void> {
-    return
+    return;
   }
 }

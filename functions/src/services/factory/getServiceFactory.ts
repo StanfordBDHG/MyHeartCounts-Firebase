@@ -6,9 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { DefaultServiceFactory } from './defaultServiceFactory.js'
-import { type ServiceFactory } from './serviceFactory.js'
+import { DefaultServiceFactory } from "./defaultServiceFactory.js";
+import { type ServiceFactory } from "./serviceFactory.js";
 
-export function getServiceFactory(): ServiceFactory {
-  return new DefaultServiceFactory()
-}
+export const getServiceFactory = (): ServiceFactory =>
+  new DefaultServiceFactory();

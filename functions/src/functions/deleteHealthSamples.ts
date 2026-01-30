@@ -6,41 +6,41 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { https, logger } from 'firebase-functions/v2'
-import { z } from 'zod'
-import { validatedOnCall, privilegedServiceAccount } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
-import { HealthSampleDeletionService } from '../services/healthSamples/healthSampleDeletionService.js'
+import { https, logger } from "firebase-functions/v2";
+import { z } from "zod";
+import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
+import { HealthSampleDeletionService } from "../services/healthSamples/healthSampleDeletionService.js";
 
 const markHealthSamplesEnteredInErrorInputSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-  collection: z.string().min(1, 'Collection name is required'),
+  userId: z.string().min(1, "User ID is required"),
+  collection: z.string().min(1, "Collection name is required"),
   documentIds: z
-    .array(z.string().min(1, 'Document ID is required'))
-    .min(1, 'At least one document ID is required')
-    .max(50000, 'Too many document IDs (max 50,000)'),
-})
+    .array(z.string().min(1, "Document ID is required"))
+    .min(1, "At least one document ID is required")
+    .max(50000, "Too many document IDs (max 50,000)"),
+});
 
 interface MarkHealthSamplesEnteredInErrorOutput {
-  status: 'accepted' | 'processing'
-  jobId: string
-  totalSamples: number
-  estimatedDurationMinutes: number
-  message: string
+  status: "accepted" | "processing";
+  jobId: string;
+  totalSamples: number;
+  estimatedDurationMinutes: number;
+  message: string;
 }
 
 export const deleteHealthSamples = validatedOnCall(
-  'deleteHealthSamples',
+  "deleteHealthSamples",
   markHealthSamplesEnteredInErrorInputSchema,
   async (request): Promise<MarkHealthSamplesEnteredInErrorOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    const { userId, collection, documentIds } = request.data
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    const { userId, collection, documentIds } = request.data;
 
-    credential.checkUser(userId)
+    credential.checkUser(userId);
 
-    const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`
-    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000)
+    const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000);
 
     logger.info(
       `User '${credential.userId}' initiated async entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
@@ -52,9 +52,9 @@ export const deleteHealthSamples = validatedOnCall(
         samplesCount: documentIds.length,
         estimatedDurationMinutes,
       },
-    )
+    );
 
-    const deletionService = new HealthSampleDeletionService()
+    const deletionService = new HealthSampleDeletionService();
     deletionService
       .processHealthSamplesEnteredInError(
         jobId,
@@ -73,19 +73,19 @@ export const deleteHealthSamples = validatedOnCall(
             collection,
             error: String(error),
           },
-        )
-      })
+        );
+      });
 
     return {
-      status: 'accepted',
+      status: "accepted",
       jobId,
       totalSamples: documentIds.length,
       estimatedDurationMinutes,
       message: `Marking job started. Processing ${documentIds.length} samples as entered-in-error asynchronously.`,
-    }
+    };
   },
   {
-    invoker: 'public',
+    invoker: "public",
     serviceAccount: privilegedServiceAccount,
   },
-)
+);
