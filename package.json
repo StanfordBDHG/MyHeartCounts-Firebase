@@ -29,7 +29,10 @@
     "serve:seeded": "npm --prefix functions run serve:seeded"
   },
   "devDependencies": {
-    "@types/luxon": "^3.7.1"
+    "@stanfordspezi/spezi-web-configurations": "^0.6.0",
+    "@types/luxon": "^3.7.1",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.1"
   },
   "overrides": {
     "fast-xml-parser": "^5.3.4"
