@@ -14,76 +14,76 @@ interface BaseNudgeMessage {
 
 const predefinedNudgesEn: BaseNudgeMessage[] = [
   {
-    title: 'Get Moving This Week!',
-    body: "Ready for the day? Let's start with some light exercise today. Even 10 minutes makes a difference!",
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
-    title: 'Your Heart Loves Movement',
-    body: 'Time to get active! Try a brisk walk, dancing, or your favorite sport. Your heart will thank you.',
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
-    title: 'Build Your Fitness Streak',
-    body: 'Keep the momentum going! What physical activity will you choose today? Swimming, cycling, or maybe some yoga?',
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
-    title: 'Sports Challenge Day',
-    body: 'Challenge yourself today! Try a new sport or activity. Tennis, basketball, or even jumping rope - what sounds fun?',
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
-    title: 'Cardio Power Hour',
-    body: "Your heart is a muscle - let's strengthen it! Go for a jog, hit the gym, or play your favorite active game.",
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
-    title: 'Team Up for Fitness',
-    body: 'Exercise is more fun with others! Invite a friend for a workout, join a sports team, or try a fitness class.',
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
   {
-    title: 'Champion of this Week!',
-    body: "Amazing work staying active this week! You're building habits that will keep your heart strong. Keep it up!",
+    title: 'MHC Activity Reminder',
+    body: 'Make it a goal to hit 7,000 steps today. People who reach 7,000 steps lower their risk of early death by nearly half.',
     isLLMGenerated: false,
   },
 ]
 
 const predefinedNudgesEs: BaseNudgeMessage[] = [
   {
-    title: '¡A Moverse Esta Semana!',
-    body: '¿Listo para el día? Comencemos con algo de ejercicio ligero hoy. ¡Incluso 10 minutos hacen la diferencia!',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
   {
-    title: 'Tu Corazón Ama el Movimiento',
-    body: '¡Es hora de activarse! Prueba una caminata rápida, baila o practica tu deporte favorito. Tu corazón te lo agradecerá.',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
   {
-    title: 'Construye tu Racha de Ejercicio',
-    body: '¡Mantén el impulso! ¿Qué actividad física elegirás hoy? ¿Natación, ciclismo o tal vez algo de yoga?',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
   {
-    title: 'Día de Desafío Deportivo',
-    body: '¡Desafíate hoy! Prueba un nuevo deporte o actividad. Tenis, baloncesto o incluso saltar la cuerda, ¿qué te parece divertido?',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
   {
-    title: 'Hora de Poder Cardiovascular',
-    body: '¡Tu corazón es un músculo, fortalezcámoslo! Ve a trotar, ve al gimnasio o juega tu juego activo favorito.',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
   {
-    title: 'Equípate para el Ejercicio',
-    body: '¡El ejercicio es más divertido con otros! Invita a un amigo a entrenar, únete a un equipo deportivo o prueba una clase de fitness.',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
   {
-    title: '¡Campeón de Esta Semana!',
-    body: '¡Increíble trabajo manteniéndote activo esta semana! Estás creando hábitos que mantendrán tu corazón fuerte. ¡Sigue así!',
+    title: 'Recordatorio de Actividad MHC',
+    body: 'Establezca como objetivo alcanzar 7.000 pasos hoy. Las personas que alcanzan 7.000 pasos reducen su riesgo de muerte prematura casi a la mitad.',
     isLLMGenerated: false,
   },
 ]
