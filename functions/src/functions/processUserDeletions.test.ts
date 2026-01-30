@@ -50,9 +50,8 @@ describe('function: processUserDeletions', () => {
 
       getFilesStub.resolves([mockFiles])
 
-      const { deleteUserStorageFiles } = await import(
-        './processUserDeletions.js'
-      )
+      const { deleteUserStorageFiles } =
+        await import('./processUserDeletions.js')
 
       await deleteUserStorageFiles('testuser')
 
@@ -67,9 +66,8 @@ describe('function: processUserDeletions', () => {
     it('handles empty file list', async () => {
       getFilesStub.resolves([[]])
 
-      const { deleteUserStorageFiles } = await import(
-        './processUserDeletions.js'
-      )
+      const { deleteUserStorageFiles } =
+        await import('./processUserDeletions.js')
 
       await deleteUserStorageFiles('testuser')
 
@@ -80,9 +78,8 @@ describe('function: processUserDeletions', () => {
     it('throws error when storage operation fails', async () => {
       getFilesStub.rejects(new Error('Storage error'))
 
-      const { deleteUserStorageFiles } = await import(
-        './processUserDeletions.js'
-      )
+      const { deleteUserStorageFiles } =
+        await import('./processUserDeletions.js')
 
       try {
         await deleteUserStorageFiles('testuser')
@@ -103,9 +100,8 @@ describe('function: processUserDeletions', () => {
 
       getFilesStub.resolves([mockFiles])
 
-      const { deleteUserStorageFiles } = await import(
-        './processUserDeletions.js'
-      )
+      const { deleteUserStorageFiles } =
+        await import('./processUserDeletions.js')
 
       try {
         await deleteUserStorageFiles('testuser')

@@ -8,9 +8,6 @@
 
 import { type Message } from 'firebase-admin/messaging'
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/require-await */
-
 export class MockMessaging {
   async send(message: Message, dryRun?: boolean): Promise<string> {
     const tokenMessage = message as { token?: string }

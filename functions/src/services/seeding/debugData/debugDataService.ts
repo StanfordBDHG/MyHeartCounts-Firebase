@@ -25,8 +25,6 @@ import { type CollectionsService } from '../../database/collections.js'
 import { type DatabaseService } from '../../database/databaseService.js'
 import { SeedingService } from '../seedingService.js'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export class DebugDataService extends SeedingService {
   // Properties
 

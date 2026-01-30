@@ -15,9 +15,10 @@ import {
 import { logger } from 'firebase-functions'
 import { type z } from 'zod'
 
-export class DatabaseConverter<Schema extends z.ZodTypeAny, Encoded>
-  implements FirestoreDataConverter<z.output<Schema>>
-{
+export class DatabaseConverter<
+  Schema extends z.ZodTypeAny,
+  Encoded,
+> implements FirestoreDataConverter<z.output<Schema>> {
   // Properties
 
   private readonly converter: SchemaConverter<Schema, Encoded>
@@ -33,7 +34,6 @@ export class DatabaseConverter<Schema extends z.ZodTypeAny, Encoded>
   fromFirestore(snapshot: DocumentSnapshot): z.output<Schema> {
     const data = snapshot.data()
     try {
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-return */
       return this.converter.schema.parse(data) as z.output<Schema>
     } catch (error) {
       logger.error(

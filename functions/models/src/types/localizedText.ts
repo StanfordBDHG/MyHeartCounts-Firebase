@@ -69,10 +69,10 @@ export class LocalizedText {
                 typeof (currentValue as { localize: unknown }).localize ===
                   'function'
             ) ?
-              String((currentValue as LocalizedText).localize(language))
+              (currentValue as LocalizedText).localize(language)
             : String(currentValue),
           ),
-        String(input[language] || ''),
+        input[language] || '',
       )
     }
 

@@ -9,8 +9,6 @@
 import crypto from 'crypto'
 import { type ListUsersResult, type UserRecord } from 'firebase-admin/auth'
 
-/* eslint-disable @typescript-eslint/require-await */
-
 export class MockAuth {
   collections: Record<string, UserRecord | undefined> = {}
 

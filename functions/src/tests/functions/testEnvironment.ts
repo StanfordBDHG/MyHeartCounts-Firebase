@@ -105,18 +105,16 @@ export class EmulatorTestEnvironment {
     }
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   createChange<T extends Record<string, any>>(
     path: string,
     before: T | undefined,
     after: T | undefined,
   ): Change<DocumentSnapshot> {
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
     const beforeSnapshot: DocumentSnapshot<T> =
       before !== undefined ?
         this.wrapper.firestore.makeDocumentSnapshot(before, path)
       : this.createEmptyDocumentSnapshot(path)
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+
     const afterSnapshot: DocumentSnapshot<T> =
       after !== undefined ?
         this.wrapper.firestore.makeDocumentSnapshot(after, path)

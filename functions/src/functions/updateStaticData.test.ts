@@ -6,9 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import fs from 'fs'
 import {
   CachingStrategy,

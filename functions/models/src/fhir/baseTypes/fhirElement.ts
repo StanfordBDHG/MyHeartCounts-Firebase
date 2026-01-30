@@ -52,16 +52,18 @@ const fhirExtensionBaseConverter = new SchemaConverter({
   },
 })
 
-export interface FHIRExtensionInput
-  extends z.input<typeof fhirExtensionBaseConverter.value.schema> {
+export interface FHIRExtensionInput extends z.input<
+  typeof fhirExtensionBaseConverter.value.schema
+> {
   valueCodeableConcept?:
     | z.input<typeof fhirCodeableConceptConverter.value.schema>
     | null
     | undefined
 }
 
-export interface FHIRExtension
-  extends z.output<typeof fhirExtensionBaseConverter.value.schema> {
+export interface FHIRExtension extends z.output<
+  typeof fhirExtensionBaseConverter.value.schema
+> {
   valueCodeableConcept?: FHIRCodeableConcept
 }
 

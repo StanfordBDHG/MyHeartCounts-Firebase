@@ -9,8 +9,6 @@
 import { User, type UserAuth } from '@stanfordbdhg/myheartcounts-models'
 import { type EnrollUserOptions, type UserService } from './userService.js'
 import { type Document } from '../database/databaseService.js'
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class MockUserService implements UserService {
   // Methods - Auth

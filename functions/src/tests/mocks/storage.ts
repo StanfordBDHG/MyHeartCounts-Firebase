@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 export class MockStorage {
   bucket(): MockStorageBucket {
     return new MockStorageBucket(this)

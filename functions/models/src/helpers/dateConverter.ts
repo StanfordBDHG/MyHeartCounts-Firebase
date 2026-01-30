@@ -63,6 +63,7 @@ export const dateConverter = new SchemaConverter({
 
       // try to convert to string then date
       try {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         const date = new Date(String(value))
         if (!isNaN(date.getTime())) {
           return date

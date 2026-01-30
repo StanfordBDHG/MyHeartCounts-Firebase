@@ -12,13 +12,6 @@ import { type CollectionReference } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions'
 import { z } from 'zod'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 export interface SeedingOptions {
   useIndicesAsKeys: boolean
   path: string
