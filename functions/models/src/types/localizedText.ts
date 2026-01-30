@@ -64,7 +64,8 @@ export class LocalizedText {
             `@${index}`,
             (
               typeof currentValue === "object" &&
-                currentValue !== null &&
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                currentValue !== null && // Defensive check for typeof null === "object" quirk
                 "localize" in currentValue &&
                 typeof (currentValue as { localize: unknown }).localize ===
                   "function"

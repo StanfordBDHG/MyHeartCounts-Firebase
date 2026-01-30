@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+/* eslint-disable import/no-cycle */
+// Circular dependency is intentional and handled via Lazy wrappers
+
 import { z } from "zod";
 import { fhirElementConverter } from "./fhirElement.js";
 import { Lazy } from "../../helpers/lazy.js";

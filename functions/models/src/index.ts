@@ -36,7 +36,6 @@ export * from "./functions/updateUserInformation.js";
 export * from "./helpers/array.js";
 export * from "./helpers/date+extras.js";
 export * from "./helpers/dateConverter.js";
-export * from "./helpers/dateConverter.js";
 export * from "./helpers/lazy.js";
 export * from "./helpers/optionalish.js";
 export * from "./helpers/schemaConverter.js";
