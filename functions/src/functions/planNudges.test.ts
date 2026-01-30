@@ -191,9 +191,7 @@ describeWithEmulators('function: planNudges', (env) => {
       const firstNudgeDocId = backlogSnapshot.docs[0].id
       expect(firstNudge.category).to.equal('nudge-predefined')
       // Check that it's in Spanish by looking for spanish words
-      expect(firstNudge.title).to.match(
-        /Recordatorio|Actividad|MHC/,
-      )
+      expect(firstNudge.title).to.match(/Recordatorio|Actividad|MHC/)
       expect(firstNudge.id).to.be.a('string')
       expect(firstNudge.id).to.equal(firstNudgeDocId)
       expect(firstNudge.id).to.match(
