@@ -6,18 +6,18 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { updateStaticDataInputSchema } from './updateStaticData.js'
-import { dateConverter } from '../helpers/dateConverter.js'
-import { optionalish, optionalishDefault } from '../helpers/optionalish.js'
+import { z } from "zod";
+import { updateStaticDataInputSchema } from "./updateStaticData.js";
+import { dateConverter } from "../helpers/dateConverter.js";
+import { optionalish, optionalishDefault } from "../helpers/optionalish.js";
 
 export enum DebugDataComponent {
-  users = 'users',
+  users = "users",
 }
 
 export enum UserDebugDataComponent {
-  messages = 'messages',
-  heartRateObservations = 'heartRateObservations',
+  messages = "messages",
+  heartRateObservations = "heartRateObservations",
 }
 
 export const defaultSeedInputSchema = z.object({
@@ -43,7 +43,7 @@ export const defaultSeedInputSchema = z.object({
       .array(),
     [],
   ),
-})
+});
 
-export type DefaultSeedInput = z.input<typeof defaultSeedInputSchema>
-export type DefaultSeedOutput = Record<string, never>
+export type DefaultSeedInput = z.input<typeof defaultSeedInputSchema>;
+export type DefaultSeedOutput = Record<string, never>;

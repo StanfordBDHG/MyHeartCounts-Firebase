@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
+import { z } from "zod";
 
 export const deleteUserInputSchema = z.object({
   userId: z.string(),
-})
-export type DeleteUserInput = z.input<typeof deleteUserInputSchema>
+});
+export type DeleteUserInput = z.input<typeof deleteUserInputSchema>;
 
-export type DeleteUserOutput = undefined
+export type DeleteUserOutput = undefined;

@@ -6,12 +6,12 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
+import { z } from "zod";
 
 export const disableUserInputSchema = z.object({
   userId: z.string(),
-})
+});
 
-export type DisableUserInput = z.input<typeof disableUserInputSchema>
+export type DisableUserInput = z.input<typeof disableUserInputSchema>;
 
-export type DisableUserOutput = undefined
+export type DisableUserOutput = undefined;

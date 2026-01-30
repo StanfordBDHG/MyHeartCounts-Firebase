@@ -10,10 +10,10 @@ import {
   userRegistrationConverter,
   userRegistrationInputConverter,
   UserRegistration,
-} from './userRegistration.js'
-import { dateConverter } from '../helpers/dateConverter.js'
-import { Lazy } from '../helpers/lazy.js'
-import { SchemaConverter } from '../helpers/schemaConverter.js'
+} from "./userRegistration.js";
+import { dateConverter } from "../helpers/dateConverter.js";
+import { Lazy } from "../helpers/lazy.js";
+import { SchemaConverter } from "../helpers/schemaConverter.js";
 
 export const userConverter = new Lazy(
   () =>
@@ -30,27 +30,27 @@ export const userConverter = new Lazy(
         dateOfEnrollment: dateConverter.encode(object.dateOfEnrollment),
       }),
     }),
-)
+);
 
 export class User extends UserRegistration {
   // Properties
 
-  readonly dateOfEnrollment: Date
-  readonly lastActiveDate: Date
+  readonly dateOfEnrollment: Date;
+  readonly lastActiveDate: Date;
 
   // Constructor
 
   constructor(input: {
-    disabled: boolean
-    dateOfBirth?: Date
-    language?: string
-    timeZone?: string
-    participantGroup?: number
-    dateOfEnrollment: Date
-    lastActiveDate: Date
+    disabled: boolean;
+    dateOfBirth?: Date;
+    language?: string;
+    timeZone?: string;
+    participantGroup?: number;
+    dateOfEnrollment: Date;
+    lastActiveDate: Date;
   }) {
-    super(input)
-    this.dateOfEnrollment = input.dateOfEnrollment
-    this.lastActiveDate = input.lastActiveDate
+    super(input);
+    this.dateOfEnrollment = input.dateOfEnrollment;
+    this.lastActiveDate = input.lastActiveDate;
   }
 }

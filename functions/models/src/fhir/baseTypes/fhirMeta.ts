@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { fhirCodingConverter } from './fhirCoding.js'
-import { dateConverterISO } from '../../helpers/dateConverter.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+import { z } from "zod";
+import { fhirCodingConverter } from "./fhirCoding.js";
+import { dateConverterISO } from "../../helpers/dateConverter.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 export const fhirMetaConverter = new SchemaConverter({
   schema: z.object({
@@ -23,22 +23,22 @@ export const fhirMetaConverter = new SchemaConverter({
     tag: optionalish(z.lazy(() => fhirCodingConverter.value.schema).array()),
   }),
   encode: (object) => {
-    const result: Record<string, unknown> = {}
+    const result: Record<string, unknown> = {};
 
-    if (object.versionId !== undefined) result.versionId = object.versionId
+    if (object.versionId !== undefined) result.versionId = object.versionId;
     if (object.lastUpdated)
-      result.lastUpdated = dateConverterISO.encode(object.lastUpdated)
+      result.lastUpdated = dateConverterISO.encode(object.lastUpdated);
     if (object.profile && object.profile.length > 0)
-      result.profile = object.profile
+      result.profile = object.profile;
     if (object.security && object.security.length > 0) {
-      result.security = object.security.map(fhirCodingConverter.value.encode)
+      result.security = object.security.map(fhirCodingConverter.value.encode);
     }
     if (object.tag && object.tag.length > 0) {
-      result.tag = object.tag.map(fhirCodingConverter.value.encode)
+      result.tag = object.tag.map(fhirCodingConverter.value.encode);
     }
 
-    return result
+    return result;
   },
-})
+});
 
-export type FHIRMeta = z.output<typeof fhirMetaConverter.schema>
+export type FHIRMeta = z.output<typeof fhirMetaConverter.schema>;

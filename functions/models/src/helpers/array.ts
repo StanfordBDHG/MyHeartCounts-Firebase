@@ -8,84 +8,77 @@
 
 // Average
 
-export function average(values: number[]): number | undefined {
-  return values.length === 0 ?
-      undefined
-    : values.reduce((a, b) => a + b, 0) / values.length
-}
+export const average = (values: number[]): number | undefined =>
+  values.length === 0 ?
+    undefined
+  : values.reduce((a, b) => a + b, 0) / values.length;
 
 // Chunks
 
-export function chunks<T>(array: T[], size: number): T[][] {
-  return Array.from({ length: Math.ceil(array.length / size) }, (_, index) =>
+export const chunks = <T>(array: T[], size: number): T[][] =>
+  Array.from({ length: Math.ceil(array.length / size) }, (_, index) =>
     array.slice(index * size, (index + 1) * size),
-  )
-}
+  );
 
 // CompactMap
 
-export function compact<T>(array: Array<T | undefined>): T[] {
-  return array.flatMap((value) => (value !== undefined ? [value] : []))
-}
+export const compact = <T>(array: Array<T | undefined>): T[] =>
+  array.flatMap((value) => (value !== undefined ? [value] : []));
 
-export function compactMap<T, V>(
+export const compactMap = <T, V>(
   array: T[],
   map: (arg0: T) => V | undefined,
-): V[] {
-  return array.flatMap((value) => {
-    const mappedValue = map(value)
-    return mappedValue !== undefined ? [mappedValue] : []
-  })
-}
+): V[] =>
+  array.flatMap((value) => {
+    const mappedValue = map(value);
+    return mappedValue !== undefined ? [mappedValue] : [];
+  });
 
 // Median
 
-export function median(values: number[]): number | undefined {
-  return presortedPercentile(
+export const median = (values: number[]): number | undefined =>
+  presortedPercentile(
     [...values].sort((a, b) => a - b),
     0.5,
-  )
-}
+  );
 
-export function presortedMedian(values: number[]): number | undefined {
-  return presortedPercentile(values, 0.5)
-}
+export const presortedMedian = (values: number[]): number | undefined =>
+  presortedPercentile(values, 0.5);
 
-export function percentile(
+export const percentile = (
   values: number[],
   percentile: number,
-): number | undefined {
-  return presortedPercentile(
+): number | undefined =>
+  presortedPercentile(
     [...values].sort((a, b) => a - b),
     percentile,
-  )
-}
+  );
 
-export function presortedPercentile(
+export const presortedPercentile = (
   values: number[],
   percentile: number,
-): number | undefined {
-  if (values.length === 0) return undefined
-  const index = (values.length - 1) * percentile
-  const lowerIndex = Math.floor(index)
-  const upperIndex = Math.ceil(index)
+): number | undefined => {
+  if (values.length === 0) return undefined;
+  const index = (values.length - 1) * percentile;
+  const lowerIndex = Math.floor(index);
+  const upperIndex = Math.ceil(index);
 
   if (lowerIndex === upperIndex) {
-    return values[lowerIndex]
+    return values[lowerIndex];
   } else {
-    const weight = index - lowerIndex
-    return values[lowerIndex] * (1 - weight) + values[upperIndex] * weight
+    const weight = index - lowerIndex;
+    return values[lowerIndex] * (1 - weight) + values[upperIndex] * weight;
   }
-}
+};
 
 // Percentage
 
-export function percentage<T>(
+export const percentage = <T>(
   values: T[],
   filter: (value: T) => boolean,
-): number | undefined {
-  const total = values.length
-  if (total === 0) return undefined
-  const count = values.filter(filter).length
-  return (count / total) * 100
-}
+): number | undefined => {
+  const total = values.length;
+  if (total === 0) return undefined;
+  const count = values.filter(filter).length;
+  return (count / total) * 100;
+};

@@ -6,29 +6,29 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
+import { z } from "zod";
 import {
   FHIRResource,
   fhirResourceConverter,
   type FHIRResourceInput,
-} from './baseTypes/fhirElement.js'
+} from "./baseTypes/fhirElement.js";
 import {
   fhirQuestionnaireItemConverter,
   type FHIRQuestionnaireItem,
-} from './baseTypes/fhirQuestionnaireItem.js'
-import { Lazy } from '../helpers/lazy.js'
-import { optionalish } from '../helpers/optionalish.js'
-import { SchemaConverter } from '../helpers/schemaConverter.js'
+} from "./baseTypes/fhirQuestionnaireItem.js";
+import { Lazy } from "../helpers/lazy.js";
+import { optionalish } from "../helpers/optionalish.js";
+import { SchemaConverter } from "../helpers/schemaConverter.js";
 import {
   type FHIRUsageContext,
   fhirUsageContextConverter,
-} from './baseTypes/fhirUsageContext.js'
+} from "./baseTypes/fhirUsageContext.js";
 
 export enum FHIRQuestionnairePublicationStatus {
-  draft = 'draft',
-  active = 'active',
-  retired = 'retired',
-  unknown = 'unknown',
+  draft = "draft",
+  active = "active",
+  retired = "retired",
+  unknown = "unknown",
 }
 
 export const fhirContactPointConverter = new SchemaConverter({
@@ -40,9 +40,11 @@ export const fhirContactPointConverter = new SchemaConverter({
     system: object.system ?? null,
     value: object.value ?? null,
   }),
-})
+});
 
-export type FHIRContactPoint = z.output<typeof fhirContactPointConverter.schema>
+export type FHIRContactPoint = z.output<
+  typeof fhirContactPointConverter.schema
+>;
 
 export const fhirContactDetailConverter = new SchemaConverter({
   schema: z.object({
@@ -56,11 +58,11 @@ export const fhirContactDetailConverter = new SchemaConverter({
     telecom:
       object.telecom?.map(fhirContactPointConverter.value.encode) ?? null,
   }),
-})
+});
 
 export type FHIRContactDetail = z.output<
   typeof fhirContactDetailConverter.schema
->
+>;
 
 export const fhirQuestionnaireConverter = new Lazy(
   () =>
@@ -98,46 +100,46 @@ export const fhirQuestionnaireConverter = new Lazy(
           object.item?.map(fhirQuestionnaireItemConverter.value.encode) ?? null,
       }),
     }),
-)
+);
 
 export class FHIRQuestionnaire extends FHIRResource {
   // Properties
 
-  readonly resourceType: string = 'Questionnaire'
-  readonly title?: string
-  readonly status: FHIRQuestionnairePublicationStatus
-  readonly language?: string
-  readonly contact?: FHIRContactDetail[]
-  readonly useContext?: FHIRUsageContext[]
-  readonly subjectType?: string[]
-  readonly publisher?: string
-  readonly url?: string
-  readonly item?: FHIRQuestionnaireItem[]
+  readonly resourceType: string = "Questionnaire";
+  readonly title?: string;
+  readonly status: FHIRQuestionnairePublicationStatus;
+  readonly language?: string;
+  readonly contact?: FHIRContactDetail[];
+  readonly useContext?: FHIRUsageContext[];
+  readonly subjectType?: string[];
+  readonly publisher?: string;
+  readonly url?: string;
+  readonly item?: FHIRQuestionnaireItem[];
 
   // Constructor
 
   constructor(
     input: FHIRResourceInput & {
-      title?: string
-      status: FHIRQuestionnairePublicationStatus
-      language?: string
-      contact?: FHIRContactDetail[]
-      useContext?: FHIRUsageContext[]
-      subjectType?: string[]
-      publisher?: string
-      url?: string
-      item?: FHIRQuestionnaireItem[]
+      title?: string;
+      status: FHIRQuestionnairePublicationStatus;
+      language?: string;
+      contact?: FHIRContactDetail[];
+      useContext?: FHIRUsageContext[];
+      subjectType?: string[];
+      publisher?: string;
+      url?: string;
+      item?: FHIRQuestionnaireItem[];
     },
   ) {
-    super(input)
-    this.title = input.title
-    this.status = input.status
-    this.language = input.language
-    this.contact = input.contact
-    this.useContext = input.useContext
-    this.subjectType = input.subjectType
-    this.publisher = input.publisher
-    this.url = input.url
-    this.item = input.item
+    super(input);
+    this.title = input.title;
+    this.status = input.status;
+    this.language = input.language;
+    this.contact = input.contact;
+    this.useContext = input.useContext;
+    this.subjectType = input.subjectType;
+    this.publisher = input.publisher;
+    this.url = input.url;
+    this.item = input.item;
   }
 }

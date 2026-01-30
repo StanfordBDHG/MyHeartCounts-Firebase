@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { dateConverter } from '../helpers/dateConverter.js'
-import { Lazy } from '../helpers/lazy.js'
-import { optionalish, optionalishDefault } from '../helpers/optionalish.js'
-import { SchemaConverter } from '../helpers/schemaConverter.js'
+import { z } from "zod";
+import { dateConverter } from "../helpers/dateConverter.js";
+import { Lazy } from "../helpers/lazy.js";
+import { optionalish, optionalishDefault } from "../helpers/optionalish.js";
+import { SchemaConverter } from "../helpers/schemaConverter.js";
 
 export const userRegistrationInputConverter = new Lazy(
   () =>
@@ -31,7 +31,7 @@ export const userRegistrationInputConverter = new Lazy(
         participantGroup: object.participantGroup ?? null,
       }),
     }),
-)
+);
 
 export const userRegistrationConverter = new Lazy(
   () =>
@@ -41,46 +41,46 @@ export const userRegistrationConverter = new Lazy(
       ),
       encode: (object) => userRegistrationInputConverter.value.encode(object),
     }),
-)
+);
 
 export const userClaimsSchema = z.object({
   disabled: optionalishDefault(z.boolean(), false),
-})
+});
 
-export type UserClaims = z.output<typeof userClaimsSchema>
+export type UserClaims = z.output<typeof userClaimsSchema>;
 
 export class UserRegistration {
   // Stored Properties
 
-  readonly disabled: boolean
+  readonly disabled: boolean;
 
-  readonly dateOfBirth?: Date
+  readonly dateOfBirth?: Date;
 
-  readonly language?: string
-  readonly timeZone?: string
-  readonly participantGroup?: number
+  readonly language?: string;
+  readonly timeZone?: string;
+  readonly participantGroup?: number;
 
   // Computed Properties
 
   get claims(): UserClaims {
     return {
       disabled: this.disabled,
-    }
+    };
   }
 
   // Constructor
 
   constructor(input: {
-    disabled: boolean
-    dateOfBirth?: Date
-    language?: string
-    timeZone?: string
-    participantGroup?: number
+    disabled: boolean;
+    dateOfBirth?: Date;
+    language?: string;
+    timeZone?: string;
+    participantGroup?: number;
   }) {
-    this.disabled = input.disabled
-    this.dateOfBirth = input.dateOfBirth
-    this.language = input.language
-    this.timeZone = input.timeZone
-    this.participantGroup = input.participantGroup
+    this.disabled = input.disabled;
+    this.dateOfBirth = input.dateOfBirth;
+    this.language = input.language;
+    this.timeZone = input.timeZone;
+    this.participantGroup = input.participantGroup;
   }
 }

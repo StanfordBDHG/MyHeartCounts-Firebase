@@ -6,52 +6,55 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type FHIRQuantity } from '../fhir/baseTypes/fhirQuantity.js'
-import { type Observation } from '../types/observation.js'
+import { type FHIRQuantity } from "../fhir/baseTypes/fhirQuantity.js";
+import { type Observation } from "../types/observation.js";
 
 export class QuantityUnit {
   // Static Properties
 
-  static readonly mg = new QuantityUnit('mg', 'mg')
-  static readonly lbs = new QuantityUnit('[lb_av]', 'lbs')
-  static readonly kg = new QuantityUnit('kg', 'kg')
-  static readonly bpm = new QuantityUnit('/min', 'beats/minute')
-  static readonly mmHg = new QuantityUnit('mm[Hg]', 'mmHg')
-  static readonly mg_dL = new QuantityUnit('mg/dL', 'mg/dL')
-  static readonly mEq_L = new QuantityUnit('meq/L', 'mEq/L')
+  static readonly mg = new QuantityUnit("mg", "mg");
+  static readonly lbs = new QuantityUnit("[lb_av]", "lbs");
+  static readonly kg = new QuantityUnit("kg", "kg");
+  static readonly bpm = new QuantityUnit("/min", "beats/minute");
+  static readonly mmHg = new QuantityUnit("mm[Hg]", "mmHg");
+  static readonly mg_dL = new QuantityUnit("mg/dL", "mg/dL");
+  static readonly mEq_L = new QuantityUnit("meq/L", "mEq/L");
   static readonly mL_min_173m2 = new QuantityUnit(
-    'mL/min/{1.73_m2}',
-    'mL/min/1.73m2',
-  )
-  static readonly tablet = new QuantityUnit('{tbl}', 'tbl.')
+    "mL/min/{1.73_m2}",
+    "mL/min/1.73m2",
+  );
+  static readonly tablet = new QuantityUnit("{tbl}", "tbl.");
 
   // HealthKit mobility metrics
-  static readonly flights = new QuantityUnit('flights', 'flights')
-  static readonly count = new QuantityUnit('count', 'count')
-  static readonly steps = new QuantityUnit('steps', 'steps')
-  static readonly meters = new QuantityUnit('m', 'meters')
-  static readonly kilometers = new QuantityUnit('km', 'kilometers')
-  static readonly miles = new QuantityUnit('[mi_i]', 'miles')
-  static readonly m_s = new QuantityUnit('m/s', 'meters/second')
-  static readonly cm = new QuantityUnit('cm', 'centimeters')
-  static readonly percent = new QuantityUnit('%', 'percent')
+  static readonly flights = new QuantityUnit("flights", "flights");
+  static readonly count = new QuantityUnit("count", "count");
+  static readonly steps = new QuantityUnit("steps", "steps");
+  static readonly meters = new QuantityUnit("m", "meters");
+  static readonly kilometers = new QuantityUnit("km", "kilometers");
+  static readonly miles = new QuantityUnit("[mi_i]", "miles");
+  static readonly m_s = new QuantityUnit("m/s", "meters/second");
+  static readonly cm = new QuantityUnit("cm", "centimeters");
+  static readonly percent = new QuantityUnit("%", "percent");
 
   // HealthKit time metrics
-  static readonly seconds = new QuantityUnit('s', 'seconds')
-  static readonly minutes = new QuantityUnit('min', 'minutes')
-  static readonly hours = new QuantityUnit('h', 'hours')
+  static readonly seconds = new QuantityUnit("s", "seconds");
+  static readonly minutes = new QuantityUnit("min", "minutes");
+  static readonly hours = new QuantityUnit("h", "hours");
 
   // HealthKit vital signs
-  static readonly celsius = new QuantityUnit('Cel', 'celsius')
-  static readonly fahrenheit = new QuantityUnit('[degF]', 'fahrenheit')
-  static readonly mL_kg_min = new QuantityUnit('mL/kg/min', 'mL/kg/min')
-  static readonly resp_min = new QuantityUnit('{Breaths}/min', 'breaths/minute')
-  static readonly mg_dL_glu = new QuantityUnit('mg/dL', 'mg/dL')
+  static readonly celsius = new QuantityUnit("Cel", "celsius");
+  static readonly fahrenheit = new QuantityUnit("[degF]", "fahrenheit");
+  static readonly mL_kg_min = new QuantityUnit("mL/kg/min", "mL/kg/min");
+  static readonly resp_min = new QuantityUnit(
+    "{Breaths}/min",
+    "breaths/minute",
+  );
+  static readonly mg_dL_glu = new QuantityUnit("mg/dL", "mg/dL");
 
   // HealthKit body measurements
-  static readonly cm_height = new QuantityUnit('cm', 'centimeters')
-  static readonly in_height = new QuantityUnit('[in_i]', 'inches')
-  static readonly kg_m2 = new QuantityUnit('kg/m2', 'kg/m²')
+  static readonly cm_height = new QuantityUnit("cm", "centimeters");
+  static readonly in_height = new QuantityUnit("[in_i]", "inches");
+  static readonly kg_m2 = new QuantityUnit("kg/m2", "kg/m²");
 
   static readonly allValues = [
     QuantityUnit.mg,
@@ -91,24 +94,24 @@ export class QuantityUnit {
     QuantityUnit.cm_height,
     QuantityUnit.in_height,
     QuantityUnit.kg_m2,
-  ]
+  ];
 
   // Properties
 
-  readonly unit: string
-  readonly code: string
-  readonly system: string
+  readonly unit: string;
+  readonly code: string;
+  readonly system: string;
 
   // Constructor
 
   constructor(
     code: string,
     unit: string,
-    system = 'http://unitsofmeasure.org',
+    system = "http://unitsofmeasure.org",
   ) {
-    this.unit = unit
-    this.code = code
-    this.system = system
+    this.unit = unit;
+    this.code = code;
+    this.system = system;
   }
 
   // Methods
@@ -118,7 +121,7 @@ export class QuantityUnit {
       this.code === other.code &&
       this.system === other.system &&
       this.unit === other.unit
-    )
+    );
   }
 
   equals(other: QuantityUnit): boolean {
@@ -126,7 +129,7 @@ export class QuantityUnit {
       this.code === other.code &&
       this.system === other.system &&
       this.unit === other.unit
-    )
+    );
   }
 
   convert(observation: Observation): Observation | undefined {
@@ -134,10 +137,10 @@ export class QuantityUnit {
       (converter) =>
         converter.sourceUnit.equals(observation.unit) &&
         converter.targetUnit.equals(this),
-    )
-    if (!converter) return undefined
-    const value = converter.convert(observation.value)
-    return value ? { ...observation, value, unit: this } : undefined
+    );
+    if (!converter) return undefined;
+    const value = converter.convert(observation.value);
+    return value ? { ...observation, value, unit: this } : undefined;
   }
 
   fhirQuantity(value: number): FHIRQuantity {
@@ -146,36 +149,36 @@ export class QuantityUnit {
       code: this.code,
       value: value,
       unit: this.unit,
-    }
+    };
   }
 
   valueOf(quantity: FHIRQuantity | undefined): number | undefined {
-    if (!quantity?.value) return undefined
-    if (this.isUsedIn(quantity)) return quantity.value
+    if (!quantity?.value) return undefined;
+    if (this.isUsedIn(quantity)) return quantity.value;
 
     const converter = QuantityUnitConverter.allValues.find(
       (converter) =>
         converter.sourceUnit.isUsedIn(quantity) &&
         converter.targetUnit.equals(this),
-    )
-    if (!converter) return undefined
-    return converter.convert(quantity.value)
+    );
+    if (!converter) return undefined;
+    return converter.convert(quantity.value);
   }
 }
 
 class QuantityUnitConverter {
-  readonly sourceUnit: QuantityUnit
-  readonly targetUnit: QuantityUnit
-  readonly convert: (value: number) => number
+  readonly sourceUnit: QuantityUnit;
+  readonly targetUnit: QuantityUnit;
+  readonly convert: (value: number) => number;
 
   constructor(
     sourceUnit: QuantityUnit,
     targetUnit: QuantityUnit,
     convert: (value: number) => number,
   ) {
-    this.sourceUnit = sourceUnit
-    this.targetUnit = targetUnit
-    this.convert = convert
+    this.sourceUnit = sourceUnit;
+    this.targetUnit = targetUnit;
+    this.convert = convert;
   }
 
   static readonly allValues = [
@@ -278,5 +281,5 @@ class QuantityUnitConverter {
       QuantityUnit.cm_height,
       (value) => value * 2.54,
     ),
-  ]
+  ];
 }
