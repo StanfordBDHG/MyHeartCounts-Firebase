@@ -22,18 +22,18 @@
   ],
   "main": "lib/index.js",
   "dependencies": {
-    "zod": "^3.23.8",
-    "typescript": "^5"
+    "zod": "^3.25.76",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@typescript-eslint/eslint-plugin": "^7",
-    "@typescript-eslint/parser": "^7",
-    "eslint": "^8.57",
+    "@types/node": "^22",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
     "eslint-config-google": "^0.14",
-    "eslint-config-prettier": "^9",
-    "eslint-plugin-import": "^2",
-    "eslint-plugin-prettier": "^5",
-    "prettier": "^3"
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.1"
   }
 }
