@@ -70,14 +70,10 @@ export default [
       'import/no-mutable-exports': 'error',
       'import/no-cycle': 'error',
       'import/extensions': [
-        'warn',
-        'ignorePackages',
+        'error',
+        'always',
         {
-          ts: 'never',
-          tsx: 'never',
-          js: 'never',
-          jsx: 'never',
-          mjs: 'never',
+          ignorePackages: true,
         },
       ],
       'import/newline-after-import': 'warn',

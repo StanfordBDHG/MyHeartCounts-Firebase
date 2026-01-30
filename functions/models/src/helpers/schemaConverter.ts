@@ -7,7 +7,7 @@
 //
 
 import { type z } from 'zod'
-import { type Lazy } from './lazy'
+import { type Lazy } from './lazy.js'
 
 export class SchemaConverter<Schema extends z.ZodTypeAny, Encoded> {
   // Properties

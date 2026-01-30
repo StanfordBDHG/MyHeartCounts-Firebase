@@ -11,7 +11,7 @@ import {
   type BulkWriter,
   type BulkWriterOptions,
 } from 'firebase-admin/firestore'
-import { type CollectionsService } from './collections'
+import { type CollectionsService } from './collections.js'
 
 export interface Document<Content> {
   id: string
