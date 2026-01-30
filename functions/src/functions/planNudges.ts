@@ -303,7 +303,7 @@ export class NudgeService {
         let languageContext = ''
         if (isSpanish) {
           languageContext =
-            "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the formal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
+            "This person's primary language is Spanish. Provide the prompt in Spanish in Latin American Spanish in the informal tone. You should follow RAE guidelines for proper Spanish use in the LATAM."
         }
 
         // Build preferred notification time
