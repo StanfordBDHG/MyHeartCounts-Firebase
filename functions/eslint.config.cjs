@@ -6,10 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-const { getEslintNodeConfig } = require('@stanfordspezi/spezi-web-configurations')
+const { getEslintConfig } = require('@stanfordspezi/spezi-web-configurations')
 
 module.exports = [
-  ...getEslintNodeConfig({ tsconfigRootDir: __dirname }),
+  ...getEslintConfig({ tsconfigRootDir: __dirname }),
   {
     ignores: ['lib/**/*', 'node_modules/**/*'],
   },
