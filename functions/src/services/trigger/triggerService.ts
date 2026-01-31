@@ -35,7 +35,6 @@ export interface TriggerService {
     document: Document<unknown>,
   ): Promise<void>;
 
-  // Added for compatibility
   questionnaireResponseWritten(
     userId: string,
     questionnaireResponseId: string,
@@ -119,20 +118,6 @@ export class TriggerServiceImpl implements TriggerService {
     logger.debug(`TriggerService.userRegistrationWritten(${userId})`);
   }
 
-  async userQuestionnaireResponseWritten(
-    userId: string,
-    questionnaireResponseId: string,
-    document: Document<FHIRQuestionnaireResponse>,
-  ): Promise<void> {
-    try {
-      await this.processQuestionnaireResponse(userId, document);
-    } catch (error) {
-      logger.error(
-        `TriggerService.userQuestionnaireResponseWritten(${userId}, ${questionnaireResponseId}): ${String(error)}`,
-      );
-    }
-  }
-
   // Methods - Actions
 
   async updateStaticData(cachingStrategy: CachingStrategy): Promise<void> {
@@ -157,7 +142,6 @@ export class TriggerServiceImpl implements TriggerService {
     );
   }
 
-  // Added for compatibility
   async questionnaireResponseWritten(
     userId: string,
     questionnaireResponseId: string,
