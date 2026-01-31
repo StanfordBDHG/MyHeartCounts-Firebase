@@ -14,7 +14,7 @@
     "test:regenerate": "env REGENERATE_VALUES=true npm run test",
     "serve": "firebase emulators:start --only auth,firestore,functions,storage",
     "serve:watch": "npm run build -- --watch | npm run serve",
-    "serve:seeded": "firebase emulators:exec --only auth,firestore,functions,storage --ui \"npm run serve:seed && if [ -z \\$IN_DOCKER_CONTAINER ]; then read -r; else sleep infinity; fi\"",
+    "serve:seeded": "firebase emulators:exec --only auth,firestore,functions,storage --ui \"curl -X POST http://127.0.0.1:5001/myheart-counts-development/us-central1/customSeed -H 'Content-Type: application/json' -d '{}' && if [ -z \\$IN_DOCKER_CONTAINER ]; then read -r; else sleep infinity; fi\"",
     "shell": "firebase functions:shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
