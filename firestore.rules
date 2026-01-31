@@ -30,7 +30,7 @@ service cloud.firestore {
 
       allow write: if isUser(userId);
     }
-    match /feedback/{id} {
+    match /feedback/{userId} {
 
       allow create: if isUser(userId);
       
