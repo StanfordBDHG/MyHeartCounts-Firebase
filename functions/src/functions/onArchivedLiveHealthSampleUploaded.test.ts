@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 import { expect } from "chai";
 import { describe, it } from "mocha";
 
@@ -123,7 +125,7 @@ describe("onArchivedLiveHealthSampleUploaded", () => {
       userId: string,
     ): unknown[] | null => {
       if (Array.isArray(data)) {
-        return data;
+        return data as unknown[];
       }
 
       if (data && typeof data === "object" && "data" in data) {
@@ -133,7 +135,7 @@ describe("onArchivedLiveHealthSampleUploaded", () => {
           if (wrappedData.userId && wrappedData.userId !== userId) {
             return null;
           }
-          return wrappedData.data;
+          return wrappedData.data as unknown[];
         }
       }
 
@@ -183,17 +185,28 @@ describe("onArchivedLiveHealthSampleUploaded", () => {
   });
 
   describe("Observation processing", () => {
+    interface ObservationWithId {
+      id: string;
+      [key: string]: unknown;
+    }
+
     const getValidObservationsWithIds = (
       observations: unknown[],
     ): Array<{ observation: unknown; id: string }> => {
       const validObservations: Array<{ observation: unknown; id: string }> = [];
 
       for (const observation of observations) {
-        const observationData = observation as any;
-        const documentId = observationData?.id;
+        if (
+          observation &&
+          typeof observation === "object" &&
+          "id" in observation
+        ) {
+          const observationData = observation as ObservationWithId;
+          const documentId = observationData.id;
 
-        if (documentId) {
-          validObservations.push({ observation, id: documentId });
+          if (documentId && typeof documentId === "string") {
+            validObservations.push({ observation, id: documentId });
+          }
         }
       }
 

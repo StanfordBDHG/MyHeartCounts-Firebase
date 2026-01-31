@@ -14,6 +14,8 @@ import { it, describe } from "mocha";
 import { createNudgeNotifications } from "./planNudges.js";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 describeWithEmulators("function: planNudges", (env) => {
   describe("User eligibility and nudge creation", () => {
     it("creates nudge-predefined nudges for group 1 user at day 7", async () => {

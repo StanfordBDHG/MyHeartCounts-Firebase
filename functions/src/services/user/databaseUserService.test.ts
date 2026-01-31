@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 import { type UserAuth } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import admin from "firebase-admin";
@@ -17,12 +19,12 @@ import { CollectionsService } from "../database/collections.js";
 import { getServiceFactory } from "../factory/getServiceFactory.js";
 
 describe("DatabaseUserService", () => {
-  let mockFirestore: MockFirestore;
+  let _mockFirestore: MockFirestore;
   let userService: UserService;
   let collectionsService: CollectionsService;
 
   beforeEach(() => {
-    mockFirestore = setupMockFirebase().firestore;
+    _mockFirestore = setupMockFirebase().firestore;
     collectionsService = new CollectionsService(admin.firestore());
     userService = getServiceFactory().user();
   });
@@ -86,7 +88,7 @@ describe("DatabaseUserService", () => {
       // but we're testing that it doesn't throw an error
       try {
         await userService.finishUserEnrollment(userDoc);
-      } catch (error) {
+      } catch {
         // Auth user might not be found, which is expected in the test environment
       }
     });
@@ -164,14 +166,14 @@ describe("DatabaseUserService", () => {
 
       try {
         await userService.deleteUser(deleteUserId);
-      } catch (error) {
+      } catch {
         // Auth deletion might fail in mocks, which is expected
       }
 
       try {
         user = await userService.getUser(deleteUserId);
         expect(user).to.be.undefined;
-      } catch (error) {
+      } catch {
         // Document deletion might not be immediate in mocks
       }
     });
@@ -204,7 +206,7 @@ describe("DatabaseUserService", () => {
         );
       } catch (error) {
         expect(error).to.be.instanceOf(Error);
-        expect((error as any).message).to.contain(
+        expect((error as Error).message).to.contain(
           "Account is already marked for deletion",
         );
       }

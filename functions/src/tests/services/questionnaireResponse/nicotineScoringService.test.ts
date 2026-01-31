@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 import {
   FHIRQuestionnaireResponse,
   Score,
@@ -96,14 +98,15 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
   describe("handle method", () => {
     it("should return false for non-matching questionnaire IDs", async () => {
+      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
       const mockDatabaseService = {} as any;
-      const mockMessageService = {} as any;
       const mockCalculator = new DefaultNicotineScoreCalculator();
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         scoreCalculator: mockCalculator,
       });
+      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 
       const mockResponse = {
         id: "test-response-id",
@@ -125,17 +128,18 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
     });
 
     it("should return true for matching questionnaire IDs", async () => {
+      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
       const mockDatabaseService = {
         getQuery: () => Promise.resolve([]),
         runTransaction: () => Promise.resolve(),
       } as any;
-      const mockMessageService = {} as any;
       const mockCalculator = new DefaultNicotineScoreCalculator();
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         scoreCalculator: mockCalculator,
       });
+      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 
       // Create a mock response with the expected structure
       const mockResponse = {
@@ -172,17 +176,18 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
     });
 
     it("should handle missing smoking status gracefully", async () => {
+      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
       const mockDatabaseService = {
         getQuery: () => Promise.resolve([]),
         runTransaction: () => Promise.resolve(),
       } as any;
-      const mockMessageService = {} as any;
       const mockCalculator = new DefaultNicotineScoreCalculator();
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         scoreCalculator: mockCalculator,
       });
+      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 
       const mockResponse = {
         id: "test-response-id",
@@ -210,17 +215,18 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
     });
 
     it("should handle database transaction errors gracefully", async () => {
+      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
       const mockDatabaseService = {
         getQuery: () => Promise.resolve([]),
         runTransaction: () => Promise.reject(new Error("Transaction failed")),
       } as any;
-      const mockMessageService = {} as any;
       const mockCalculator = new DefaultNicotineScoreCalculator();
 
       const service = new NicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
         scoreCalculator: mockCalculator,
       });
+      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 
       const mockResponse = {
         id: "test-response-id",

@@ -34,10 +34,11 @@ export class DatabaseConverter<
   fromFirestore(snapshot: DocumentSnapshot): z.output<Schema> {
     const data = snapshot.data();
     try {
-      return this.converter.schema.parse(data) as z.output<Schema>;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return this.converter.schema.parse(data);
     } catch (error) {
       logger.error(
-        `DatabaseDecoder(${this.converter.schema._output}): Failed to decode object ${String(data)} due to ${String(error)}.`,
+        `DatabaseDecoder(${this.converter.schema._output}): Failed to decode object ${JSON.stringify(data)} due to ${String(error)}.`,
       );
       throw error;
     }

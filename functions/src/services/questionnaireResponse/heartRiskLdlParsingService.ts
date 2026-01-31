@@ -30,7 +30,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
   async handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
-    options: { isNew: boolean },
+    _options: { isNew: boolean },
   ): Promise<boolean> {
     const targetQuestionnaireUrls = [
       "https://myheartcounts.stanford.edu/fhir/survey/heartRisk",

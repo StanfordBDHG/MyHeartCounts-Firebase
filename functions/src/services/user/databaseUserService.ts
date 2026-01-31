@@ -14,7 +14,6 @@ import {
   type UserAuth,
 } from "@stanfordbdhg/myheartcounts-models";
 import { type Auth } from "firebase-admin/auth";
-import { Timestamp } from "firebase-admin/firestore";
 import { type UserRecord } from "firebase-functions/v1/auth";
 import { https, logger } from "firebase-functions/v2";
 import { type EnrollUserOptions, type UserService } from "./userService.js";
@@ -129,7 +128,9 @@ export class DatabaseUserService implements UserService {
     do {
       try {
         authUser = await this.auth.getUser(user.id);
-      } catch {}
+      } catch {
+        // Intentionally empty - user may not exist yet, will retry
+      }
       count = await setTimeout(1_000, count + 1);
       // beforeUserCreated has a timeout of 7 seconds
     } while (authUser === undefined && count < 7);
@@ -203,7 +204,12 @@ export class DatabaseUserService implements UserService {
         const userDoc = await transaction.get(rawUserRef);
         const userData = userDoc.data();
 
-        if (userData && (userData as any).toBeDeleted) {
+        if (
+          userData &&
+          typeof userData === "object" &&
+          "toBeDeleted" in userData &&
+          userData.toBeDeleted
+        ) {
           throw new https.HttpsError(
             "already-exists",
             "Account is already marked for deletion",

@@ -16,7 +16,6 @@ import { logger } from "firebase-functions";
 import {
   scoreToObservation,
   getNicotineObservationConfig,
-  type QuestionnaireObservationConfig,
 } from "./fhirObservationConverter.js";
 import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
 import {
@@ -79,7 +78,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
   async handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
-    options: { isNew: boolean },
+    _options: { isNew: boolean },
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [
@@ -94,7 +93,7 @@ export class NicotineScoringQuestionnaireResponseService extends QuestionnaireRe
       const score = this.calculateScore(response.content);
       if (score === null) return false;
 
-      const previousScore = await this.getLatestScore(userId);
+      const _previousScore = await this.getLatestScore(userId);
 
       // Store FHIR observation
       await this.storeFHIRObservation(userId, response.id, score);

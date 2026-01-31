@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { https, logger } from "firebase-functions/v2";
+import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
@@ -32,6 +32,7 @@ interface MarkHealthSamplesEnteredInErrorOutput {
 export const deleteHealthSamples = validatedOnCall(
   "deleteHealthSamples",
   markHealthSamplesEnteredInErrorInputSchema,
+  // eslint-disable-next-line @typescript-eslint/require-await
   async (request): Promise<MarkHealthSamplesEnteredInErrorOutput> => {
     const factory = getServiceFactory();
     const credential = factory.credential(request.auth);

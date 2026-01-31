@@ -10,7 +10,6 @@ import { randomUUID } from "crypto";
 import {
   type Score,
   type FHIRQuestionnaireResponse,
-  type FHIRObservation,
 } from "@stanfordbdhg/myheartcounts-models";
 import { logger } from "firebase-functions";
 import {
@@ -37,7 +36,7 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
   async handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
-    options: { isNew: boolean },
+    _options: { isNew: boolean },
   ): Promise<boolean> {
     const targetQuestionnaireUrls = [
       "https://myheartcounts.stanford.edu/fhir/survey/heartRisk",

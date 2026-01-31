@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { Storage } from "@google-cloud/storage";
+import { Storage, type Bucket } from "@google-cloud/storage";
 import { expect } from "chai";
 import { stub, restore, type SinonStub } from "sinon";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
@@ -24,7 +24,9 @@ describe("function: processUserDeletions", () => {
     const bucketStub = {
       getFiles: getFilesStub,
     };
-    storageStub = stub(Storage.prototype, "bucket").returns(bucketStub as any);
+    storageStub = stub(Storage.prototype, "bucket").returns(
+      bucketStub as unknown as Bucket,
+    );
     process.env.GCLOUD_PROJECT = "test-project";
   });
 
@@ -33,7 +35,7 @@ describe("function: processUserDeletions", () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  describeWithEmulators("processUserDeletions integration", (env) => {
+  describeWithEmulators("processUserDeletions integration", (_env) => {
     it("runs without throwing errors", async () => {
       const { processUserDeletions } =
         await import("./processUserDeletions.js");
@@ -56,11 +58,16 @@ describe("function: processUserDeletions", () => {
 
       await deleteUserStorageFiles("testuser");
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(storageStub.calledOnceWith("test-project.appspot.com")).to.be.true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(getFilesStub.calledOnceWith({ prefix: "users/testuser/" })).to.be
         .true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(mockFiles[0].delete.calledOnce).to.be.true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(mockFiles[1].delete.calledOnce).to.be.true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(mockFiles[2].delete.calledOnce).to.be.true;
     });
 
@@ -72,7 +79,9 @@ describe("function: processUserDeletions", () => {
 
       await deleteUserStorageFiles("testuser");
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(storageStub.calledOnce).to.be.true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(getFilesStub.calledOnce).to.be.true;
     });
 

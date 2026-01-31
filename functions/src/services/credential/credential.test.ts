@@ -14,23 +14,28 @@ import { describe } from "mocha";
 import { Credential } from "./credential.js";
 
 describe("Credential", () => {
-  const createAuthData = (userId: string, disabled = false): AuthData => {
+  const createAuthData = (userId: string, disabled = false): AuthData =>
+    ({
       uid: userId,
       token: {
         disabled,
       } as unknown as DecodedIdToken,
-    } as AuthData;
+    }) as AuthData;
 
   const adminAuth = createAuthData("mockAdmin");
   const patientAuth = createAuthData("mockPatient");
   const disabledAuth = createAuthData("disabledUser", true);
 
   const expectToNotThrow = (fn: () => void): void => {
-    expect(fn).to.not.throw()
+    expect(fn).to.not.throw();
   };
 
-  const expectToThrow = (fn: () => void, errorType: typeof https.HttpsError, code: string): void => {
-    expect(fn).to.throw(errorType).with.property('code', code)
+  const expectToThrow = (
+    fn: () => void,
+    errorType: typeof https.HttpsError,
+    code: string,
+  ): void => {
+    expect(fn).to.throw(errorType).with.property("code", code);
   };
 
   describe("constructor", () => {

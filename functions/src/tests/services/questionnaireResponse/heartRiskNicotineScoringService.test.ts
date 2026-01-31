@@ -6,10 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import {
-  FHIRQuestionnaireResponse,
-  Score,
-} from "@stanfordbdhg/myheartcounts-models";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
+import { FHIRQuestionnaireResponse } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { HeartRiskNicotineScoringQuestionnaireResponseService } from "../../../services/questionnaireResponse/heartRiskNicotineScoringService.js";
@@ -18,7 +19,7 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
   describe("handle method", () => {
     it("should return false for non-matching questionnaire IDs", async () => {
       const mockDatabaseService = {} as any;
-      const mockMessageService = {} as any;
+      const _mockMessageService = {} as any;
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
@@ -47,7 +48,7 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.resolve(),
       } as any;
-      const mockMessageService = {} as any;
+      const _mockMessageService = {} as any;
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
@@ -88,7 +89,7 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
 
     it("should return false when no smoking status is found", async () => {
       const mockDatabaseService = {} as any;
-      const mockMessageService = {} as any;
+      const _mockMessageService = {} as any;
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
@@ -121,7 +122,7 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
 
     it("should return false when smoking question is missing", async () => {
       const mockDatabaseService = {} as any;
-      const mockMessageService = {} as any;
+      const _mockMessageService = {} as any;
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
@@ -163,7 +164,7 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.reject(new Error("Database error")),
       } as any;
-      const mockMessageService = {} as any;
+      const _mockMessageService = {} as any;
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,
@@ -208,7 +209,7 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.resolve(),
       } as any;
-      const mockMessageService = {} as any;
+      const _mockMessageService = {} as any;
 
       const service = new HeartRiskNicotineScoringQuestionnaireResponseService({
         databaseService: mockDatabaseService,

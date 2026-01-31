@@ -8,14 +8,13 @@
 
 import {
   type FHIRQuestionnaireResponse,
-  QuestionnaireReference,
-  UserMessage,
   type User,
   type CachingStrategy,
   StaticDataComponent,
   type UserRegistration,
 } from "@stanfordbdhg/myheartcounts-models";
 import { logger } from "firebase-functions";
+// eslint-disable-next-line import/no-cycle
 import { _updateStaticData } from "../../functions/updateStaticData.js";
 import { type Document } from "../database/databaseService.js";
 import { type ServiceFactory } from "../factory/serviceFactory.js";
@@ -33,7 +32,7 @@ export interface TriggerService {
     userId: string,
     observationType: string,
     documentId: string,
-    document: Document<any>,
+    document: Document<unknown>,
   ): Promise<void>;
 
   // Added for compatibility
@@ -67,13 +66,15 @@ export class TriggerServiceImpl implements TriggerService {
 
   // Methods - Schedule
 
-  async sendDailyReminders() {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async sendDailyReminders(): Promise<void> {
     logger.debug(
       "TriggerService.sendDailyReminders(): No daily reminders configured",
     );
   }
 
-  async sendWeeklySymptomQuestionnaires() {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async sendWeeklySymptomQuestionnaires(): Promise<void> {
     logger.debug(
       "TriggerService.sendWeeklySymptomQuestionnaires(): No users configured for weekly questionnaires",
     );
@@ -86,11 +87,12 @@ export class TriggerServiceImpl implements TriggerService {
     await this.userCreated(user.id);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async userObservationWritten(
     userId: string,
     observationType: string,
     documentId: string,
-    document: Document<any>,
+    _document: Document<unknown>,
   ): Promise<void> {
     logger.debug(
       `TriggerService.userObservationWritten(${userId}, ${observationType}, ${documentId})`,
@@ -99,18 +101,21 @@ export class TriggerServiceImpl implements TriggerService {
 
   // Methods - Events
 
-  async userCreated(userId: string) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async userCreated(userId: string): Promise<void> {
     logger.info(`TriggerService.userCreated(${userId}): User created`);
   }
 
-  async userUpdated(userId: string) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async userUpdated(userId: string): Promise<void> {
     logger.debug(`TriggerService.userUpdated(${userId})`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async userRegistrationWritten(
     userId: string,
-    document: Document<UserRegistration>,
-  ) {
+    _document: Document<UserRegistration>,
+  ): Promise<void> {
     logger.debug(`TriggerService.userRegistrationWritten(${userId})`);
   }
 
@@ -118,7 +123,7 @@ export class TriggerServiceImpl implements TriggerService {
     userId: string,
     questionnaireResponseId: string,
     document: Document<FHIRQuestionnaireResponse>,
-  ) {
+  ): Promise<void> {
     try {
       await this.processQuestionnaireResponse(userId, document);
     } catch (error) {
@@ -130,7 +135,7 @@ export class TriggerServiceImpl implements TriggerService {
 
   // Methods - Actions
 
-  async updateStaticData(cachingStrategy: CachingStrategy) {
+  async updateStaticData(cachingStrategy: CachingStrategy): Promise<void> {
     await _updateStaticData(this.factory, {
       cachingStrategy,
       only: Object.values(StaticDataComponent),
@@ -142,7 +147,7 @@ export class TriggerServiceImpl implements TriggerService {
   async processQuestionnaireResponse(
     userId: string,
     document: Document<FHIRQuestionnaireResponse>,
-  ) {
+  ): Promise<void> {
     logger.debug(`processQuestionnaireResponse for user ${userId}`);
     const questionnaireResponseService = this.factory.questionnaireResponse();
     await questionnaireResponseService.handle(
@@ -189,7 +194,10 @@ export class TriggerServiceImpl implements TriggerService {
     }
   }
 
-  private async sendSymptomQuestionnaireReminderIfNeeded(userId: string) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  private async sendSymptomQuestionnaireReminderIfNeeded(
+    userId: string,
+  ): Promise<void> {
     logger.info(
       `TriggerService.sendSymptomQuestionnaireReminderIfNeeded(${userId}): Reminder skipped`,
     );

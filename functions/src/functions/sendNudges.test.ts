@@ -21,6 +21,7 @@ describeWithEmulators("function: sendNudges", (env) => {
     mockMessaging = new MockMessaging();
     // Stub the messaging function directly on the admin object
     // this prevents actual firebase calls in tests
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
     stub(admin, "messaging").returns(mockMessaging as any);
   });
 
@@ -185,6 +186,7 @@ describeWithEmulators("function: sendNudges", (env) => {
 
       const archivedNotification = historySnapshot.docs[0].data();
       expect(archivedNotification.status).to.equal("failed"); // Firebase throws error for mock token
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(archivedNotification.errorMessage).to.exist; // Error message varies by environment
       expect(archivedNotification.title).to.equal("Success Notification");
       expect(archivedNotification.body).to.equal(
@@ -232,6 +234,7 @@ describeWithEmulators("function: sendNudges", (env) => {
 
       const archivedNotification = historySnapshot.docs[0].data();
       expect(archivedNotification.status).to.equal("failed");
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(archivedNotification.errorMessage).to.exist; // Error message varies by environment
       expect(archivedNotification.title).to.equal("Fail Notification");
       expect(archivedNotification.body).to.equal(

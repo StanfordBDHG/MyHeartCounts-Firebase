@@ -39,16 +39,12 @@ export class NotificationService {
   // Constructor
 
   private get firestore(): admin.firestore.Firestore {
-    if (!this._firestore) {
-      this._firestore = admin.firestore();
-    }
+    this._firestore ??= admin.firestore();
     return this._firestore;
   }
 
   private get messaging(): admin.messaging.Messaging {
-    if (!this._messaging) {
-      this._messaging = admin.messaging();
-    }
+    this._messaging ??= admin.messaging();
     return this._messaging;
   }
 
@@ -175,7 +171,7 @@ export class NotificationService {
                   backlogDoc.id,
                   backlogItem.title,
                   backlogItem.body,
-                  userData.fcmToken,
+                  userData.fcmToken as string,
                   backlogItem.timestamp,
                   backlogItem.isLLMGenerated,
                   backlogItem.generatedAt,
@@ -205,9 +201,7 @@ export class NotificationService {
 let notificationService: NotificationService | undefined;
 
 const getNotificationService = (): NotificationService => {
-  if (!notificationService) {
-    notificationService = new NotificationService();
-  }
+  notificationService ??= new NotificationService();
   return notificationService;
 };
 

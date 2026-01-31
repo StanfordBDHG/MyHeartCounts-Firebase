@@ -29,7 +29,7 @@ describe("DebugDataService", () => {
     cleanupMocks();
   });
 
-  const generatesSameCollectionAsBefore = async (
+  const _generatesSameCollectionAsBefore = async (
     collectionName: string,
     action: () => Promise<void>,
   ) => {
@@ -62,6 +62,7 @@ describe("DebugDataService", () => {
     const heartRateCol = mockFirestore.collections.get(
       "users/0/heartRateObservations",
     );
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(heartRateCol).to.exist;
     expect(heartRateCol?.size).to.be.greaterThan(0);
   });
@@ -70,6 +71,7 @@ describe("DebugDataService", () => {
     // Skip regenerating collection for now
     await service.seedUserMessages("0", date);
     const messagesCol = mockFirestore.collections.get("users/0/messages");
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(messagesCol).to.exist;
     expect(messagesCol?.size).to.be.greaterThan(0);
   });

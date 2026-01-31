@@ -20,8 +20,8 @@ export class MockStorageBucket {
   }
 
   upload(
-    path: string,
-    options?: { destination?: string; contentType?: string },
+    _path: string,
+    _options?: { destination?: string; contentType?: string },
   ): Promise<void> {
     return Promise.resolve();
   }

@@ -62,7 +62,7 @@ export class SeedingService {
     // Helper function to clean data objects
     const cleanObject = <T>(obj: T): T => {
       // Parse and stringify to remove undefined values
-      return JSON.parse(JSON.stringify(obj));
+      return JSON.parse(JSON.stringify(obj)) as T;
     };
 
     if (Array.isArray(data)) {

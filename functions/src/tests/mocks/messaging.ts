@@ -9,7 +9,7 @@
 import { type Message } from "firebase-admin/messaging";
 
 export class MockMessaging {
-  async send(message: Message, dryRun?: boolean): Promise<string> {
+  send(message: Message, _dryRun?: boolean): Promise<string> {
     const tokenMessage = message as { token?: string };
     const isFailure = tokenMessage.token?.includes("fail") ?? false;
 
@@ -17,10 +17,12 @@ export class MockMessaging {
       throw new Error("Invalid FCM token");
     }
 
-    return "mock-message-id-" + Math.random().toString(36).substr(2, 9);
+    return Promise.resolve(
+      "mock-message-id-" + Math.random().toString(36).substring(2, 11),
+    );
   }
 
-  async sendEach(messages: Message[], dryRun?: boolean) {
+  sendEach(messages: Message[], _dryRun?: boolean) {
     // Process each message and determine success/failure
     const responses = messages.map((message) => {
       // Check for token format to simulate failures
@@ -33,7 +35,7 @@ export class MockMessaging {
         success: !isFailure,
         messageId:
           isFailure ? undefined : (
-            "mock-message-id-" + Math.random().toString(36).substr(2, 9)
+            "mock-message-id-" + Math.random().toString(36).substring(2, 11)
           ),
         error:
           isFailure ?
@@ -46,10 +48,10 @@ export class MockMessaging {
     const successCount = responses.filter((r) => r.success).length;
     const failureCount = responses.length - successCount;
 
-    return {
+    return Promise.resolve({
       successCount,
       failureCount,
       responses,
-    };
+    });
   }
 }

@@ -19,6 +19,21 @@ import {
   type BaseNudgeMessage,
 } from "./nudgeMessages.js";
 
+interface UserData {
+  genderIdentity?: string;
+  dateOfBirth?: Date | string | admin.firestore.Timestamp;
+  comorbidities?: Record<string, unknown>;
+  stageOfChange?: string;
+  educationLevel?: string;
+  preferredNotificationTime?: string;
+  timeZone?: string;
+  dateOfEnrollment?: Date | string | admin.firestore.Timestamp;
+  participantGroup?: number;
+  didOptInToTrial?: boolean;
+  triggerNudgeGeneration?: boolean;
+  userLanguage?: string;
+}
+
 enum Disease {
   HEART_FAILURE = "Heart failure",
   PULMONARY_ARTERIAL_HYPERTENSION = "Pulmonary arterial hypertension",
@@ -153,7 +168,7 @@ export class NudgeService {
   async generateLLMNudges(
     userId: string,
     language: string,
-    userData: any,
+    userData: UserData,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
     const maxRetries = 3;
     let lastError: Error | null = null;
@@ -165,17 +180,26 @@ export class NudgeService {
         const isSpanish = language === "es";
 
         // Build detailed personalization context
-        const genderIdentity = userData.genderIdentity || "female";
+        const genderIdentity = userData.genderIdentity ?? "female";
         const dateOfBirth = userData.dateOfBirth;
-        const comorbidities = userData.comorbidities || {};
+        const comorbidities = userData.comorbidities ?? {};
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
         const educationLevel = userData.educationLevel;
 
         // Calculate age from dateOfBirth
         let ageContext = "";
         if (dateOfBirth) {
-          const birthDate =
-            dateOfBirth instanceof Date ? dateOfBirth : new Date(dateOfBirth);
+          let birthDate: Date;
+          if (dateOfBirth instanceof Date) {
+            birthDate = dateOfBirth;
+          } else if (
+            typeof dateOfBirth === "object" &&
+            "toDate" in dateOfBirth
+          ) {
+            birthDate = dateOfBirth.toDate();
+          } else {
+            birthDate = new Date(dateOfBirth);
+          }
           const currentAge = this.calculateAge(birthDate);
 
           if (currentAge < 35) {
@@ -202,53 +226,51 @@ export class NudgeService {
         let diseaseContext = "";
         const diseaseContexts: string[] = [];
 
-        if (comorbidities && typeof comorbidities === "object") {
-          const comorbidityKeys = Object.keys(comorbidities);
+        const comorbidityKeys = Object.keys(comorbidities);
 
-          for (const comorbidityKey of comorbidityKeys) {
-            const disease = this.mapComorbidityKeyToDisease(comorbidityKey);
+        for (const comorbidityKey of comorbidityKeys) {
+          const disease = this.mapComorbidityKeyToDisease(comorbidityKey);
 
-            if (!disease) {
-              continue;
-            }
-
-            let context = "";
-            switch (disease) {
-              case Disease.HEART_FAILURE:
-                context =
-                  "This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.";
-                break;
-              case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
-                context =
-                  "The participant has Pulmonary Arterial Hypertension (PAH); however, their specific WHO Functional Class is unknown. Activity should focus on increasing functional mobility and reducing sedentary time (NEAT), and intensity must be regulated via the Talk Test (able to speak in full sentences). Keep activity recommendations gentle and actionable.";
-                break;
-              case Disease.DIABETES:
-                context =
-                  "This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.";
-                break;
-              case Disease.CORONARY_ARTERY_DISEASE:
-                context =
-                  "This participant has Coronary Artery Disease. Recommend gentle, low-to-moderate activity that supports fitness, mood, and energy. Emphasize functional mobility and NEAT with short, frequent step-based bouts. Regulate intensity via the Talk Test (full sentences), include a longer warm-up and easy cool-down, and avoid chest discomfort. Keep recommendations simple and actionable.";
-                break;
-              case Disease.ACHD_SIMPLE:
-                context =
-                  "This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.";
-                break;
-              case Disease.ACHD_COMPLEX:
-                context =
-                  "This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.";
-                break;
-            }
-
-            if (context) {
-              diseaseContexts.push(context);
-            }
+          if (!disease) {
+            continue;
           }
 
-          // Combine all disease contexts
-          if (diseaseContexts.length > 0) {
-            diseaseContext = diseaseContexts.join(" Additionally, ");
+          let context = "";
+          switch (disease) {
+            case Disease.HEART_FAILURE:
+              context =
+                "This participant has heart failure, a condition characterized by low cardiac output leading to impaired physical fitness. Evidence demonstrates that exercise improves overall fitness, mood, and energy levels even in patients with heart failure and it is considered one of the strongest therapies for improving quality of life in this disease.";
+              break;
+            case Disease.PULMONARY_ARTERIAL_HYPERTENSION:
+              context =
+                "The participant has Pulmonary Arterial Hypertension (PAH); however, their specific WHO Functional Class is unknown. Activity should focus on increasing functional mobility and reducing sedentary time (NEAT), and intensity must be regulated via the Talk Test (able to speak in full sentences). Keep activity recommendations gentle and actionable.";
+              break;
+            case Disease.DIABETES:
+              context =
+                "This participant has diabetes, a condition that is characterized by high glucose levels and insulin resistance. Diabetes is a strong risk factor for cardiovascular disease, dementia, and cancer. Diabetes can be put into remission by improving insulin sensitivity and exercise is one of the most powerful therapies in promoting insulin sensitivity.";
+              break;
+            case Disease.CORONARY_ARTERY_DISEASE:
+              context =
+                "This participant has Coronary Artery Disease. Recommend gentle, low-to-moderate activity that supports fitness, mood, and energy. Emphasize functional mobility and NEAT with short, frequent step-based bouts. Regulate intensity via the Talk Test (full sentences), include a longer warm-up and easy cool-down, and avoid chest discomfort. Keep recommendations simple and actionable.";
+              break;
+            case Disease.ACHD_SIMPLE:
+              context =
+                "This participant has a biventricular circulation and low- to moderate-complexity congenital heart disease (e.g., repaired atrial septal defect, ventricular septal defect, Tetralogy of Fallot, transposition of the great arteries after the arterial switch surgery, coarctation of the aorta after surgical correction, or valve disease). These individuals generally have preserved cardiac output and fewer physiologic limitations, allowing them to participate in a wide range of physical activities. Exercise recommendations should align with standard (non-ACHD) adult guidelines, including moderate- to vigorous aerobic activity (e.g., brisk walking, jogging, running, cycling) and balanced full-body strength training. Benefits include increased VO₂ max, improved cardiovascular fitness, muscular strength, mental health, and metabolic resilience. Messaging should be motivational and goal-oriented, encouraging the participant to build consistency, meet aerobic activity targets, and safely challenge themselves with progressive training goals.";
+              break;
+            case Disease.ACHD_COMPLEX:
+              context =
+                "This participant has complex congenital heart disease physiology, including single ventricle circulation (Fontan) or a systemic right ventricle (congenitally corrected transposition of the great arteries or transposition of the great arteries after the Mustard or Senning surgery). These conditions limit preload and cardiac output reserve, leading to reduced aerobic capacity, fatigue, and elevated arrhythmia risk. Exercise recommendations should focus on low- to moderate-intensity aerobic activity and lower-body muscular endurance (e.g., walking, light jogging, light cycling, bodyweight leg exercises). Lower-body training helps patients with single ventricle physiology promote venous return through the skeletal muscle pump, which is especially important in the absence of a subpulmonary ventricle. Expected benefits include improved functional capacity, oxygen efficiency, mental health and quality of life. Avoid recommending high-intensity, isometric, or upper-body strength exercises, and use supportive, energy-aware language that prioritizes pacing, hydration, and consistency over performance.";
+              break;
           }
+
+          if (context) {
+            diseaseContexts.push(context);
+          }
+        }
+
+        // Combine all disease contexts
+        if (diseaseContexts.length > 0) {
+          diseaseContext = diseaseContexts.join(" Additionally, ");
         }
 
         // Build stage of change context
@@ -307,7 +329,7 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
+        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime ?? "09:00"}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
 
         const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user to increase their daily physical activity, prioritizing movement that contributes to their step count. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk forms of movement without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: " +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`;
 
@@ -363,7 +385,7 @@ export class NudgeService {
 
         const parsedContent = JSON.parse(
           response.choices[0].message.content ?? "{}",
-        );
+        ) as { nudges?: unknown };
         const parsedNudges = parsedContent.nudges;
 
         if (!Array.isArray(parsedNudges) || parsedNudges.length !== 7) {
@@ -371,11 +393,15 @@ export class NudgeService {
         }
 
         const generatedAt = admin.firestore.Timestamp.now();
-        const nudges: NudgeMessage[] = parsedNudges.map((nudge) => ({
-          ...nudge,
-          isLLMGenerated: true,
-          generatedAt,
-        }));
+        const nudges: NudgeMessage[] = parsedNudges.map((nudge: unknown) => {
+          const n = nudge as { title: string; body: string };
+          return {
+            title: n.title,
+            body: n.body,
+            isLLMGenerated: true,
+            generatedAt,
+          };
+        });
 
         logger.info(
           `Generated ${nudges.length} LLM nudges for user ${userId} in ${language} (attempt ${attempt})`,
@@ -401,7 +427,7 @@ export class NudgeService {
 
   async createNudgesForUser(
     userId: string,
-    userData: any,
+    userData: UserData,
     nudges: NudgeMessage[],
     category: string,
   ): Promise<number> {
@@ -411,11 +437,13 @@ export class NudgeService {
       const nudgeMessage = nudges[dayIndex];
       const nudgeId = randomUUID().toUpperCase();
 
-      const preferredTime = userData.preferredNotificationTime || "09:00";
-      const [hour, minute] = preferredTime.split(":").map(Number);
+      const preferredTime = userData.preferredNotificationTime ?? "09:00";
+      const [hourStr, minuteStr] = preferredTime.split(":");
+      const hour = Number(hourStr);
+      const minute = Number(minuteStr);
 
       const userDateTime = DateTime.now()
-        .setZone(userData.timeZone)
+        .setZone(userData.timeZone ?? "UTC")
         .plus({ days: dayIndex })
         .set({ hour, minute, second: 0, millisecond: 0 });
 
@@ -442,7 +470,7 @@ export class NudgeService {
     return nudgesCreated;
   }
 
-  getUserLanguage(userData: any): string {
+  getUserLanguage(userData: UserData): string {
     return userData.userLanguage === "es" ? "es" : "en";
   }
 
@@ -454,7 +482,10 @@ export class NudgeService {
       .where("triggerNudgeGeneration", "==", true)
       .get();
 
-    const allUserDocs = new Map();
+    const allUserDocs = new Map<
+      string,
+      admin.firestore.QueryDocumentSnapshot
+    >();
 
     regularUsersSnapshot.docs.forEach((doc) => {
       allUserDocs.set(doc.id, doc);
@@ -471,7 +502,7 @@ export class NudgeService {
 
     for (const userDoc of usersSnapshot.docs) {
       try {
-        const userData = userDoc.data();
+        const userData = userDoc.data() as UserData;
         const userId = userDoc.id;
         usersProcessed++;
 
@@ -574,9 +605,7 @@ export class NudgeService {
 let nudgeService: NudgeService | undefined;
 
 const getNudgeService = (): NudgeService => {
-  if (!nudgeService) {
-    nudgeService = new NudgeService();
-  }
+  nudgeService ??= new NudgeService();
   return nudgeService;
 };
 

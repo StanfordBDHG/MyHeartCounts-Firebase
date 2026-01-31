@@ -6,16 +6,19 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type UserObservationCollection } from "@stanfordbdhg/myheartcounts-models";
 import admin from "firebase-admin";
 import { storage, logger } from "firebase-functions/v2";
 import { decompress } from "fzstd";
 import { privilegedServiceAccount } from "./helpers.js";
 
-interface HealthSampleData {
-  userId: string;
-  collection: UserObservationCollection;
-  data: unknown[];
+interface ParsedDataWrapper {
+  userId?: string;
+  data?: unknown[];
+}
+
+interface ObservationWithId {
+  id: string;
+  [key: string]: unknown;
 }
 
 const getCollectionNameFromFileName = (fileName: string): string | null => {
@@ -117,18 +120,26 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       let observationsData: unknown[];
       try {
         const jsonString = decompressedData.toString("utf8");
-        const parsedData = JSON.parse(jsonString);
+        const parsedData: unknown = JSON.parse(jsonString);
 
         // Handle both array format and wrapper object format
         if (Array.isArray(parsedData)) {
           observationsData = parsedData;
-        } else if (parsedData && Array.isArray(parsedData.data)) {
-          // Legacy format with wrapper
-          observationsData = parsedData.data;
-          // Optionally validate userId if present
-          if (parsedData.userId && parsedData.userId !== userId) {
+        } else if (parsedData && typeof parsedData === "object") {
+          const dataWrapper = parsedData as ParsedDataWrapper;
+          if (Array.isArray(dataWrapper.data)) {
+            // Legacy format with wrapper
+            observationsData = dataWrapper.data;
+            // Optionally validate userId if present
+            if (dataWrapper.userId && dataWrapper.userId !== userId) {
+              logger.error(
+                `User ID mismatch: path userId ${userId} vs data userId ${dataWrapper.userId}`,
+              );
+              return;
+            }
+          } else {
             logger.error(
-              `User ID mismatch: path userId ${userId} vs data userId ${parsedData.userId}`,
+              `Invalid data format in file ${fileName} - expected array or object with data array`,
             );
             return;
           }
@@ -186,11 +197,23 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       for (const observation of observationsData) {
         try {
           // Extract the observation ID for use as document ID
-          const observationData = observation as any;
-          const documentId = observationData?.id;
-
-          if (!documentId) {
+          if (
+            !observation ||
+            typeof observation !== "object" ||
+            !("id" in observation)
+          ) {
             logger.warn(`Observation missing ID field, skipping:`, observation);
+            continue;
+          }
+
+          const observationData = observation as ObservationWithId;
+          const documentId = observationData.id;
+
+          if (typeof documentId !== "string") {
+            logger.warn(
+              `Observation has invalid ID field, skipping:`,
+              observation,
+            );
             continue;
           }
 

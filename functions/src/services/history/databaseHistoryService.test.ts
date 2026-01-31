@@ -177,18 +177,33 @@ describeWithEmulators("DatabaseHistoryService", (env) => {
     const service = env.factory.history();
 
     // Create a corrupted change object with no path
-    // We need to use any to bypass type checking for this test
-    const corruptedChange = {
+    // We need to bypass type checking for this test to simulate malformed data
+    interface CorruptedSnapshot {
+      exists: boolean;
+      data: () => null;
+      ref: { path: null };
+    }
+
+    interface CorruptedChange {
+      before: CorruptedSnapshot;
+      after: CorruptedSnapshot;
+    }
+
+    const corruptedChange: CorruptedChange = {
       before: { exists: false, data: () => null, ref: { path: null } },
       after: { exists: false, data: () => null, ref: { path: null } },
-    } as any;
+    };
 
     // Initial count of history items
     const historyBefore = await env.collections.history.get();
     const countBefore = historyBefore.docs.length;
 
     // This should not throw, but also not create any history items
-    await service.recordChange(corruptedChange);
+    await service.recordChange(
+      corruptedChange as unknown as import("firebase-functions").Change<
+        import("firebase-admin/firestore").DocumentSnapshot
+      >,
+    );
 
     // Get count after - should be the same
     const historyAfter = await env.collections.history.get();

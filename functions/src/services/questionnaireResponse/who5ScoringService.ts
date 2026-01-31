@@ -40,7 +40,7 @@ export class DefaultWho5ScoreCalculator implements Who5ScoreCalculator {
 
     for (const linkId of this.questionLinkIds) {
       const score = answers[linkId];
-      if (score !== undefined) {
+      if (score) {
         totalScore += score;
       }
     }
@@ -77,7 +77,7 @@ export class Who5ScoringQuestionnaireResponseService extends QuestionnaireRespon
   async handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
-    options: { isNew: boolean },
+    _options: { isNew: boolean },
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [

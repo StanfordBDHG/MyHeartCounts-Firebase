@@ -7,7 +7,6 @@
 //
 
 import {
-  StaticDataComponent,
   updateStaticDataInputSchema,
   type UpdateStaticDataOutput,
 } from "@stanfordbdhg/myheartcounts-models";
@@ -17,14 +16,15 @@ import {
   validatedOnRequest,
   privilegedServiceAccount,
 } from "./helpers.js";
+// eslint-disable-next-line import/no-cycle -- Factory pattern requires circular dependency for service initialization
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 import { type ServiceFactory } from "../services/factory/serviceFactory.js";
 
 export const _updateStaticData = async (
   factory: ServiceFactory,
-  input: z.output<typeof updateStaticDataInputSchema>,
+  _input: z.output<typeof updateStaticDataInputSchema>,
 ) => {
-  const service = factory.staticData();
+  const _service = factory.staticData();
   const promises: Array<Promise<void>> = [];
   await Promise.all(promises);
 };

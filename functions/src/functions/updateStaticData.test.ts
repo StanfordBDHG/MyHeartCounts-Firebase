@@ -6,10 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import fs from "fs";
 import {
   CachingStrategy,
-  LocalizedText,
   StaticDataComponent,
 } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
@@ -29,13 +27,3 @@ describeWithEmulators("function: updateStaticData", (env) => {
     expect(questionnaires.docs).to.have.length(0);
   });
 });
-
-const simplify = (data: unknown): unknown =>
-  JSON.parse(
-    JSON.stringify(data, (key, value): unknown => {
-      if (value instanceof LocalizedText) {
-        return value.content;
-      }
-      return value;
-    }),
-  );

@@ -12,6 +12,7 @@ import { type ListUsersResult, type UserRecord } from "firebase-admin/auth";
 export class MockAuth {
   collections: Record<string, UserRecord | undefined> = {};
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getUser(userId: string): Promise<UserRecord> {
     const result = this.collections[userId];
     if (result === undefined) {
@@ -36,38 +37,50 @@ export class MockAuth {
     return result;
   }
 
-  async updateUser(userId: string, record: UserRecord): Promise<void> {
+  updateUser(userId: string, record: UserRecord): void {
     this.collections[userId] = record;
   }
 
-  async setCustomUserClaims(userId: string, claims: Record<string, unknown>) {
+  setCustomUserClaims(userId: string, claims: Record<string, unknown>): void {
     // Auto-create the user if it doesn't exist
-    let user = this.collections[userId];
-    if (user === undefined) {
-      user = {
-        uid: userId,
-        email: "user@example.com",
-        emailVerified: true,
-        displayName: "Test User",
-        disabled: false,
-        metadata: {
-          creationTime: new Date().toISOString(),
-          lastSignInTime: new Date().toISOString(),
-          toJSON: () => ({}),
-        },
-        providerData: [],
+    this.collections[userId] ??= {
+      uid: userId,
+      email: "user@example.com",
+      emailVerified: true,
+      displayName: "Test User",
+      disabled: false,
+      metadata: {
+        creationTime: new Date().toISOString(),
+        lastSignInTime: new Date().toISOString(),
         toJSON: () => ({}),
-      };
-    }
+      },
+      providerData: [],
+      toJSON: () => ({}),
+    };
+    const user = this.collections[userId];
 
     const updatedUser: UserRecord = {
-      ...user,
+      uid: user.uid,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      phoneNumber: user.phoneNumber,
+      disabled: user.disabled,
+      metadata: user.metadata,
+      providerData: user.providerData,
+      passwordHash: user.passwordHash,
+      passwordSalt: user.passwordSalt,
+      tokensValidAfterTime: user.tokensValidAfterTime,
+      tenantId: user.tenantId,
+      multiFactor: user.multiFactor,
       customClaims: claims,
       toJSON: () => ({}),
     };
     this.collections[userId] = updatedUser;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listUsers(): Promise<ListUsersResult> {
     const users: UserRecord[] = Object.values(this.collections).filter(
       (user): user is UserRecord => user !== undefined,
@@ -79,16 +92,16 @@ export class MockAuth {
     };
   }
 
-  async deleteUser(uid: string): Promise<void> {
+  deleteUser(uid: string): void {
     // Use property access with computed key instead of delete operator
     this.collections[uid] = undefined;
   }
 
-  async createUser(props: {
+  createUser(props: {
     email?: string;
     password?: string;
     displayName?: string;
-  }): Promise<UserRecord> {
+  }): UserRecord {
     const uid = "user-" + crypto.randomBytes(8).toString("hex");
     const user: UserRecord = {
       uid,

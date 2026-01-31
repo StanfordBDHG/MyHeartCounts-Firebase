@@ -145,11 +145,14 @@ describe("DietScoringQuestionnaireResponseService", () => {
 
   describe("handle method", () => {
     it("should return false for non-matching questionnaire IDs", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const mockDatabaseService = {} as any;
-      const mockMessageService = {} as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      const _mockMessageService = {} as any;
       const mockCalculator = new DietScoreCalculator();
 
       const service = new DietScoringQuestionnaireResponseService({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         databaseService: mockDatabaseService,
         scoreCalculator: mockCalculator,
       });
@@ -170,18 +173,23 @@ describe("DietScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.false;
     });
 
     it("should return true for matching questionnaire IDs", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const mockDatabaseService = {
         getQuery: () => Promise.resolve([]),
         runTransaction: () => Promise.resolve(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
-      const mockMessageService = {} as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      const _mockMessageService = {} as any;
       const mockCalculator = new DietScoreCalculator();
 
       const service = new DietScoringQuestionnaireResponseService({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         databaseService: mockDatabaseService,
         scoreCalculator: mockCalculator,
       });
@@ -203,6 +211,7 @@ describe("DietScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.true;
     });
   });

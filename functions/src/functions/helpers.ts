@@ -29,14 +29,18 @@ export const validatedOnCall = <Schema extends z.ZodTypeAny, Return>(
   options: CallableOptions = {
     invoker: "public",
   },
-): CallableFunction<z.input<Schema>, Promise<Return>> =>
-  onCall(options, async (request) => {
+): CallableFunction<z.input<Schema>, Promise<Return>> => {
+  const wrappedHandler = async (request: CallableRequest): Promise<Return> => {
     try {
       logger.debug(
         `onCall(${name}) from user '${request.auth?.uid}' with '${JSON.stringify(request.data)}'`,
       );
-      request.data = schema.parse(request.data) as z.output<Schema>;
-      return await handler(request);
+      const validatedData = schema.parse(request.data) as z.output<Schema>;
+      const validatedRequest: CallableRequest<z.output<Schema>> = {
+        ...request,
+        data: validatedData,
+      };
+      return await handler(validatedRequest);
     } catch (error) {
       logger.debug(
         `onCall(${name}) from user '${request.auth?.uid}' failed with '${String(error)}'.`,
@@ -50,7 +54,12 @@ export const validatedOnCall = <Schema extends z.ZodTypeAny, Return>(
       }
       throw error;
     }
-  });
+  };
+  return onCall(options, wrappedHandler) as CallableFunction<
+    z.input<Schema>,
+    Promise<Return>
+  >;
+};
 
 export const validatedOnRequest = <Schema extends z.ZodTypeAny>(
   name: string,

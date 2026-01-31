@@ -24,7 +24,7 @@ export const getStudyDefinition = https.onRequest(
   {
     serviceAccount: defaultServiceAccount,
   },
-  async (req, res) => {
+  (req, res) => {
     const bucket = "myheartcounts-firebase.appspot.com"; // adjust this to your actual bucket name
     const file = `https://storage.googleapis.com/${bucket}/public/studyDefinition.json`;
 

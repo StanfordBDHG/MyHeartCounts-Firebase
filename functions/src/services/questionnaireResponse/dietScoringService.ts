@@ -15,7 +15,6 @@ import { logger } from "firebase-functions";
 import {
   scoreToObservation,
   getDietObservationConfig,
-  type QuestionnaireObservationConfig,
 } from "./fhirObservationConverter.js";
 import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
 import {
@@ -130,9 +129,7 @@ export class DietScoreCalculator implements ScoreCalculator {
 
     for (const questionId of questions) {
       const answer = answers[questionId];
-      if (answer !== undefined) {
-        points += answer ? 1 : 0;
-      }
+      points += answer ? 1 : 0;
     }
 
     return points;
@@ -155,7 +152,7 @@ export class DietScoringQuestionnaireResponseService extends QuestionnaireRespon
   async handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
-    options: { isNew: boolean },
+    _options: { isNew: boolean },
   ): Promise<boolean> {
     // Check if this service handles this questionnaire type
     const targetQuestionnaireUrls = [

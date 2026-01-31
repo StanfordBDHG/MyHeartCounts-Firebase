@@ -13,6 +13,7 @@ import { type Document } from "../database/databaseService.js";
 export class MockUserService implements UserService {
   // Methods - Auth
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getAuth(userId: string): Promise<UserAuth> {
     switch (userId) {
       case "mockClinician":
@@ -30,39 +31,40 @@ export class MockUserService implements UserService {
     }
   }
 
-  async updateAuth(userId: string, user: UserAuth): Promise<void> {
-    return;
+  updateAuth(_userId: string, _user: UserAuth): Promise<void> {
+    return Promise.resolve();
   }
 
-  async updateClaims(userId: string): Promise<void> {
-    return;
+  updateClaims(_userId: string): Promise<void> {
+    return Promise.resolve();
   }
 
   async enrollUserDirectly(
     userId: string,
-    options: EnrollUserOptions,
+    _options: EnrollUserOptions,
   ): Promise<Document<User>> {
     return this.getUser(userId);
   }
 
-  async finishUserEnrollment(user: Document<User>): Promise<void> {
-    return;
+  finishUserEnrollment(_user: Document<User>): Promise<void> {
+    return Promise.resolve();
   }
 
   // Methods - User
 
-  async disableUser(userId: string): Promise<void> {
-    return;
+  disableUser(_userId: string): Promise<void> {
+    return Promise.resolve();
   }
 
-  async enableUser(userId: string): Promise<void> {
-    return;
+  enableUser(_userId: string): Promise<void> {
+    return Promise.resolve();
   }
 
-  async getAllPatients(): Promise<Array<Document<User>>> {
-    return [];
+  getAllPatients(): Promise<Array<Document<User>>> {
+    return Promise.resolve([]);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getUser(userId: string): Promise<Document<User>> {
     return {
       id: userId,
@@ -78,19 +80,19 @@ export class MockUserService implements UserService {
     };
   }
 
-  async updateLastActiveDate(userId: string): Promise<void> {
-    return;
+  updateLastActiveDate(_userId: string): Promise<void> {
+    return Promise.resolve();
   }
 
-  async markAccountForDeletion(userId: string, markedAt: Date): Promise<void> {
-    return;
+  markAccountForDeletion(_userId: string, _markedAt: Date): Promise<void> {
+    return Promise.resolve();
   }
 
-  async deleteUser(userId: string): Promise<void> {
-    return;
+  deleteUser(_userId: string): Promise<void> {
+    return Promise.resolve();
   }
 
-  async deleteExpiredAccounts(): Promise<void> {
-    return;
+  deleteExpiredAccounts(): Promise<void> {
+    return Promise.resolve();
   }
 }

@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 import { expect } from "chai";
 import { https } from "firebase-functions/v2";
 import { markAccountForDeletion } from "./markAccountForDeletion.js";
@@ -21,6 +23,7 @@ describeWithEmulators("function: markAccountForDeletion", (env) => {
     const originalUser = await userService.getUser(userId);
     expect(originalUser).to.exist;
     expect(originalUser?.content.disabled).to.be.false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
     expect((originalUser?.content as any).toBeDeleted).to.be.undefined;
 
     const result = await env.call(
@@ -42,6 +45,7 @@ describeWithEmulators("function: markAccountForDeletion", (env) => {
 
   it("prevents unauthenticated users from marking accounts", async () => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
       await env.call(markAccountForDeletion, {}, {} as any);
       expect.fail("Should have thrown an error");
     } catch (error) {

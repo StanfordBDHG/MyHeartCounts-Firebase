@@ -7,9 +7,11 @@
 //
 
 import { Storage } from "@google-cloud/storage";
+import type { User } from "@stanfordbdhg/myheartcounts-models";
 import { logger } from "firebase-functions/v2";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { privilegedServiceAccount } from "./helpers.js";
+import type { Document } from "../services/database/databaseService.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 const storage = new Storage();
@@ -44,15 +46,21 @@ export const deleteUserStorageFiles = async (userId: string): Promise<void> => {
   }
 };
 
+// Type representing the raw user data with additional Firestore fields
+interface UserDataWithDeletion extends Record<string, unknown> {
+  toBeDeleted?: boolean;
+}
+
 export const processUserDeletions = async (): Promise<void> => {
   const factory = getServiceFactory();
   const userService = factory.user();
 
   try {
     const users = await userService.getAllPatients();
-    const usersToDelete = users.filter(
-      (user) => (user.content as any).toBeDeleted === true,
-    );
+    const usersToDelete = users.filter((user: Document<User>) => {
+      const userData = user.content as unknown as UserDataWithDeletion;
+      return userData.toBeDeleted === true;
+    });
 
     if (usersToDelete.length === 0) {
       logger.info("No users marked for deletion found");

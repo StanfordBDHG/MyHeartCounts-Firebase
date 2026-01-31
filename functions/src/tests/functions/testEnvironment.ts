@@ -105,19 +105,25 @@ export class EmulatorTestEnvironment {
     }
   }
 
-  createChange<T extends Record<string, any>>(
+  createChange<T extends Record<string, unknown>>(
     path: string,
     before: T | undefined,
     after: T | undefined,
   ): Change<DocumentSnapshot> {
-    const beforeSnapshot: DocumentSnapshot<T> =
+    const beforeSnapshot: DocumentSnapshot =
       before !== undefined ?
-        this.wrapper.firestore.makeDocumentSnapshot(before, path)
+        (this.wrapper.firestore.makeDocumentSnapshot(
+          before,
+          path,
+        ) as DocumentSnapshot)
       : this.createEmptyDocumentSnapshot(path);
 
-    const afterSnapshot: DocumentSnapshot<T> =
+    const afterSnapshot: DocumentSnapshot =
       after !== undefined ?
-        this.wrapper.firestore.makeDocumentSnapshot(after, path)
+        (this.wrapper.firestore.makeDocumentSnapshot(
+          after,
+          path,
+        ) as DocumentSnapshot)
       : this.createEmptyDocumentSnapshot(path);
     return this.wrapper.makeChange(beforeSnapshot, afterSnapshot);
   }

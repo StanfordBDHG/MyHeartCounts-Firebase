@@ -33,15 +33,15 @@ export class DatabaseHistoryService implements HistoryService {
   }
 
   async recordChange(change: Change<DocumentSnapshot>): Promise<void> {
-    const beforeData = change.before?.data();
-    const afterData = change.after?.data();
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
 
     // Skip recording if no change
     if (beforeData && afterData && isDeepStrictEqual(beforeData, afterData))
       return;
 
     // Determine the path - prefer after.ref, fallback to before.ref
-    const path = change.after?.ref?.path || change.before?.ref?.path;
+    const path = change.after.ref.path || change.before.ref.path;
     if (!path) return;
 
     // Determine the type of change

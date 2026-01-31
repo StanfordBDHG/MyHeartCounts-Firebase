@@ -207,8 +207,10 @@ export class DebugDataService extends SeedingService {
     const authUser = await this.auth.createUser(user.auth);
 
     // Filter out undefined values from user.user to avoid Firestore errors
-    const cleanUserData =
-      user.user ? JSON.parse(JSON.stringify(user.user)) : {};
+    const cleanUserData: Record<string, unknown> =
+      user.user ?
+        (JSON.parse(JSON.stringify(user.user)) as Record<string, unknown>)
+      : {};
 
     // Create a clean user object with no undefined values
     await this.databaseService.runTransaction((collections, transaction) => {

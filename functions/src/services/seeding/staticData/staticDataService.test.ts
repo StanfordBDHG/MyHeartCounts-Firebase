@@ -9,19 +9,16 @@
 import { CachingStrategy } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import admin from "firebase-admin";
-import { type Firestore } from "firebase-admin/firestore";
 import { type StaticDataService } from "./staticDataService.js";
 import { cleanupMocks, setupMockFirebase } from "../../../tests/setup.js";
-import { TestFlags } from "../../../tests/testFlags.js";
 import { getServiceFactory } from "../../factory/getServiceFactory.js";
 
 describe("StaticDataService", () => {
-  let firestore: Firestore;
   let staticDataService: StaticDataService;
 
   before(() => {
     setupMockFirebase();
-    firestore = admin.firestore();
+    admin.firestore();
     staticDataService = getServiceFactory().staticData();
   });
 
@@ -31,6 +28,7 @@ describe("StaticDataService", () => {
 
   it("tests caching mechanism in SeedingService", async () => {
     // Get access to the service's internal methods by using type assertion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment -- Testing private cache method requires type assertion
     const service = staticDataService as any;
 
     // Test the cache method with various strategies
@@ -40,6 +38,7 @@ describe("StaticDataService", () => {
     let createCalled = false;
     let saveCalled = false;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Accessing private cache method for testing
     const result1 = await service.cache(
       CachingStrategy.expectCache,
       () => {
@@ -50,13 +49,16 @@ describe("StaticDataService", () => {
         createCalled = true;
         return "created-value";
       },
-      (value: string) => {
+      () => {
         saveCalled = true;
       },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(retrieveCalled).to.be.true;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(createCalled).to.be.false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(saveCalled).to.be.false;
     expect(result1).to.equal("retrieved-value");
 
@@ -66,6 +68,7 @@ describe("StaticDataService", () => {
     saveCalled = false;
 
     // Test with updateCache which should call create and save
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Accessing private cache method for testing
     const result2 = await service.cache(
       CachingStrategy.updateCache,
       () => {
@@ -82,8 +85,11 @@ describe("StaticDataService", () => {
       },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(retrieveCalled).to.be.false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(createCalled).to.be.true;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(saveCalled).to.be.true;
     expect(result2).to.equal("created-value");
 
@@ -93,6 +99,7 @@ describe("StaticDataService", () => {
     saveCalled = false;
 
     // Test with ignoreCache which should call create but not save
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Accessing private cache method for testing
     const result3 = await service.cache(
       CachingStrategy.ignoreCache,
       () => {
@@ -103,19 +110,23 @@ describe("StaticDataService", () => {
         createCalled = true;
         return "created-value";
       },
-      (value: string) => {
+      () => {
         saveCalled = true;
       },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(retrieveCalled).to.be.false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(createCalled).to.be.true;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(saveCalled).to.be.false;
     expect(result3).to.equal("created-value");
   });
 
   it("tests error handling in SeedingService cache method", async () => {
     // Get access to the service's internal methods by using type assertion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment -- Testing private cache method requires type assertion
     const service = staticDataService as any;
 
     // Test error handling in expectCache strategy
@@ -123,6 +134,7 @@ describe("StaticDataService", () => {
     let saveCalled = false;
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Accessing private cache method for testing
       await service.cache(
         CachingStrategy.expectCache,
         () => {
@@ -132,15 +144,18 @@ describe("StaticDataService", () => {
           createCalled = true;
           return "created-value";
         },
-        (value: string) => {
+        () => {
           saveCalled = true;
         },
       );
       expect.fail("Should have thrown an error");
     } catch (error) {
       // Should propagate error with expectCache
+
       expect(error).to.be.an("error");
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(createCalled).to.be.false;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(saveCalled).to.be.false;
     }
 
@@ -150,6 +165,7 @@ describe("StaticDataService", () => {
 
     // Test error handling with updateCacheIfNeeded strategy
     // In this case, it should fall back to create when retrieve fails
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Accessing private cache method for testing
     const result = await service.cache(
       CachingStrategy.updateCacheIfNeeded,
       () => {
@@ -165,7 +181,9 @@ describe("StaticDataService", () => {
       },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(createCalled).to.be.true;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(saveCalled).to.be.true;
     expect(result).to.equal("created-value");
   });

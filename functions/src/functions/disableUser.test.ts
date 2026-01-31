@@ -10,6 +10,8 @@ import { expect } from "chai";
 import { disableUser } from "./disableUser.js";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 describeWithEmulators("function: disableUser", (env) => {
   it("disables an enabled user", async () => {
     const adminId = await env.createUser({});

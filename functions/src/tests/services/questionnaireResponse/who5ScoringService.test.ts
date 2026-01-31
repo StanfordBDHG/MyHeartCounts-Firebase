@@ -12,6 +12,7 @@ import {
 } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { describe, it } from "mocha";
+import type { DatabaseService } from "../../../services/database/databaseService.js";
 import {
   DefaultWho5ScoreCalculator,
   Who5ScoringQuestionnaireResponseService,
@@ -94,7 +95,8 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
 
   describe("handle method", () => {
     it("should return false for non-matching questionnaire URLs", async () => {
-      const mockDatabaseService = {} as any;
+      const mockDatabaseService =
+        {} as Partial<DatabaseService> as DatabaseService;
       const mockCalculator = new DefaultWho5ScoreCalculator();
 
       const service = new Who5ScoringQuestionnaireResponseService({
@@ -118,13 +120,14 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.false;
     });
 
     it("should return true for valid WHO-5 responses", async () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.resolve(),
-      } as any;
+      } as Partial<DatabaseService> as DatabaseService;
       const mockCalculator = new DefaultWho5ScoreCalculator();
 
       const service = new Who5ScoringQuestionnaireResponseService({
@@ -209,13 +212,14 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.true;
     });
 
     it("should return false when all answers are missing", async () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.resolve(),
-      } as any;
+      } as Partial<DatabaseService> as DatabaseService;
       const mockCalculator = new DefaultWho5ScoreCalculator();
 
       const service = new Who5ScoringQuestionnaireResponseService({
@@ -239,13 +243,14 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.false;
     });
 
     it("should return false when fewer than 5 questions are answered", async () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.resolve(),
-      } as any;
+      } as Partial<DatabaseService> as DatabaseService;
       const mockCalculator = new DefaultWho5ScoreCalculator();
 
       const service = new Who5ScoringQuestionnaireResponseService({
@@ -294,13 +299,14 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.false;
     });
 
     it("should handle database transaction errors gracefully", async () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.reject(new Error("Transaction failed")),
-      } as any;
+      } as Partial<DatabaseService> as DatabaseService;
       const mockCalculator = new DefaultWho5ScoreCalculator();
 
       const service = new Who5ScoringQuestionnaireResponseService({
@@ -393,7 +399,7 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
     it("should extract valueCoding.code correctly", async () => {
       const mockDatabaseService = {
         runTransaction: () => Promise.resolve(),
-      } as any;
+      } as Partial<DatabaseService> as DatabaseService;
       const mockCalculator = new DefaultWho5ScoreCalculator();
 
       const service = new Who5ScoringQuestionnaireResponseService({
@@ -478,6 +484,7 @@ describe("Who5ScoringQuestionnaireResponseService", () => {
         isNew: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(result).to.be.true;
     });
   });

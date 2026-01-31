@@ -32,6 +32,7 @@ import {
 } from "../questionnaireResponse/who5ScoringService.js";
 import { DebugDataService } from "../seeding/debugData/debugDataService.js";
 import { StaticDataService } from "../seeding/staticData/staticDataService.js";
+// eslint-disable-next-line import/no-cycle -- TriggerServiceImpl requires ServiceFactory for dependency injection, creating a necessary cycle between factory and service implementation
 import {
   TriggerServiceImpl,
   type TriggerService,
