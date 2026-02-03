@@ -31,7 +31,7 @@
     "firebase-functions": "^7.0.5",
     "fzstd": "^0.1.1",
     "jsdom": "^27.4.0",
-    "jspdf": "^4.0.0",
+    "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.2",
     "luxon": "^3.7.2",
     "openai": "^6.17.0",
