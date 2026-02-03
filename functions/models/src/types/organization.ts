@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { Lazy } from '../helpers/lazy.js'
-import { SchemaConverter } from '../helpers/schemaConverter.js'
+import { z } from "zod";
+import { Lazy } from "../helpers/lazy.js";
+import { SchemaConverter } from "../helpers/schemaConverter.js";
 
 export const organizationConverter = new Lazy(
   () =>
@@ -30,28 +30,28 @@ export const organizationConverter = new Lazy(
         ssoProviderId: object.ssoProviderId,
       }),
     }),
-)
+);
 
 export class Organization {
   // Properties
-  readonly name: string
-  readonly contactName: string
-  readonly phoneNumber: string
-  readonly emailAddress: string
-  readonly ssoProviderId: string
+  readonly name: string;
+  readonly contactName: string;
+  readonly phoneNumber: string;
+  readonly emailAddress: string;
+  readonly ssoProviderId: string;
 
   // Constructor
   constructor(input: {
-    name: string
-    contactName: string
-    phoneNumber: string
-    emailAddress: string
-    ssoProviderId: string
+    name: string;
+    contactName: string;
+    phoneNumber: string;
+    emailAddress: string;
+    ssoProviderId: string;
   }) {
-    this.name = input.name
-    this.contactName = input.contactName
-    this.phoneNumber = input.phoneNumber
-    this.emailAddress = input.emailAddress
-    this.ssoProviderId = input.ssoProviderId
+    this.name = input.name;
+    this.contactName = input.contactName;
+    this.phoneNumber = input.phoneNumber;
+    this.emailAddress = input.emailAddress;
+    this.ssoProviderId = input.ssoProviderId;
   }
 }

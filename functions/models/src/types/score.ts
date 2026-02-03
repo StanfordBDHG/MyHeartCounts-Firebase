@@ -6,27 +6,27 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { dateConverter } from '../helpers/dateConverter.js'
-import { optionalish } from '../helpers/optionalish.js'
-import { SchemaConverter } from '../helpers/schemaConverter.js'
+import { z } from "zod";
+import { dateConverter } from "../helpers/dateConverter.js";
+import { optionalish } from "../helpers/optionalish.js";
+import { SchemaConverter } from "../helpers/schemaConverter.js";
 
 export class Score {
-  readonly questionnaireResponseId?: string
-  readonly date: Date
-  readonly overallScore: number
-  readonly domainScores: Record<string, number | undefined>
+  readonly questionnaireResponseId?: string;
+  readonly date: Date;
+  readonly overallScore: number;
+  readonly domainScores: Record<string, number | undefined>;
 
   constructor(input: {
-    questionnaireResponseId?: string
-    date: Date
-    overallScore: number
-    domainScores: Record<string, number | undefined>
+    questionnaireResponseId?: string;
+    date: Date;
+    overallScore: number;
+    domainScores: Record<string, number | undefined>;
   }) {
-    this.questionnaireResponseId = input.questionnaireResponseId
-    this.date = input.date
-    this.overallScore = input.overallScore
-    this.domainScores = input.domainScores
+    this.questionnaireResponseId = input.questionnaireResponseId;
+    this.date = input.date;
+    this.overallScore = input.overallScore;
+    this.domainScores = input.domainScores;
   }
 }
 
@@ -45,4 +45,4 @@ export const scoreConverter = new SchemaConverter({
     overallScore: object.overallScore,
     domainScores: object.domainScores,
   }),
-})
+});

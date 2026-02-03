@@ -6,10 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { Lazy } from '../../helpers/lazy.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+import { z } from "zod";
+import { Lazy } from "../../helpers/lazy.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 export const fhirReferenceConverter = new Lazy(
   () =>
@@ -23,16 +23,18 @@ export const fhirReferenceConverter = new Lazy(
       encode: (object) => {
         const result: Record<string, unknown> = {
           reference: object.reference,
-        }
+        };
 
-        if (object.type !== undefined) result.type = object.type
-        if (object.display !== undefined) result.display = object.display
+        if (object.type !== undefined) result.type = object.type;
+        if (object.display !== undefined) result.display = object.display;
         if (object.identifier !== undefined)
-          result.identifier = object.identifier
+          result.identifier = object.identifier;
 
-        return result
+        return result;
       },
     }),
-)
+);
 
-export type FHIRReference = z.output<typeof fhirReferenceConverter.value.schema>
+export type FHIRReference = z.output<
+  typeof fhirReferenceConverter.value.schema
+>;

@@ -1,41 +1,120 @@
-[
-  {
-    "auth": {
-      "uid": "myheartcounts-participant0-stanford.edu",
-      "displayName": "Stanford participant",
-      "email": "myheartcounts-participant0@stanford.edu",
-      "password": "password"
+{
+  "users": [
+    {
+      "auth": {
+        "uid": "myheartcounts-participant0-stanford.edu",
+        "displayName": "Test User Alpha",
+        "email": "myheartcounts-participant0@stanford.edu",
+        "password": "password"
+      },
+      "user": {
+        "biologicalSexAtBirth": 1,
+        "bloodType": 2,
+        "comorbidities": {},
+        "dateOfBirth": "1990-01-15T08:00:00.000Z",
+        "dateOfEnrollment": "2025-12-01T10:00:00.000Z",
+        "didOptInToTrial": false,
+        "disabled": false,
+        "educationUS": "highSchool",
+        "fcmToken": "dXyzAbc123EfGhIjKlMnOp:APA91bHtEsTtOkEn1234567890AbCdEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGhIjKlMnOpQrStUvWxYzAbCdEf",
+        "futureStudies": false,
+        "heightInCM": 170.0,
+        "householdIncomeUS": 3,
+        "language": null,
+        "lastActiveDate": "2025-12-15T14:30:00.000Z",
+        "lastSignedConsentDate": "2025-12-01T10:05:00.000Z",
+        "lastSignedConsentVersion": "0.1.0",
+        "latinoStatus": 0,
+        "mhcGenderIdentity": 1,
+        "mostRecentOnboardingStep": "finalStep",
+        "participantGroup": 0,
+        "preferredNotificationTime": "08:00",
+        "preferredWorkoutTypes": "run,bike",
+        "raceEthnicity": 1,
+        "stageOfChange": "b",
+        "timeZone": "America/Denver",
+        "usRegion": "CO",
+        "weightInKG": 75.0
+      }
     },
-    "user": {
-      "type": "patient",
-      "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
-      "lastActiveDate": "1970-01-01T00:00:00.000Z"
-    }
-  },
-  {
-    "auth": {
-      "uid": "myheartcounts-participant1-stanford.edu",
-      "displayName": "Stanford participant",
-      "email": "myheartcounts-participant1@stanford.edu",
-      "password": "password"
+    {
+      "auth": {
+        "uid": "myheartcounts-participant1-stanford.edu",
+        "displayName": "Test User Beta",
+        "email": "myheartcounts-participant1@stanford.edu",
+        "password": "password"
+      },
+      "user": {
+        "biologicalSexAtBirth": 2,
+        "bloodType": 4,
+        "comorbidities": {
+          "hypertension": "2020"
+        },
+        "dateOfBirth": "1985-06-20T12:00:00.000Z",
+        "dateOfEnrollment": "2025-11-15T09:30:00.000Z",
+        "didOptInToTrial": true,
+        "disabled": false,
+        "educationUS": "associate",
+        "fcmToken": "qRstUv456WxYzAbCdEfGhI:APA91bTeSt2ToKeN9876543210ZyXwVuTsRqPoNmLkJiHgFeDcBa0987654321ZyXwVuTsRqPoNmLkJiHgFeDcBaZyXw",
+        "futureStudies": true,
+        "heightInCM": 165.0,
+        "householdIncomeUS": 6,
+        "language": null,
+        "lastActiveDate": "2025-12-20T11:15:00.000Z",
+        "lastSignedConsentDate": "2025-11-15T09:35:00.000Z",
+        "lastSignedConsentVersion": "0.1.0",
+        "latinoStatus": 2,
+        "mhcGenderIdentity": 2,
+        "mostRecentOnboardingStep": "finalStep",
+        "participantGroup": 1,
+        "preferredNotificationTime": "12:00",
+        "preferredWorkoutTypes": "walk,swim",
+        "raceEthnicity": 3,
+        "stageOfChange": "d",
+        "timeZone": "America/Phoenix",
+        "usRegion": "AZ",
+        "weightInKG": 68.5
+      }
     },
-    "user": {
-      "type": "patient",
-      "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
-      "lastActiveDate": "1970-01-01T00:00:00.000Z"
+    {
+      "auth": {
+        "uid": "myheartcounts-participant2-stanford.edu",
+        "displayName": "Test User Gamma",
+        "email": "myheartcounts-participant2@stanford.edu",
+        "password": "password"
+      },
+      "user": {
+        "biologicalSexAtBirth": 1,
+        "bloodType": 1,
+        "comorbidities": {
+          "diabetes": "2018",
+          "obesity": "2018"
+        },
+        "dateOfBirth": "1978-11-08T18:00:00.000Z",
+        "dateOfEnrollment": "2025-10-10T15:45:00.000Z",
+        "didOptInToTrial": true,
+        "disabled": false,
+        "educationUS": "graduate",
+        "fcmToken": "jKlMn789OpQrStUvWxYzAb:APA91bSaMpLeToKeN5555666677778888MnBvCxZaSdFgHjKlPoIuYtReWqAsDfGhJkLzXcVbNm5555666677778888Mn",
+        "futureStudies": false,
+        "heightInCM": 178.5,
+        "householdIncomeUS": 8,
+        "language": null,
+        "lastActiveDate": "2025-12-18T16:20:00.000Z",
+        "lastSignedConsentDate": "2025-10-10T15:50:00.000Z",
+        "lastSignedConsentVersion": "0.1.0",
+        "latinoStatus": 1,
+        "mhcGenderIdentity": 3,
+        "mostRecentOnboardingStep": "finalStep",
+        "participantGroup": 2,
+        "preferredNotificationTime": "19:30",
+        "preferredWorkoutTypes": "strength,sports",
+        "raceEthnicity": 6,
+        "stageOfChange": "a",
+        "timeZone": "America/Detroit",
+        "usRegion": "MI",
+        "weightInKG": 95.5
+      }
     }
-  },
-  {
-    "auth": {
-      "uid": "myheartcounts-participant2-stanford.edu",
-      "displayName": "Stanford participant",
-      "email": "myheartcounts-participant2@stanford.edu",
-      "password": "password"
-    },
-    "user": {
-      "type": "patient",
-      "dateOfEnrollment": "1970-01-01T00:00:00.000Z",
-      "lastActiveDate": "1970-01-01T00:00:00.000Z"
-    }
-  }
-]
+  ]
+}

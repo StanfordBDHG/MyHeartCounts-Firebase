@@ -9,24 +9,24 @@
 import {
   updateUserInformationInputSchema,
   type UpdateUserInformationOutput,
-} from '@stanfordbdhg/myheartcounts-models'
-import { validatedOnCall, defaultServiceAccount } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/myheartcounts-models";
+import { validatedOnCall, defaultServiceAccount } from "./helpers.js";
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const updateUserInformation = validatedOnCall(
-  'updateUserInformation',
+  "updateUserInformation",
   updateUserInformationInputSchema,
   async (request): Promise<UpdateUserInformationOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    const userService = factory.user()
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    const userService = factory.user();
 
-    credential.checkUser(request.data.userId)
+    credential.checkUser(request.data.userId);
 
-    await userService.updateAuth(request.data.userId, request.data.data.auth)
+    await userService.updateAuth(request.data.userId, request.data.data.auth);
   },
   {
-    invoker: 'public',
+    invoker: "public",
     serviceAccount: defaultServiceAccount,
   },
-)
+);

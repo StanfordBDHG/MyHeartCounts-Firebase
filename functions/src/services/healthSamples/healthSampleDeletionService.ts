@@ -6,23 +6,23 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { FHIRObservationStatus } from '@stanfordbdhg/myheartcounts-models'
-import admin from 'firebase-admin'
-import { logger } from 'firebase-functions/v2'
-import { CollectionsService } from '../database/collections.js'
+import { FHIRObservationStatus } from "@stanfordbdhg/myheartcounts-models";
+import admin from "firebase-admin";
+import { logger } from "firebase-functions/v2";
+import { CollectionsService } from "../database/collections.js";
 
 export interface HealthSampleDeletionResult {
-  totalMarked: number
-  totalFailed: number
-  successRate: string
+  totalMarked: number;
+  totalFailed: number;
+  successRate: string;
 }
 
 export class HealthSampleDeletionService {
-  private readonly collections: CollectionsService
-  private readonly BATCH_SIZE = 500
+  private readonly collections: CollectionsService;
+  private readonly BATCH_SIZE = 500;
 
   constructor(firestore?: admin.firestore.Firestore) {
-    this.collections = new CollectionsService(firestore ?? admin.firestore())
+    this.collections = new CollectionsService(firestore ?? admin.firestore());
   }
 
   async processHealthSamplesEnteredInError(
@@ -32,8 +32,8 @@ export class HealthSampleDeletionService {
     collection: string,
     documentIds: string[],
   ): Promise<HealthSampleDeletionResult> {
-    let totalMarked = 0
-    let totalFailed = 0
+    let totalMarked = 0;
+    let totalFailed = 0;
 
     logger.info(
       `Starting async entered-in-error marking job '${jobId}': processing ${documentIds.length} samples in collection '${collection}' in batches of ${this.BATCH_SIZE}`,
@@ -45,13 +45,13 @@ export class HealthSampleDeletionService {
         totalSamples: documentIds.length,
         batchSize: this.BATCH_SIZE,
       },
-    )
+    );
 
     // Process samples in batches
     for (let i = 0; i < documentIds.length; i += this.BATCH_SIZE) {
-      const batch = documentIds.slice(i, i + this.BATCH_SIZE)
-      const batchNumber = Math.floor(i / this.BATCH_SIZE) + 1
-      const totalBatches = Math.ceil(documentIds.length / this.BATCH_SIZE)
+      const batch = documentIds.slice(i, i + this.BATCH_SIZE);
+      const batchNumber = Math.floor(i / this.BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(documentIds.length / this.BATCH_SIZE);
 
       logger.info(
         `Processing batch ${batchNumber}/${totalBatches} for job '${jobId}' (${batch.length} samples)`,
@@ -63,7 +63,7 @@ export class HealthSampleDeletionService {
           totalBatches,
           batchSize: batch.length,
         },
-      )
+      );
 
       const batchResults = await this.processBatch(
         targetUserId,
@@ -71,19 +71,19 @@ export class HealthSampleDeletionService {
         batch,
         jobId,
         requestingUserId,
-      )
+      );
 
-      totalMarked += batchResults.marked
-      totalFailed += batchResults.failed
+      totalMarked += batchResults.marked;
+      totalFailed += batchResults.failed;
 
       // Small delay between batches to avoid overwhelming the system
       if (i + this.BATCH_SIZE < documentIds.length) {
-        await new Promise((resolve) => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
     const successRate =
-      ((totalMarked / documentIds.length) * 100).toFixed(2) + '%'
+      ((totalMarked / documentIds.length) * 100).toFixed(2) + "%";
 
     logger.info(
       `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalFailed} failed out of ${documentIds.length} total`,
@@ -97,13 +97,13 @@ export class HealthSampleDeletionService {
         totalFailed,
         successRate,
       },
-    )
+    );
 
     return {
       totalMarked,
       totalFailed,
       successRate,
-    }
+    };
   }
 
   private async processBatch(
@@ -113,18 +113,18 @@ export class HealthSampleDeletionService {
     jobId: string,
     requestingUserId: string,
   ): Promise<{ marked: number; failed: number }> {
-    let marked = 0
-    let failed = 0
+    let marked = 0;
+    let failed = 0;
 
     // Use Promise.allSettled for concurrent processing within batch
     const promises = batch.map(async (documentId) => {
       try {
         const doc = await this.collections.firestore
-          .collection('users')
+          .collection("users")
           .doc(userId)
           .collection(collection)
           .doc(documentId)
-          .get()
+          .get();
 
         if (!doc.exists) {
           logger.debug(
@@ -136,14 +136,14 @@ export class HealthSampleDeletionService {
               collection,
               documentId,
             },
-          )
-          return { success: false, documentId }
+          );
+          return { success: false, documentId };
         }
 
         // Mark as entered-in-error instead of deleting (FHIR compliant)
         await doc.ref.update({
           status: FHIRObservationStatus.entered_in_error,
-        })
+        });
 
         logger.debug(
           `Marked sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}'`,
@@ -154,9 +154,9 @@ export class HealthSampleDeletionService {
             collection,
             documentId,
           },
-        )
+        );
 
-        return { success: true, documentId }
+        return { success: true, documentId };
       } catch (error) {
         logger.warn(
           `Failed to mark sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}': ${String(error)}`,
@@ -168,22 +168,22 @@ export class HealthSampleDeletionService {
             documentId,
             error: String(error),
           },
-        )
-        return { success: false, documentId }
+        );
+        return { success: false, documentId };
       }
-    })
+    });
 
-    const results = await Promise.allSettled(promises)
+    const results = await Promise.allSettled(promises);
 
     for (const result of results) {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         if (result.value.success) {
-          marked++
+          marked++;
         } else {
-          failed++
+          failed++;
         }
       } else {
-        failed++
+        failed++;
         logger.error(
           `Promise failed in batch processing for job '${jobId}': ${String(result.reason)}`,
           {
@@ -192,10 +192,10 @@ export class HealthSampleDeletionService {
             targetUserId: userId,
             error: String(result.reason),
           },
-        )
+        );
       }
     }
 
-    return { marked, failed }
+    return { marked, failed };
   }
 }

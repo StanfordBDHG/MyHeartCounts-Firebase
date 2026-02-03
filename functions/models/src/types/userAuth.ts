@@ -6,10 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { Lazy } from '../helpers/lazy.js'
-import { optionalish } from '../helpers/optionalish.js'
-import { SchemaConverter } from '../helpers/schemaConverter.js'
+import { z } from "zod";
+import { Lazy } from "../helpers/lazy.js";
+import { optionalish } from "../helpers/optionalish.js";
+import { SchemaConverter } from "../helpers/schemaConverter.js";
 
 export const userAuthConverter = new Lazy(
   () =>
@@ -29,27 +29,27 @@ export const userAuthConverter = new Lazy(
         photoURL: object.photoURL ?? null,
       }),
     }),
-)
+);
 
 export class UserAuth {
   // Properties
 
-  readonly email?: string
-  readonly displayName?: string
-  readonly phoneNumber?: string
-  readonly photoURL?: string
+  readonly email?: string;
+  readonly displayName?: string;
+  readonly phoneNumber?: string;
+  readonly photoURL?: string;
 
   // Constructor
 
   constructor(input: {
-    email?: string
-    displayName?: string
-    phoneNumber?: string
-    photoURL?: string
+    email?: string;
+    displayName?: string;
+    phoneNumber?: string;
+    photoURL?: string;
   }) {
-    this.email = input.email
-    this.displayName = input.displayName
-    this.phoneNumber = input.phoneNumber
-    this.photoURL = input.photoURL
+    this.email = input.email;
+    this.displayName = input.displayName;
+    this.phoneNumber = input.phoneNumber;
+    this.photoURL = input.photoURL;
   }
 }

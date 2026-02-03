@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { DefaultServiceFactory } from './defaultServiceFactory.js'
-import { type ServiceFactory } from './serviceFactory.js'
+// eslint-disable-next-line import/no-cycle -- Factory getter pattern requires importing concrete implementation; cycle is necessary for dependency injection architecture where services reference ServiceFactory interface
+import { DefaultServiceFactory } from "./defaultServiceFactory.js";
+import { type ServiceFactory } from "./serviceFactory.js";
 
-export function getServiceFactory(): ServiceFactory {
-  return new DefaultServiceFactory()
-}
+export const getServiceFactory = (): ServiceFactory =>
+  new DefaultServiceFactory();

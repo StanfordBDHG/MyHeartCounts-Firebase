@@ -6,43 +6,43 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { Timestamp } from 'firebase-admin/firestore'
-import { z } from 'zod'
-import { SchemaConverter } from './schemaConverter.js'
+import { Timestamp } from "firebase-admin/firestore";
+import { z } from "zod";
+import { SchemaConverter } from "./schemaConverter.js";
 
 export const dateConverter = new SchemaConverter({
   schema: z.union([
     z.string().transform((string, context) => {
       try {
-        const date = new Date(string)
+        const date = new Date(string);
         if (isNaN(date.getTime())) {
           context.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Invalid date',
-          })
-          return z.NEVER
+            message: "Invalid date",
+          });
+          return z.NEVER;
         }
-        return date
+        return date;
       } catch (error) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           message: String(error),
-        })
-        return z.NEVER
+        });
+        return z.NEVER;
       }
     }),
     z.any().transform((value: unknown, context) => {
       // Handle Firestore Timestamps or timestamp-like objects
       if (
         value &&
-        typeof value === 'object' &&
-        'toDate' in value &&
-        typeof (value as { toDate: unknown }).toDate === 'function'
+        typeof value === "object" &&
+        "toDate" in value &&
+        typeof (value as { toDate: unknown }).toDate === "function"
       ) {
         try {
-          const date = (value as { toDate: () => Date }).toDate()
+          const date = (value as { toDate: () => Date }).toDate();
           if (date instanceof Date && !isNaN(date.getTime())) {
-            return date
+            return date;
           }
         } catch {
           // Fall through to try other approaches
@@ -52,20 +52,21 @@ export const dateConverter = new SchemaConverter({
       // Handle Date objects directly
       if (value instanceof Date) {
         if (!isNaN(value.getTime())) {
-          return value
+          return value;
         }
       }
 
       // Handle null/undefined
       if (value === null || value === undefined) {
-        return new Date()
+        return new Date();
       }
 
       // try to convert to string then date
       try {
-        const date = new Date(String(value))
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        const date = new Date(String(value));
         if (!isNaN(date.getTime())) {
-          return date
+          return date;
         }
       } catch {
         // Continue to error
@@ -74,37 +75,37 @@ export const dateConverter = new SchemaConverter({
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Cannot convert value to date: ${typeof value}`,
-      })
-      return z.NEVER
+      });
+      return z.NEVER;
     }),
   ]),
   encode: (object) => {
     if (!(object instanceof Date)) {
-      return Timestamp.now() // Default to current timestamp if null
+      return Timestamp.now(); // Default to current timestamp if null
     }
-    return Timestamp.fromDate(object)
+    return Timestamp.fromDate(object);
   },
-})
+});
 
 export const dateConverterISO = new SchemaConverter({
   schema: z.union([
     z.string().transform((string, context) => {
       try {
-        const date = new Date(string)
+        const date = new Date(string);
         if (isNaN(date.getTime())) {
           context.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Invalid date',
-          })
-          return z.NEVER
+            message: "Invalid date",
+          });
+          return z.NEVER;
         }
-        return date
+        return date;
       } catch (error) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           message: String(error),
-        })
-        return z.NEVER
+        });
+        return z.NEVER;
       }
     }),
     z
@@ -116,8 +117,8 @@ export const dateConverterISO = new SchemaConverter({
   ]),
   encode: (object) => {
     if (!(object instanceof Date)) {
-      return new Date().toISOString() // Default to current date if null
+      return new Date().toISOString(); // Default to current date if null
     }
-    return object.toISOString()
+    return object.toISOString();
   },
-})
+});

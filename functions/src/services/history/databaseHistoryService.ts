@@ -6,21 +6,21 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { isDeepStrictEqual } from 'util'
-import { type DocumentSnapshot } from 'firebase-admin/firestore'
-import { type Change } from 'firebase-functions'
-import { type HistoryService } from './historyService.js'
-import { type DatabaseService } from '../database/databaseService.js'
+import { isDeepStrictEqual } from "util";
+import { type DocumentSnapshot } from "firebase-admin/firestore";
+import { type Change } from "firebase-functions";
+import { type HistoryService } from "./historyService.js";
+import { type DatabaseService } from "../database/databaseService.js";
 
 export class DatabaseHistoryService implements HistoryService {
   // Properties
 
-  private readonly databaseService: DatabaseService
+  private readonly databaseService: DatabaseService;
 
   // Constructor
 
   constructor(databaseService: DatabaseService) {
-    this.databaseService = databaseService
+    this.databaseService = databaseService;
   }
 
   // Methods
@@ -28,30 +28,30 @@ export class DatabaseHistoryService implements HistoryService {
   async isEmpty(): Promise<boolean> {
     const result = await this.databaseService.getQuery((collections) =>
       collections.history.limit(1),
-    )
-    return result.length === 0
+    );
+    return result.length === 0;
   }
 
   async recordChange(change: Change<DocumentSnapshot>): Promise<void> {
-    const beforeData = change.before?.data()
-    const afterData = change.after?.data()
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
 
     // Skip recording if no change
     if (beforeData && afterData && isDeepStrictEqual(beforeData, afterData))
-      return
+      return;
 
     // Determine the path - prefer after.ref, fallback to before.ref
-    const path = change.after?.ref?.path || change.before?.ref?.path
-    if (!path) return
+    const path = change.after.ref.path || change.before.ref.path;
+    if (!path) return;
 
     // Determine the type of change
-    let type: 'created' | 'updated' | 'deleted'
+    let type: "created" | "updated" | "deleted";
     if (!change.before.exists && change.after.exists) {
-      type = 'created'
+      type = "created";
     } else if (change.before.exists && !change.after.exists) {
-      type = 'deleted'
+      type = "deleted";
     } else {
-      type = 'updated'
+      type = "updated";
     }
 
     await this.databaseService.runTransaction((collections, transaction) => {
@@ -61,7 +61,7 @@ export class DatabaseHistoryService implements HistoryService {
         date: new Date(),
         type: type,
         before: beforeData,
-      })
-    })
+      });
+    });
   }
 }

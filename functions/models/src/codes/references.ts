@@ -7,5 +7,5 @@
 //
 
 export enum QuestionnaireReference {
-  enUS = 'questionnaires/0',
+  enUS = "questionnaires/0",
 }

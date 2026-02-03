@@ -6,18 +6,14 @@
 // SPDX-License-Identifier: MIT
 //
 
-export function advanceDateByDays(date: Date, days: number): Date {
-  return advanceDateBySeconds(date, days * 24 * 60 * 60)
-}
+export const advanceDateByDays = (date: Date, days: number): Date =>
+  advanceDateBySeconds(date, days * 24 * 60 * 60);
 
-export function advanceDateByHours(date: Date, minutes: number): Date {
-  return advanceDateBySeconds(date, minutes * 60 * 60)
-}
+export const advanceDateByHours = (date: Date, minutes: number): Date =>
+  advanceDateBySeconds(date, minutes * 60 * 60);
 
-export function advanceDateByMinutes(date: Date, minutes: number): Date {
-  return advanceDateBySeconds(date, minutes * 60)
-}
+export const advanceDateByMinutes = (date: Date, minutes: number): Date =>
+  advanceDateBySeconds(date, minutes * 60);
 
-export function advanceDateBySeconds(date: Date, seconds: number): Date {
-  return new Date(date.getTime() + seconds * 1000)
-}
+export const advanceDateBySeconds = (date: Date, seconds: number): Date =>
+  new Date(date.getTime() + seconds * 1000);

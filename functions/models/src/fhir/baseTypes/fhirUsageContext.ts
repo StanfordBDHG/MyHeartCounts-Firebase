@@ -6,12 +6,12 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { fhirCodeableConceptConverter } from './fhirCodeableConcept.js'
-import { fhirCodingConverter } from './fhirCoding.js'
-import { fhirQuantityConverter } from './fhirQuantity.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+import { z } from "zod";
+import { fhirCodeableConceptConverter } from "./fhirCodeableConcept.js";
+import { fhirCodingConverter } from "./fhirCoding.js";
+import { fhirQuantityConverter } from "./fhirQuantity.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 export const fhirUsageContextConverter = new SchemaConverter({
   schema: z.object({
@@ -34,6 +34,8 @@ export const fhirUsageContextConverter = new SchemaConverter({
         fhirQuantityConverter.value.encode(object.valueQuantity)
       : null,
   }),
-})
+});
 
-export type FHIRUsageContext = z.output<typeof fhirUsageContextConverter.schema>
+export type FHIRUsageContext = z.output<
+  typeof fhirUsageContextConverter.schema
+>;

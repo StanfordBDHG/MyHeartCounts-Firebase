@@ -1,14 +1,11 @@
 //
-// This source file is part of the Stanford Biodesign Digital Health Next.js Template open-source project
+// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
 //
-// SPDX-FileCopyrightText: 2023 Stanford University and the project authors (see CONTRIBUTORS.md)
+// SPDX-FileCopyrightText: 2023 Stanford University
 //
 // SPDX-License-Identifier: MIT
 //
 
-module.exports = {
-  plugins: [],
-  semi: false,
-  singleQuote: true,
-  experimentalTernaries: true,
-}
+const { prettierConfig } = require('@stanfordspezi/spezi-web-configurations')
+
+module.exports = prettierConfig

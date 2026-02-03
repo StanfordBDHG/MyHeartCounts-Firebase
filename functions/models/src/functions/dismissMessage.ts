@@ -6,14 +6,14 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { optionalish, optionalishDefault } from '../helpers/optionalish.js'
+import { z } from "zod";
+import { optionalish, optionalishDefault } from "../helpers/optionalish.js";
 
 export const dismissMessageInputSchema = z.object({
   userId: optionalish(z.string()),
   messageId: z.string(),
   didPerformAction: optionalishDefault(z.boolean(), false),
-})
-export type DismissMessageInput = z.input<typeof dismissMessageInputSchema>
+});
+export type DismissMessageInput = z.input<typeof dismissMessageInputSchema>;
 
-export type DismissMessageOutput = undefined
+export type DismissMessageOutput = undefined;

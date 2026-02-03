@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { fhirCodeableConceptConverter } from './fhirCodeableConcept.js'
-import { Lazy } from '../../helpers/lazy.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+import { z } from "zod";
+import { fhirCodeableConceptConverter } from "./fhirCodeableConcept.js";
+import { Lazy } from "../../helpers/lazy.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 export const fhirTimingRepeatConverter = new Lazy(
   () =>
@@ -28,7 +28,7 @@ export const fhirTimingRepeatConverter = new Lazy(
         timeOfDay: object.timeOfDay ?? null,
       }),
     }),
-)
+);
 
 export const fhirTimingConverter = new Lazy(
   () =>
@@ -52,6 +52,6 @@ export const fhirTimingConverter = new Lazy(
           : null,
       }),
     }),
-)
+);
 
-export type FHIRTiming = z.output<typeof fhirTimingConverter.value.schema>
+export type FHIRTiming = z.output<typeof fhirTimingConverter.value.schema>;

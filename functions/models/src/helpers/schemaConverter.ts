@@ -6,34 +6,34 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { type z } from 'zod'
-import { type Lazy } from './lazy'
+import { type z } from "zod";
+import { type Lazy } from "./lazy.js";
 
 export class SchemaConverter<Schema extends z.ZodTypeAny, Encoded> {
   // Properties
 
-  readonly schema: Schema
-  readonly encode: (value: z.output<Schema>) => Encoded
+  readonly schema: Schema;
+  readonly encode: (value: z.output<Schema>) => Encoded;
 
   get value(): this {
-    return this
+    return this;
   }
 
   // Constructor
 
   constructor(input: {
-    schema: Schema
-    encode: (value: z.output<Schema>) => Encoded
+    schema: Schema;
+    encode: (value: z.output<Schema>) => Encoded;
   }) {
-    this.schema = input.schema
-    this.encode = input.encode
+    this.schema = input.schema;
+    this.encode = input.encode;
   }
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type InferEncoded<Input> =
-  Input extends SchemaConverter<any, any> ? ReturnType<Input['encode']>
+  Input extends SchemaConverter<any, any> ? ReturnType<Input["encode"]>
   : Input extends Lazy<SchemaConverter<any, any>> ?
-    ReturnType<Input['value']['encode']>
-  : never
+    ReturnType<Input["value"]["encode"]>
+  : never;
 /* eslint-enable @typescript-eslint/no-explicit-any */

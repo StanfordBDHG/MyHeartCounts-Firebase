@@ -6,16 +6,16 @@
 // SPDX-License-Identifier: MIT
 //
 
-import type { FHIRQuestionnaireResponse } from '@stanfordbdhg/myheartcounts-models'
-import { QuestionnaireResponseService } from './questionnaireResponseService.js'
-import type { Document } from '../database/databaseService.js'
+import type { FHIRQuestionnaireResponse } from "@stanfordbdhg/myheartcounts-models";
+import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
+import type { Document } from "../database/databaseService.js";
 
 export class MultiQuestionnaireResponseService extends QuestionnaireResponseService {
-  private readonly components: QuestionnaireResponseService[]
+  private readonly components: QuestionnaireResponseService[];
 
   constructor(components: QuestionnaireResponseService[]) {
-    super()
-    this.components = components
+    super();
+    this.components = components;
   }
 
   async handle(
@@ -23,11 +23,11 @@ export class MultiQuestionnaireResponseService extends QuestionnaireResponseServ
     response: Document<FHIRQuestionnaireResponse>,
     options: { isNew: boolean },
   ): Promise<boolean> {
-    let anyHandled = false
+    let anyHandled = false;
     for (const component of this.components) {
-      const handled = await component.handle(userId, response, options)
-      if (handled) anyHandled = true
+      const handled = await component.handle(userId, response, options);
+      if (handled) anyHandled = true;
     }
-    return anyHandled
+    return anyHandled;
   }
 }
