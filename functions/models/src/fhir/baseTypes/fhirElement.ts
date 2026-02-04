@@ -6,17 +6,20 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
+/* eslint-disable import/no-cycle */
+// Circular dependency is intentional and handled via Lazy wrappers
+
+import { z } from "zod";
 import {
   fhirCodeableConceptConverter,
   type FHIRCodeableConcept,
-} from './fhirCodeableConcept.js'
-import { type FHIRCoding } from './fhirCoding.js'
-import { type FHIRMeta, fhirMetaConverter } from './fhirMeta.js'
-import { fhirQuantityConverter } from './fhirQuantity.js'
-import { fhirReferenceConverter } from './fhirReference.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+} from "./fhirCodeableConcept.js";
+import { type FHIRCoding } from "./fhirCoding.js";
+import { type FHIRMeta, fhirMetaConverter } from "./fhirMeta.js";
+import { fhirQuantityConverter } from "./fhirQuantity.js";
+import { fhirReferenceConverter } from "./fhirReference.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 const fhirExtensionBaseConverter = new SchemaConverter({
   schema: z.object({
@@ -32,37 +35,39 @@ const fhirExtensionBaseConverter = new SchemaConverter({
   encode: (object) => {
     const result: Record<string, unknown> = {
       url: object.url,
-    }
+    };
 
     if (object.valueQuantities && object.valueQuantities.length > 0) {
       result.valueQuantities = object.valueQuantities.map(
         fhirQuantityConverter.value.encode,
-      )
+      );
     }
     if (object.valueReference) {
       result.valueReference = fhirReferenceConverter.value.encode(
         object.valueReference,
-      )
+      );
     }
     if (object.valueString !== undefined) {
-      result.valueString = object.valueString
+      result.valueString = object.valueString;
     }
 
-    return result
+    return result;
   },
-})
+});
 
-export interface FHIRExtensionInput
-  extends z.input<typeof fhirExtensionBaseConverter.value.schema> {
+export interface FHIRExtensionInput extends z.input<
+  typeof fhirExtensionBaseConverter.value.schema
+> {
   valueCodeableConcept?:
     | z.input<typeof fhirCodeableConceptConverter.value.schema>
     | null
-    | undefined
+    | undefined;
 }
 
-export interface FHIRExtension
-  extends z.output<typeof fhirExtensionBaseConverter.value.schema> {
-  valueCodeableConcept?: FHIRCodeableConcept
+export interface FHIRExtension extends z.output<
+  typeof fhirExtensionBaseConverter.value.schema
+> {
+  valueCodeableConcept?: FHIRCodeableConcept;
 }
 
 export const fhirExtensionConverter = (() => {
@@ -74,29 +79,29 @@ export const fhirExtensionConverter = (() => {
     valueCodeableConcept: optionalish(
       z.lazy(() => fhirCodeableConceptConverter.value.schema),
     ),
-  })
+  });
 
-  function fhirExtensionEncode(
+  const fhirExtensionEncode = (
     object: z.output<typeof fhirExtensionSchema>,
-  ): z.input<typeof fhirExtensionSchema> {
+  ): z.input<typeof fhirExtensionSchema> => {
     const result: Record<string, unknown> = {
       ...fhirExtensionBaseConverter.value.encode(object),
-    }
+    };
 
     if (object.valueCodeableConcept) {
       result.valueCodeableConcept = fhirCodeableConceptConverter.value.encode(
         object.valueCodeableConcept,
-      )
+      );
     }
 
-    return result as unknown as z.input<typeof fhirExtensionSchema>
-  }
+    return result as unknown as z.input<typeof fhirExtensionSchema>;
+  };
 
   return new SchemaConverter({
     schema: fhirExtensionSchema,
     encode: fhirExtensionEncode,
-  })
-})()
+  });
+})();
 
 export const fhirElementConverter = new SchemaConverter({
   schema: z.object({
@@ -106,32 +111,32 @@ export const fhirElementConverter = new SchemaConverter({
     ),
   }),
   encode: (object) => {
-    const result: Record<string, unknown> = {}
+    const result: Record<string, unknown> = {};
 
     if (object.id !== undefined) {
-      result.id = object.id
+      result.id = object.id;
     }
     if (object.extension && object.extension.length > 0) {
       result.extension = object.extension.map(
         fhirExtensionConverter.value.encode,
-      )
+      );
     }
 
-    return result
+    return result;
   },
-})
+});
 
 export abstract class FHIRElement {
   // Properties
 
-  readonly id?: string
-  readonly extension?: FHIRExtension[]
+  readonly id?: string;
+  readonly extension?: FHIRExtension[];
 
   // Constructor
 
   constructor(input: { id?: string; extension?: FHIRExtension[] }) {
-    this.id = input.id
-    this.extension = input.extension
+    this.id = input.id;
+    this.extension = input.extension;
   }
 }
 
@@ -144,31 +149,31 @@ export const fhirResourceConverter = new SchemaConverter({
     const result: Record<string, unknown> = {
       ...fhirElementConverter.value.encode(object),
       resourceType: object.resourceType,
-    }
+    };
 
     if (object.meta) {
-      result.meta = fhirMetaConverter.encode(object.meta)
+      result.meta = fhirMetaConverter.encode(object.meta);
     }
 
-    return result
+    return result;
   },
-})
+});
 
 export type FHIRResourceInput = z.output<typeof fhirElementConverter.schema> & {
-  meta?: FHIRMeta
-}
+  meta?: FHIRMeta;
+};
 
 export abstract class FHIRResource extends FHIRElement {
   // Properties
 
-  abstract get resourceType(): string
-  readonly meta?: FHIRMeta
+  abstract get resourceType(): string;
+  readonly meta?: FHIRMeta;
 
   // Constructor
 
   constructor(input: FHIRResourceInput) {
-    super(input)
-    this.meta = input.meta
+    super(input);
+    this.meta = input.meta;
   }
 
   // Methods
@@ -179,11 +184,11 @@ export abstract class FHIRResource extends FHIRElement {
   ): string[] {
     return (
       concept?.coding?.flatMap((coding) => {
-        if (filter.system && coding.system !== filter.system) return []
-        if (filter.version && coding.version !== filter.version) return []
-        return coding.code ? [coding.code] : []
+        if (filter.system && coding.system !== filter.system) return [];
+        if (filter.version && coding.version !== filter.version) return [];
+        return coding.code ? [coding.code] : [];
       }) ?? []
-    )
+    );
   }
 
   containsCoding(
@@ -194,13 +199,13 @@ export abstract class FHIRResource extends FHIRElement {
       (filterCoding) =>
         concept?.coding?.some((coding) => {
           if (filterCoding.code && coding.code !== filterCoding.code)
-            return false
+            return false;
           if (filterCoding.system && coding.system !== filterCoding.system)
-            return false
+            return false;
           if (filterCoding.version && coding.version !== filterCoding.version)
-            return false
-          return true
+            return false;
+          return true;
         }) ?? false,
-    )
+    );
   }
 }

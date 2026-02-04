@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: MIT
 //
 
-import type { FHIRQuestionnaireResponse } from '@stanfordbdhg/myheartcounts-models'
-import type { Document } from '../database/databaseService.js'
+import type { FHIRQuestionnaireResponse } from "@stanfordbdhg/myheartcounts-models";
+import type { Document } from "../database/databaseService.js";
 
 export abstract class QuestionnaireResponseService {
   abstract handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
     options: { isNew: boolean },
-  ): Promise<boolean>
+  ): Promise<boolean>;
 }

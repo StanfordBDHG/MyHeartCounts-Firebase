@@ -6,228 +6,240 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { expect } from 'chai'
-import { describe, it } from 'mocha'
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 
-function getCollectionNameFromFileName(fileName: string): string | null {
-  const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/
-  const match = fileName.match(hkIdentifierPattern)
+import { expect } from "chai";
+import { describe, it } from "mocha";
+
+const getCollectionNameFromFileName = (fileName: string): string | null => {
+  const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/;
+  const match = hkIdentifierPattern.exec(fileName);
 
   if (match) {
-    const healthKitIdentifier = match[0]
-    return `HealthObservations_${healthKitIdentifier}`
+    const healthKitIdentifier = match[0];
+    return `HealthObservations_${healthKitIdentifier}`;
   }
 
-  return null
-}
+  return null;
+};
 
-describe('onArchivedLiveHealthSampleUploaded', () => {
-  describe('getCollectionNameFromFileName', () => {
-    it('should extract HKQuantityTypeIdentifier from filename', () => {
-      const fileName = 'HKQuantityTypeIdentifierHeartRate_ABC123.json.zstd'
-      const result = getCollectionNameFromFileName(fileName)
+describe("onArchivedLiveHealthSampleUploaded", () => {
+  describe("getCollectionNameFromFileName", () => {
+    it("should extract HKQuantityTypeIdentifier from filename", () => {
+      const fileName = "HKQuantityTypeIdentifierHeartRate_ABC123.json.zstd";
+      const result = getCollectionNameFromFileName(fileName);
       expect(result).to.equal(
-        'HealthObservations_HKQuantityTypeIdentifierHeartRate',
-      )
-    })
+        "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+      );
+    });
 
-    it('should extract HKCorrelationTypeIdentifier from filename', () => {
-      const fileName = 'HKCorrelationTypeIdentifierBloodPressure_456.json.zstd'
-      const result = getCollectionNameFromFileName(fileName)
+    it("should extract HKCorrelationTypeIdentifier from filename", () => {
+      const fileName = "HKCorrelationTypeIdentifierBloodPressure_456.json.zstd";
+      const result = getCollectionNameFromFileName(fileName);
       expect(result).to.equal(
-        'HealthObservations_HKCorrelationTypeIdentifierBloodPressure',
-      )
-    })
+        "HealthObservations_HKCorrelationTypeIdentifierBloodPressure",
+      );
+    });
 
-    it('should extract HKCategoryTypeIdentifier from filename', () => {
-      const fileName = 'HKCategoryTypeIdentifierSleepAnalysis_789.json.zstd'
-      const result = getCollectionNameFromFileName(fileName)
+    it("should extract HKCategoryTypeIdentifier from filename", () => {
+      const fileName = "HKCategoryTypeIdentifierSleepAnalysis_789.json.zstd";
+      const result = getCollectionNameFromFileName(fileName);
       expect(result).to.equal(
-        'HealthObservations_HKCategoryTypeIdentifierSleepAnalysis',
-      )
-    })
+        "HealthObservations_HKCategoryTypeIdentifierSleepAnalysis",
+      );
+    });
 
-    it('should return null for filename without HealthKit identifier', () => {
-      const fileName = 'someRandomFile_123.json.zstd'
-      const result = getCollectionNameFromFileName(fileName)
-      expect(result).to.be.null
-    })
+    it("should return null for filename without HealthKit identifier", () => {
+      const fileName = "someRandomFile_123.json.zstd";
+      const result = getCollectionNameFromFileName(fileName);
+      expect(result).to.be.null;
+    });
 
-    it('should return null for empty filename', () => {
-      const fileName = ''
-      const result = getCollectionNameFromFileName(fileName)
-      expect(result).to.be.null
-    })
+    it("should return null for empty filename", () => {
+      const fileName = "";
+      const result = getCollectionNameFromFileName(fileName);
+      expect(result).to.be.null;
+    });
 
     it('should handle custom identifiers containing "Identifier"', () => {
-      const fileName = 'CustomHealthIdentifierExample_999.json.zstd'
-      const result = getCollectionNameFromFileName(fileName)
+      const fileName = "CustomHealthIdentifierExample_999.json.zstd";
+      const result = getCollectionNameFromFileName(fileName);
       expect(result).to.equal(
-        'HealthObservations_CustomHealthIdentifierExample',
-      )
-    })
-  })
+        "HealthObservations_CustomHealthIdentifierExample",
+      );
+    });
+  });
 
-  describe('File path validation logic', () => {
-    function isValidHealthSamplesPath(filePath: string): boolean {
-      if (!filePath.includes('/liveHealthSamples/')) {
-        return false
+  describe("File path validation logic", () => {
+    const isValidHealthSamplesPath = (filePath: string): boolean => {
+      if (!filePath.includes("/liveHealthSamples/")) {
+        return false;
       }
 
-      const pathParts = filePath.split('/')
-      const userIdIndex = pathParts.findIndex((part) => part === 'users')
+      const pathParts = filePath.split("/");
+      const userIdIndex = pathParts.findIndex((part) => part === "users");
 
       if (userIdIndex === -1 || userIdIndex + 1 >= pathParts.length) {
-        return false
+        return false;
       }
 
-      const userId = pathParts[userIdIndex + 1]
-      const fileName = pathParts[pathParts.length - 1]
+      const userId = pathParts[userIdIndex + 1];
+      const fileName = pathParts[pathParts.length - 1];
 
-      return !!(userId && fileName)
-    }
+      return !!(userId && fileName);
+    };
 
-    it('should validate correct liveHealthSamples path', () => {
+    it("should validate correct liveHealthSamples path", () => {
       const filePath =
-        'users/test-user-123/liveHealthSamples/HKQuantityTypeIdentifierHeartRate_ABC123.json.zstd'
-      expect(isValidHealthSamplesPath(filePath)).to.be.true
-    })
+        "users/test-user-123/liveHealthSamples/HKQuantityTypeIdentifierHeartRate_ABC123.json.zstd";
+      expect(isValidHealthSamplesPath(filePath)).to.be.true;
+    });
 
-    it('should reject files not in liveHealthSamples folder', () => {
-      const filePath = 'users/test-user-123/otherFolder/file.zstd'
-      expect(isValidHealthSamplesPath(filePath)).to.be.false
-    })
+    it("should reject files not in liveHealthSamples folder", () => {
+      const filePath = "users/test-user-123/otherFolder/file.zstd";
+      expect(isValidHealthSamplesPath(filePath)).to.be.false;
+    });
 
-    it('should reject invalid file path structure', () => {
-      const filePath = 'invalid/path/structure.zstd'
-      expect(isValidHealthSamplesPath(filePath)).to.be.false
-    })
+    it("should reject invalid file path structure", () => {
+      const filePath = "invalid/path/structure.zstd";
+      expect(isValidHealthSamplesPath(filePath)).to.be.false;
+    });
 
-    it('should reject missing userId in path', () => {
-      const filePath = 'users//liveHealthSamples/file.zstd'
-      expect(isValidHealthSamplesPath(filePath)).to.be.false
-    })
+    it("should reject missing userId in path", () => {
+      const filePath = "users//liveHealthSamples/file.zstd";
+      expect(isValidHealthSamplesPath(filePath)).to.be.false;
+    });
 
-    it('should reject missing fileName in path', () => {
-      const filePath = 'users/test-user/liveHealthSamples/'
-      expect(isValidHealthSamplesPath(filePath)).to.be.false
-    })
-  })
+    it("should reject missing fileName in path", () => {
+      const filePath = "users/test-user/liveHealthSamples/";
+      expect(isValidHealthSamplesPath(filePath)).to.be.false;
+    });
+  });
 
-  describe('Data format validation', () => {
-    function isValidObservationsData(data: unknown): data is unknown[] {
-      return Array.isArray(data) && data.length > 0
-    }
+  describe("Data format validation", () => {
+    const isValidObservationsData = (data: unknown): data is unknown[] =>
+      Array.isArray(data) && data.length > 0;
 
-    function extractObservationsFromData(
+    const extractObservationsFromData = (
       data: unknown,
       userId: string,
-    ): unknown[] | null {
+    ): unknown[] | null => {
       if (Array.isArray(data)) {
-        return data
+        return data as unknown[];
       }
 
-      if (data && typeof data === 'object' && 'data' in data) {
-        const wrappedData = data as { data: unknown; userId?: string }
+      if (data && typeof data === "object" && "data" in data) {
+        const wrappedData = data as { data: unknown; userId?: string };
         if (Array.isArray(wrappedData.data)) {
           // Validate userId if present in legacy format
           if (wrappedData.userId && wrappedData.userId !== userId) {
-            return null
+            return null;
           }
-          return wrappedData.data
+          return wrappedData.data as unknown[];
         }
       }
 
-      return null
+      return null;
+    };
+
+    it("should accept array format observations", () => {
+      const data = [{ id: "obs-1" }, { id: "obs-2" }];
+      expect(isValidObservationsData(data)).to.be.true;
+    });
+
+    it("should reject empty array", () => {
+      const data: unknown[] = [];
+      expect(isValidObservationsData(data)).to.be.false;
+    });
+
+    it("should reject non-array data", () => {
+      const data = { invalid: "structure" };
+      expect(isValidObservationsData(data)).to.be.false;
+    });
+
+    it("should extract array format observations", () => {
+      const data = [{ id: "obs-1" }, { id: "obs-2" }];
+      const result = extractObservationsFromData(data, "test-user");
+      expect(result).to.deep.equal(data);
+    });
+
+    it("should extract legacy wrapper format", () => {
+      const data = {
+        userId: "test-user",
+        collection: "heartRateObservations",
+        data: [{ id: "obs-1" }, { id: "obs-2" }],
+      };
+      const result = extractObservationsFromData(data, "test-user");
+      expect(result).to.deep.equal(data.data);
+    });
+
+    it("should reject userId mismatch in legacy format", () => {
+      const data = {
+        userId: "different-user",
+        collection: "heartRateObservations",
+        data: [{ id: "obs-1" }],
+      };
+      const result = extractObservationsFromData(data, "test-user");
+      expect(result).to.be.null;
+    });
+  });
+
+  describe("Observation processing", () => {
+    interface ObservationWithId {
+      id: string;
+      [key: string]: unknown;
     }
 
-    it('should accept array format observations', () => {
-      const data = [{ id: 'obs-1' }, { id: 'obs-2' }]
-      expect(isValidObservationsData(data)).to.be.true
-    })
-
-    it('should reject empty array', () => {
-      const data: unknown[] = []
-      expect(isValidObservationsData(data)).to.be.false
-    })
-
-    it('should reject non-array data', () => {
-      const data = { invalid: 'structure' }
-      expect(isValidObservationsData(data)).to.be.false
-    })
-
-    it('should extract array format observations', () => {
-      const data = [{ id: 'obs-1' }, { id: 'obs-2' }]
-      const result = extractObservationsFromData(data, 'test-user')
-      expect(result).to.deep.equal(data)
-    })
-
-    it('should extract legacy wrapper format', () => {
-      const data = {
-        userId: 'test-user',
-        collection: 'heartRateObservations',
-        data: [{ id: 'obs-1' }, { id: 'obs-2' }],
-      }
-      const result = extractObservationsFromData(data, 'test-user')
-      expect(result).to.deep.equal(data.data)
-    })
-
-    it('should reject userId mismatch in legacy format', () => {
-      const data = {
-        userId: 'different-user',
-        collection: 'heartRateObservations',
-        data: [{ id: 'obs-1' }],
-      }
-      const result = extractObservationsFromData(data, 'test-user')
-      expect(result).to.be.null
-    })
-  })
-
-  describe('Observation processing', () => {
-    function getValidObservationsWithIds(
+    const getValidObservationsWithIds = (
       observations: unknown[],
-    ): Array<{ observation: unknown; id: string }> {
-      const validObservations: Array<{ observation: unknown; id: string }> = []
+    ): Array<{ observation: unknown; id: string }> => {
+      const validObservations: Array<{ observation: unknown; id: string }> = [];
 
       for (const observation of observations) {
-        const observationData = observation as any
-        const documentId = observationData?.id
+        if (
+          observation &&
+          typeof observation === "object" &&
+          "id" in observation
+        ) {
+          const observationData = observation as ObservationWithId;
+          const documentId = observationData.id;
 
-        if (documentId) {
-          validObservations.push({ observation, id: documentId })
+          if (documentId && typeof documentId === "string") {
+            validObservations.push({ observation, id: documentId });
+          }
         }
       }
 
-      return validObservations
-    }
+      return validObservations;
+    };
 
-    it('should extract observations with valid IDs', () => {
+    it("should extract observations with valid IDs", () => {
       const observations = [
-        { id: 'obs-1', data: 'valid' },
-        { id: 'obs-2', data: 'valid' },
-      ]
-      const result = getValidObservationsWithIds(observations)
-      expect(result).to.have.length(2)
-      expect(result[0].id).to.equal('obs-1')
-      expect(result[1].id).to.equal('obs-2')
-    })
+        { id: "obs-1", data: "valid" },
+        { id: "obs-2", data: "valid" },
+      ];
+      const result = getValidObservationsWithIds(observations);
+      expect(result).to.have.length(2);
+      expect(result[0].id).to.equal("obs-1");
+      expect(result[1].id).to.equal("obs-2");
+    });
 
-    it('should skip observations without ID', () => {
+    it("should skip observations without ID", () => {
       const observations = [
-        { id: 'obs-1', data: 'valid' },
-        { data: 'no-id' }, // Missing ID
-        { id: 'obs-3', data: 'valid' },
-      ]
-      const result = getValidObservationsWithIds(observations)
-      expect(result).to.have.length(2)
-      expect(result[0].id).to.equal('obs-1')
-      expect(result[1].id).to.equal('obs-3')
-    })
+        { id: "obs-1", data: "valid" },
+        { data: "no-id" }, // Missing ID
+        { id: "obs-3", data: "valid" },
+      ];
+      const result = getValidObservationsWithIds(observations);
+      expect(result).to.have.length(2);
+      expect(result[0].id).to.equal("obs-1");
+      expect(result[1].id).to.equal("obs-3");
+    });
 
-    it('should handle empty observations array', () => {
-      const observations: unknown[] = []
-      const result = getValidObservationsWithIds(observations)
-      expect(result).to.have.length(0)
-    })
-  })
-})
+    it("should handle empty observations array", () => {
+      const observations: unknown[] = [];
+      const result = getValidObservationsWithIds(observations);
+      expect(result).to.have.length(0);
+    });
+  });
+});

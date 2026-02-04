@@ -6,20 +6,16 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { defineSecret } from 'firebase-functions/params'
+import { defineSecret } from "firebase-functions/params";
 
 enum SecretKey {
-  OPENAI_API_KEY = 'OPENAI_API_KEY',
+  OPENAI_API_KEY = "OPENAI_API_KEY",
 }
 
-const openaiApiKey = defineSecret(SecretKey.OPENAI_API_KEY)
+const openaiApiKey = defineSecret(SecretKey.OPENAI_API_KEY);
 
-export function getOpenaiApiKey(): string {
-  return openaiApiKey.value()
-}
+export const getOpenaiApiKey = (): string => openaiApiKey.value();
 
-export function getOpenaiSecretKeys(): string[] {
-  return [SecretKey.OPENAI_API_KEY]
-}
+export const getOpenaiSecretKeys = (): string[] => [SecretKey.OPENAI_API_KEY];
 
-export const openaiApiKeyParam: ReturnType<typeof defineSecret> = openaiApiKey
+export const openaiApiKeyParam: ReturnType<typeof defineSecret> = openaiApiKey;

@@ -6,26 +6,26 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { customSeedingOptionsSchema } from '@stanfordbdhg/myheartcounts-models'
-import { validatedOnRequest, privilegedServiceAccount } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+import { customSeedingOptionsSchema } from "@stanfordbdhg/myheartcounts-models";
+import { validatedOnRequest, privilegedServiceAccount } from "./helpers.js";
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const customSeed = validatedOnRequest(
-  'customSeed',
+  "customSeed",
   customSeedingOptionsSchema,
   async (_, data, response) => {
-    const factory = getServiceFactory()
+    const factory = getServiceFactory();
 
-    if (process.env.FUNCTIONS_EMULATOR !== 'true') {
-      throw factory.credential(undefined).permissionDeniedError()
+    if (process.env.FUNCTIONS_EMULATOR !== "true") {
+      throw factory.credential(undefined).permissionDeniedError();
     }
 
-    await factory.debugData().seedCustom(data)
-    response.write('Success', 'utf8')
-    response.end()
+    await factory.debugData().seedCustom(data);
+    response.write("Success", "utf8");
+    response.end();
   },
   {
-    invoker: 'public',
+    invoker: "public",
     serviceAccount: privilegedServiceAccount,
   },
-)
+);

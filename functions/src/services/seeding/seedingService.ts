@@ -6,31 +6,24 @@
 // SPDX-License-Identifier: MIT
 //
 
-import fs from 'fs'
-import { CachingStrategy } from '@stanfordbdhg/myheartcounts-models'
-import { type CollectionReference } from 'firebase-admin/firestore'
-import { logger } from 'firebase-functions'
-import { z } from 'zod'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+import fs from "fs";
+import { CachingStrategy } from "@stanfordbdhg/myheartcounts-models";
+import { type CollectionReference } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
+import { z } from "zod";
 
 export interface SeedingOptions {
-  useIndicesAsKeys: boolean
-  path: string
+  useIndicesAsKeys: boolean;
+  path: string;
 }
 
 export class SeedingService {
-  private useIndicesAsKeys: boolean
-  private path: string
+  private useIndicesAsKeys: boolean;
+  private path: string;
 
   constructor(options: SeedingOptions) {
-    this.useIndicesAsKeys = options.useIndicesAsKeys
-    this.path = options.path
+    this.useIndicesAsKeys = options.useIndicesAsKeys;
+    this.path = options.path;
   }
 
   protected async cache<T>(
@@ -44,21 +37,21 @@ export class SeedingService {
       strategy === CachingStrategy.updateCacheIfNeeded
     ) {
       try {
-        return await retrieve()
+        return await retrieve();
       } catch (error) {
-        logger.error('Could not retrieve cached data:', error)
-        if (strategy === CachingStrategy.expectCache) throw error
+        logger.error("Could not retrieve cached data:", error);
+        if (strategy === CachingStrategy.expectCache) throw error;
       }
     }
 
-    const result = await create()
+    const result = await create();
     if (
       strategy === CachingStrategy.updateCache ||
       strategy === CachingStrategy.updateCacheIfNeeded
     ) {
-      await save(result)
+      await save(result);
     }
-    return result
+    return result;
   }
 
   protected setCollection<T>(
@@ -69,25 +62,25 @@ export class SeedingService {
     // Helper function to clean data objects
     const cleanObject = <T>(obj: T): T => {
       // Parse and stringify to remove undefined values
-      return JSON.parse(JSON.stringify(obj))
-    }
+      return JSON.parse(JSON.stringify(obj)) as T;
+    };
 
     if (Array.isArray(data)) {
       for (let index = 0; index < data.length; index++) {
         const document =
           this.useIndicesAsKeys ?
             collection.doc(String(index))
-          : collection.doc()
+          : collection.doc();
 
         // Clean the data object to remove undefined values
-        const cleanData = cleanObject(data[index])
-        transaction.set(document, cleanData, { merge: true })
+        const cleanData = cleanObject(data[index]);
+        transaction.set(document, cleanData, { merge: true });
       }
     } else {
       for (const key of Object.keys(data)) {
         // Clean the data object to remove undefined values
-        const cleanData = cleanObject(data[key])
-        transaction.set(collection.doc(key), cleanData, { merge: true })
+        const cleanData = cleanObject(data[key]);
+        transaction.set(collection.doc(key), cleanData, { merge: true });
       }
     }
   }
@@ -96,9 +89,9 @@ export class SeedingService {
     reference: CollectionReference<T>,
     transaction: FirebaseFirestore.Transaction,
   ) {
-    const result = await transaction.get(reference)
+    const result = await transaction.get(reference);
     for (const doc of result.docs) {
-      transaction.delete(doc.ref)
+      transaction.delete(doc.ref);
     }
   }
 
@@ -106,7 +99,7 @@ export class SeedingService {
     return filenames.reduce(
       (acc, filename) => acc && fs.existsSync(this.path + filename),
       true,
-    )
+    );
   }
 
   protected readJSONArray<Schema extends z.ZodTypeAny>(
@@ -116,8 +109,8 @@ export class SeedingService {
     return schema
       .array()
       .parse(
-        JSON.parse(fs.readFileSync(this.path + filename, 'utf8')),
-      ) as Array<z.output<Schema>>
+        JSON.parse(fs.readFileSync(this.path + filename, "utf8")),
+      ) as Array<z.output<Schema>>;
   }
 
   protected readJSONRecord<Schema extends z.ZodTypeAny>(
@@ -127,14 +120,14 @@ export class SeedingService {
     return z
       .record(schema)
       .parse(
-        JSON.parse(fs.readFileSync(this.path + filename, 'utf8')),
-      ) as Record<string, z.output<Schema>>
+        JSON.parse(fs.readFileSync(this.path + filename, "utf8")),
+      ) as Record<string, z.output<Schema>>;
   }
 
   protected writeJSON(filename: string, data: unknown) {
     fs.writeFileSync(
       this.path + filename,
-      JSON.stringify(data, undefined, '  '),
-    )
+      JSON.stringify(data, undefined, "  "),
+    );
   }
 }

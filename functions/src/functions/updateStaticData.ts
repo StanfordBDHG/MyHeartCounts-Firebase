@@ -7,54 +7,54 @@
 //
 
 import {
-  StaticDataComponent,
   updateStaticDataInputSchema,
   type UpdateStaticDataOutput,
-} from '@stanfordbdhg/myheartcounts-models'
-import { type z } from 'zod'
+} from "@stanfordbdhg/myheartcounts-models";
+import { type z } from "zod";
 import {
   validatedOnCall,
   validatedOnRequest,
   privilegedServiceAccount,
-} from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
-import { type ServiceFactory } from '../services/factory/serviceFactory.js'
+} from "./helpers.js";
+// eslint-disable-next-line import/no-cycle -- Factory pattern requires circular dependency for service initialization
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
+import { type ServiceFactory } from "../services/factory/serviceFactory.js";
 
-export async function _updateStaticData(
+export const _updateStaticData = async (
   factory: ServiceFactory,
-  input: z.output<typeof updateStaticDataInputSchema>,
-) {
-  const service = factory.staticData()
-  const promises: Array<Promise<void>> = []
-  await Promise.all(promises)
-}
+  _input: z.output<typeof updateStaticDataInputSchema>,
+) => {
+  const _service = factory.staticData();
+  const promises: Array<Promise<void>> = [];
+  await Promise.all(promises);
+};
 
 export const updateStaticData =
-  process.env.FUNCTIONS_EMULATOR === 'true' ?
+  process.env.FUNCTIONS_EMULATOR === "true" ?
     validatedOnRequest(
-      'updateStaticData',
+      "updateStaticData",
       updateStaticDataInputSchema,
       async (_, data, response) => {
-        await _updateStaticData(getServiceFactory(), data)
-        const result: UpdateStaticDataOutput = {}
-        response.send({ result })
+        await _updateStaticData(getServiceFactory(), data);
+        const result: UpdateStaticDataOutput = {};
+        response.send({ result });
       },
       {
-        invoker: 'public',
+        invoker: "public",
         serviceAccount: privilegedServiceAccount,
       },
     )
   : validatedOnCall(
-      'updateStaticData',
+      "updateStaticData",
       updateStaticDataInputSchema,
       async (request): Promise<UpdateStaticDataOutput> => {
-        const factory = getServiceFactory()
-        factory.credential(request.auth).checkAuthenticated()
-        await _updateStaticData(factory, request.data)
-        return {}
+        const factory = getServiceFactory();
+        factory.credential(request.auth).checkAuthenticated();
+        await _updateStaticData(factory, request.data);
+        return {};
       },
       {
-        invoker: 'public',
+        invoker: "public",
         serviceAccount: privilegedServiceAccount,
       },
-    )
+    );

@@ -9,25 +9,25 @@
 import {
   enableUserInputSchema,
   type EnableUserOutput,
-} from '@stanfordbdhg/myheartcounts-models'
-import { validatedOnCall, privilegedServiceAccount } from './helpers.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/myheartcounts-models";
+import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const enableUser = validatedOnCall(
-  'enableUser',
+  "enableUser",
   enableUserInputSchema,
   async (request): Promise<EnableUserOutput> => {
-    const factory = getServiceFactory()
-    const credential = factory.credential(request.auth)
-    const userId = request.data.userId
-    const userService = factory.user()
+    const factory = getServiceFactory();
+    const credential = factory.credential(request.auth);
+    const userId = request.data.userId;
+    const userService = factory.user();
 
-    credential.checkAuthenticated()
+    credential.checkAuthenticated();
 
-    await userService.enableUser(userId)
+    await userService.enableUser(userId);
   },
   {
-    invoker: 'public',
+    invoker: "public",
     serviceAccount: privilegedServiceAccount,
   },
-)
+);

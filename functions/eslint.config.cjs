@@ -6,6 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-const { prettierConfig } = require('@stanfordspezi/spezi-web-configurations')
+const { getEslintConfig } = require('@stanfordspezi/spezi-web-configurations')
 
-module.exports = prettierConfig
+module.exports = [
+  ...getEslintConfig({ tsconfigRootDir: __dirname }),
+  {
+    ignores: ['lib/**/*', 'node_modules/**/*'],
+  },
+]

@@ -6,56 +6,53 @@
 // SPDX-License-Identifier: MIT
 //
 
-import admin from 'firebase-admin'
-import { logger } from 'firebase-functions'
-import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { privilegedServiceAccount } from './helpers.js'
+import admin from "firebase-admin";
+import { logger } from "firebase-functions";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { privilegedServiceAccount } from "./helpers.js";
 
 interface NotificationBacklogItem {
-  title: string
-  body: string
-  timestamp: admin.firestore.Timestamp
-  isLLMGenerated?: boolean
-  generatedAt?: admin.firestore.Timestamp
+  title: string;
+  body: string;
+  timestamp: admin.firestore.Timestamp;
+  isLLMGenerated?: boolean;
+  generatedAt?: admin.firestore.Timestamp;
 }
 
 interface NotificationArchiveItem {
-  title: string
-  body: string
-  originalTimestamp: admin.firestore.Timestamp
-  processedTimestamp: admin.firestore.FieldValue
-  status: 'sent' | 'failed'
-  errorMessage?: string
-  isLLMGenerated?: boolean
-  generatedAt?: admin.firestore.Timestamp
+  title: string;
+  body: string;
+  originalTimestamp: admin.firestore.Timestamp;
+  processedTimestamp: admin.firestore.FieldValue;
+  status: "sent" | "failed";
+  errorMessage?: string;
+  isLLMGenerated?: boolean;
+  generatedAt?: admin.firestore.Timestamp;
 }
 
 export class NotificationService {
   // Properties
 
-  private _firestore?: admin.firestore.Firestore
-  private _messaging?: admin.messaging.Messaging
+  private _firestore?: admin.firestore.Firestore;
+  private _messaging?: admin.messaging.Messaging;
 
   // Constructor
 
   private get firestore(): admin.firestore.Firestore {
-    if (!this._firestore) {
-      this._firestore = admin.firestore()
-    }
-    return this._firestore
+    this._firestore ??= admin.firestore();
+    return this._firestore;
   }
 
   private get messaging(): admin.messaging.Messaging {
-    if (!this._messaging) {
-      this._messaging = admin.messaging()
-    }
-    return this._messaging
+    this._messaging ??= admin.messaging();
+    return this._messaging;
   }
 
   // Methods
 
   async sendNotificationToUser(
     userId: string,
+    documentId: string,
     title: string,
     body: string,
     fcmToken: string,
@@ -63,31 +60,34 @@ export class NotificationService {
     isLLMGenerated?: boolean,
     generatedAt?: admin.firestore.Timestamp,
   ): Promise<void> {
-    let status: 'sent' | 'failed' = 'failed'
-    let errorMessage: string | undefined = undefined
+    let status: "sent" | "failed" = "failed";
+    let errorMessage: string | undefined = undefined;
 
     try {
       const notificationMessage = {
         token: fcmToken,
         notification: { title, body },
-      }
+        data: {
+          notificationId: documentId,
+        },
+      };
 
-      const sendResult = await this.messaging.send(notificationMessage)
+      const sendResult = await this.messaging.send(notificationMessage);
 
       if (sendResult) {
-        status = 'sent'
-        logger.info(`Sent notification to user ${userId}: ${title}`)
+        status = "sent";
+        logger.info(`Sent notification to user ${userId}: ${title}`);
       } else {
-        errorMessage = 'Firebase messaging send returned falsy result'
+        errorMessage = "Firebase messaging send returned falsy result";
         logger.warn(
           `Failed to send notification to user ${userId}: ${errorMessage}`,
-        )
+        );
       }
     } catch (error) {
-      errorMessage = String(error)
+      errorMessage = String(error);
       logger.error(
         `Error sending notification to user ${userId}: ${errorMessage}`,
-      )
+      );
     }
 
     const archiveData: NotificationArchiveItem = {
@@ -98,48 +98,49 @@ export class NotificationService {
       status,
       isLLMGenerated: isLLMGenerated ?? false,
       ...(generatedAt && { generatedAt }),
-    }
+    };
 
     if (errorMessage) {
-      archiveData.errorMessage = errorMessage
+      archiveData.errorMessage = errorMessage;
     }
 
     await this.firestore
-      .collection('users')
+      .collection("users")
       .doc(userId)
-      .collection('notificationHistory')
-      .add(archiveData)
+      .collection("notificationHistory")
+      .doc(documentId)
+      .set(archiveData);
   }
 
   async processNotificationBacklog(): Promise<void> {
-    const now = new Date()
+    const now = new Date();
 
-    const usersSnapshot = await this.firestore.collection('users').get()
+    const usersSnapshot = await this.firestore.collection("users").get();
 
-    let totalProcessed = 0
-    let totalSent = 0
+    let totalProcessed = 0;
+    let totalSent = 0;
 
     for (const userDoc of usersSnapshot.docs) {
       try {
-        const userData = userDoc.data()
-        const userId = userDoc.id
+        const userData = userDoc.data();
+        const userId = userDoc.id;
 
         if (!userData.timeZone) {
-          continue
+          continue;
         }
 
         const backlogSnapshot = await this.firestore
-          .collection('users')
+          .collection("users")
           .doc(userId)
-          .collection('notificationBacklog')
-          .get()
+          .collection("notificationBacklog")
+          .get();
 
         for (const backlogDoc of backlogSnapshot.docs) {
           try {
-            const backlogItem = backlogDoc.data() as NotificationBacklogItem
-            totalProcessed++
+            const backlogItem = backlogDoc.data() as NotificationBacklogItem;
+            totalProcessed++;
 
-            const notificationTime = backlogItem.timestamp.toDate()
+            const notificationTime = backlogItem.timestamp.toDate();
 
             if (notificationTime <= now) {
               if (!userData.fcmToken) {
@@ -150,77 +151,79 @@ export class NotificationService {
                   originalTimestamp: backlogItem.timestamp,
                   processedTimestamp:
                     admin.firestore.FieldValue.serverTimestamp(),
-                  status: 'failed',
-                  errorMessage: 'No FCM token available for user',
+                  status: "failed",
+                  errorMessage: "No FCM token available for user",
                   isLLMGenerated: backlogItem.isLLMGenerated ?? false,
                   ...(backlogItem.generatedAt && {
                     generatedAt: backlogItem.generatedAt,
                   }),
-                }
+                };
 
                 await this.firestore
-                  .collection('users')
+                  .collection("users")
                   .doc(userId)
-                  .collection('notificationHistory')
-                  .add(archiveData)
+                  .collection("notificationHistory")
+                  .doc(backlogDoc.id)
+                  .set(archiveData);
               } else {
                 await this.sendNotificationToUser(
                   userId,
+                  backlogDoc.id,
                   backlogItem.title,
                   backlogItem.body,
-                  userData.fcmToken,
+                  userData.fcmToken as string,
                   backlogItem.timestamp,
                   backlogItem.isLLMGenerated,
                   backlogItem.generatedAt,
-                )
+                );
               }
 
-              totalSent++
-              await backlogDoc.ref.delete()
+              totalSent++;
+              await backlogDoc.ref.delete();
             }
           } catch (error) {
             logger.error(
               `Error processing backlog item for user ${userId}: ${String(error)}`,
-            )
+            );
           }
         }
       } catch (error) {
-        logger.error(`Error processing user ${userDoc.id}: ${String(error)}`)
+        logger.error(`Error processing user ${userDoc.id}: ${String(error)}`);
       }
     }
 
     logger.info(
       `Backlog processing complete: ${totalSent} sent, ${totalProcessed} processed`,
-    )
+    );
   }
 }
 
-let notificationService: NotificationService | undefined
+let notificationService: NotificationService | undefined;
 
-function getNotificationService(): NotificationService {
-  if (!notificationService) {
-    notificationService = new NotificationService()
-  }
-  return notificationService
-}
+const getNotificationService = (): NotificationService => {
+  notificationService ??= new NotificationService();
+  return notificationService;
+};
 
 export const processNotificationBacklog = () =>
-  getNotificationService().processNotificationBacklog()
+  getNotificationService().processNotificationBacklog();
 
 export const onScheduleNotificationProcessor = onSchedule(
   {
-    schedule: '*/15 * * * *',
-    timeZone: 'UTC',
+    schedule: "*/15 * * * *",
+    timeZone: "UTC",
     serviceAccount: privilegedServiceAccount,
   },
   async () => {
-    logger.info('Starting notification backlog processing')
+    logger.info("Starting notification backlog processing");
 
     try {
-      await getNotificationService().processNotificationBacklog()
-      logger.info('Notification backlog processing complete')
+      await getNotificationService().processNotificationBacklog();
+      logger.info("Notification backlog processing complete");
     } catch (error) {
-      logger.error(`Error in notification backlog processing: ${String(error)}`)
+      logger.error(
+        `Error in notification backlog processing: ${String(error)}`,
+      );
     }
   },
-)
+);

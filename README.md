@@ -9,11 +9,9 @@ SPDX-License-Identifier: MIT
 
 # My Heart Counts
 
-The [My Heart Counts (MHC) application](https://myheartcounts.stanford.edu) is a [Spezi](https://github.com/StanfordSpezi)-based large-scale cardiovascular study application, developed at Stanford University. 
+Firebase cloud hosting infrastructure for the Stanford MyHeart Counts project.
 
-This is the repository for the backend infrastructure, running on Google Firebase. 
-
-The iOS Application can be found in [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository.
+The iOS Application can be found in the [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository, the repository for the data analysis side of this study can be found over at [StanfordBDHG/MyHeartCounts-DataAnalysis](https://github.com/StanfordBDHG/MyHeartCounts-DataAnalysis).
 
 The study itself with its contents is defined in [StanfordBDHG/MyHeartCounts-StudyDefinitions](https://github.com/StanfordBDHG/MyHeartCounts-StudyDefinitions).
 
@@ -106,9 +104,17 @@ docker compose up
 
 This can be especially useful if you're using an operating system like Windows, as scripts contain OS-specific commands that may not work the same way across different platforms.
 
-### Development
+### Testing
 
 We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`.
+
+### Deployment Overview
+
+For this study, we choose to have three environments to test, stage and then run the code in production:
+
+- **My Heart Counts Development** serves as the internal testing playground for iterating rapidly. Deployed to manually via CLI, not via a pipeline.
+- **tds/development** is the staging environment hosted by [Stanford Technology and Digital Solutions of the School of Medicine and Stanford Health Care](https://med.stanford.edu/irt.html). We publish to this environment via [the CI pipeline](.github/workflows/deployment.yml) on push to main and make sure that every setting matches the production environment 1:1 (Service Account Rules, Notification Settings, Tokens, API Keys).
+- **tds/production** is the production environment of the My Heart Counts Study in the US. It is also hosted by [Stanford Technology and Digital Solutions of the School of Medicine and Stanford Health Care](https://med.stanford.edu/irt.html). We publish here via [the CI pipeline](.github/workflows/deployment.yml) on release, in sync if needed with the iOS deployment.
 
 ### Data Flows
 

@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { fhirCodeableConceptConverter } from './fhirCodeableConcept.js'
-import { fhirQuantityConverter } from './fhirQuantity.js'
-import { fhirTimingConverter } from './fhirTiming.js'
-import { Lazy } from '../../helpers/lazy.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+import { z } from "zod";
+import { fhirCodeableConceptConverter } from "./fhirCodeableConcept.js";
+import { fhirQuantityConverter } from "./fhirQuantity.js";
+import { fhirTimingConverter } from "./fhirTiming.js";
+import { Lazy } from "../../helpers/lazy.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 const fhirDosageDoseAndRateConverter = new Lazy(
   () =>
@@ -36,7 +36,7 @@ const fhirDosageDoseAndRateConverter = new Lazy(
           : null,
       }),
     }),
-)
+);
 
 export const fhirDosageConverter = new Lazy(
   () =>
@@ -62,6 +62,6 @@ export const fhirDosageConverter = new Lazy(
           ) ?? null,
       }),
     }),
-)
+);
 
-export type FHIRDosage = z.output<typeof fhirDosageConverter.value.schema>
+export type FHIRDosage = z.output<typeof fhirDosageConverter.value.schema>;

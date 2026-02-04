@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { z } from 'zod'
-import { fhirQuantityConverter } from './fhirQuantity.js'
-import { Lazy } from '../../helpers/lazy.js'
-import { optionalish } from '../../helpers/optionalish.js'
-import { SchemaConverter } from '../../helpers/schemaConverter.js'
+import { z } from "zod";
+import { fhirQuantityConverter } from "./fhirQuantity.js";
+import { Lazy } from "../../helpers/lazy.js";
+import { optionalish } from "../../helpers/optionalish.js";
+import { SchemaConverter } from "../../helpers/schemaConverter.js";
 
 export const fhirRatioConverter = new Lazy(
   () =>
@@ -34,6 +34,6 @@ export const fhirRatioConverter = new Lazy(
           : null,
       }),
     }),
-)
+);
 
-export type FHIRRatio = z.output<typeof fhirRatioConverter.value.schema>
+export type FHIRRatio = z.output<typeof fhirRatioConverter.value.schema>;

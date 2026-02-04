@@ -9,27 +9,27 @@
 import {
   type FHIRQuestionnaireResponse,
   fhirQuestionnaireResponseConverter,
-} from '@stanfordbdhg/myheartcounts-models'
-import { onDocumentWritten } from 'firebase-functions/v2/firestore'
-import { privilegedServiceAccount } from './helpers.js'
-import { DatabaseConverter } from '../services/database/databaseConverter.js'
-import { type Document } from '../services/database/databaseService.js'
-import { getServiceFactory } from '../services/factory/getServiceFactory.js'
+} from "@stanfordbdhg/myheartcounts-models";
+import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { privilegedServiceAccount } from "./helpers.js";
+import { DatabaseConverter } from "../services/database/databaseConverter.js";
+import { type Document } from "../services/database/databaseService.js";
+import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 const converter = new DatabaseConverter(
   fhirQuestionnaireResponseConverter.value,
-)
+);
 
 export const onUserQuestionnaireResponseWritten = onDocumentWritten(
   {
-    document: 'users/{userId}/questionnaireResponses/{questionnaireResponseId}',
+    document: "users/{userId}/questionnaireResponses/{questionnaireResponseId}",
     serviceAccount: privilegedServiceAccount,
   },
   async (event) => {
-    const triggerService = getServiceFactory().trigger()
+    const triggerService = getServiceFactory().trigger();
 
-    const beforeData = event.data?.before
-    const afterData = event.data?.after
+    const beforeData = event.data?.before;
+    const afterData = event.data?.after;
 
     const beforeDocument: Document<FHIRQuestionnaireResponse> | undefined =
       beforeData?.exists ?
@@ -40,7 +40,7 @@ export const onUserQuestionnaireResponseWritten = onDocumentWritten(
             beforeData.updateTime?.toDate() ?? beforeData.readTime.toDate(),
           content: converter.fromFirestore(beforeData),
         }
-      : undefined
+      : undefined;
 
     const afterDocument: Document<FHIRQuestionnaireResponse> | undefined =
       afterData?.exists ?
@@ -51,13 +51,13 @@ export const onUserQuestionnaireResponseWritten = onDocumentWritten(
             afterData.updateTime?.toDate() ?? afterData.readTime.toDate(),
           content: converter.fromFirestore(afterData),
         }
-      : undefined
+      : undefined;
 
     await triggerService.questionnaireResponseWritten(
       event.params.userId,
       event.params.questionnaireResponseId,
       beforeDocument,
       afterDocument,
-    )
+    );
   },
-)
+);

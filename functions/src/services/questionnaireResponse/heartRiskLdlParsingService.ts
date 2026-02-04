@@ -6,47 +6,47 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { randomUUID } from 'crypto'
+import { randomUUID } from "crypto";
 import {
   FHIRObservation,
   FHIRObservationStatus,
   type FHIRQuestionnaireResponse,
-} from '@stanfordbdhg/myheartcounts-models'
-import { logger } from 'firebase-functions'
-import { QuestionnaireResponseService } from './questionnaireResponseService.js'
+} from "@stanfordbdhg/myheartcounts-models";
+import { logger } from "firebase-functions";
+import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
 import {
   type Document,
   type DatabaseService,
-} from '../database/databaseService.js'
+} from "../database/databaseService.js";
 
 export class HeartRiskLdlParsingQuestionnaireResponseService extends QuestionnaireResponseService {
-  private readonly databaseService: DatabaseService
+  private readonly databaseService: DatabaseService;
 
   constructor(input: { databaseService: DatabaseService }) {
-    super()
-    this.databaseService = input.databaseService
+    super();
+    this.databaseService = input.databaseService;
   }
 
   async handle(
     userId: string,
     response: Document<FHIRQuestionnaireResponse>,
-    options: { isNew: boolean },
+    _options: { isNew: boolean },
   ): Promise<boolean> {
     const targetQuestionnaireUrls = [
-      'https://myheartcounts.stanford.edu/fhir/survey/heartRisk',
-    ]
+      "https://myheartcounts.stanford.edu/fhir/survey/heartRisk",
+    ];
 
     if (!targetQuestionnaireUrls.includes(response.content.questionnaire)) {
-      return false
+      return false;
     }
 
     try {
-      const ldlValue = this.extractLdlValue(response.content)
+      const ldlValue = this.extractLdlValue(response.content);
       if (ldlValue === null) {
         logger.info(
           `HeartRiskLdlParsingService: No LDL value found for user ${userId}`,
-        )
-        return false
+        );
+        return false;
       }
 
       await this.storeLdlObservation(
@@ -54,56 +54,56 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
         response.id,
         ldlValue,
         new Date(response.content.authored),
-      )
+      );
 
       logger.info(
         `HeartRiskLdlParsingService: Processed heart risk questionnaire for user ${userId}, LDL: ${ldlValue} mg/dL`,
-      )
+      );
 
-      return true
+      return true;
     } catch (error) {
       logger.error(
         `HeartRiskLdlParsingService: Error processing heart risk questionnaire for user ${userId}: ${String(error)}`,
-      )
-      throw error
+      );
+      throw error;
     }
   }
 
   private extractLdlValue(response: FHIRQuestionnaireResponse): number | null {
-    const ldlQuestionId = '1574e238-8804-4a17-fa5e-a764f094bd2b'
+    const ldlQuestionId = "1574e238-8804-4a17-fa5e-a764f094bd2b";
 
     try {
-      const responseItem = response.leafResponseItem(ldlQuestionId)
+      const responseItem = response.leafResponseItem(ldlQuestionId);
       if (!responseItem?.answer || responseItem.answer.length === 0) {
-        return null
+        return null;
       }
 
-      const answer = responseItem.answer[0]
+      const answer = responseItem.answer[0];
 
       if (answer.valueQuantity?.value !== undefined) {
-        return answer.valueQuantity.value
+        return answer.valueQuantity.value;
       }
 
       if (answer.valueInteger !== undefined) {
-        return answer.valueInteger
+        return answer.valueInteger;
       }
 
       if (answer.valueDecimal !== undefined) {
-        return answer.valueDecimal
+        return answer.valueDecimal;
       }
 
       if (answer.valueString !== undefined) {
-        const numericValue = parseFloat(answer.valueString)
+        const numericValue = parseFloat(answer.valueString);
         if (!isNaN(numericValue)) {
-          return numericValue
+          return numericValue;
         }
       }
 
-      logger.warn(`No numeric LDL value found for linkId '${ldlQuestionId}'`)
-      return null
+      logger.warn(`No numeric LDL value found for linkId '${ldlQuestionId}'`);
+      return null;
     } catch (error) {
-      logger.error(`Failed to extract LDL value: ${String(error)}`)
-      return null
+      logger.error(`Failed to extract LDL value: ${String(error)}`);
+      return null;
     }
   }
 
@@ -113,7 +113,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
     ldlValue: number,
     authoredDateTime: Date,
   ): Promise<void> {
-    const observationId = randomUUID()
+    const observationId = randomUUID();
 
     const observation = new FHIRObservation({
       id: observationId,
@@ -124,22 +124,22 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
       code: {
         coding: [
           {
-            code: '18262-6',
-            system: 'http://loinc.org',
+            code: "18262-6",
+            system: "http://loinc.org",
           },
           {
-            code: 'MHCCustomSampleTypeBloodLipidMeasurement',
-            display: 'LDL Cholesterol',
+            code: "MHCCustomSampleTypeBloodLipidMeasurement",
+            display: "LDL Cholesterol",
             system:
-              'https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes',
+              "https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes",
           },
         ],
       },
       valueQuantity: {
         value: ldlValue,
-        unit: 'mg/dL',
-        code: '18262-6',
-        system: 'http://loinc.org',
+        unit: "mg/dL",
+        code: "18262-6",
+        system: "http://loinc.org",
       },
       effectiveDateTime: authoredDateTime,
       issued: new Date(),
@@ -150,20 +150,20 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
       ],
       extension: [
         {
-          url: 'https://bdh.stanford.edu/fhir/defs/sampleUploadTimeZone',
+          url: "https://bdh.stanford.edu/fhir/defs/sampleUploadTimeZone",
           valueString: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       ],
-    })
+    });
 
     const collectionName =
-      'HealthObservations_MHCCustomSampleTypeBloodLipidMeasurement'
+      "HealthObservations_MHCCustomSampleTypeBloodLipidMeasurement";
 
     return this.databaseService.runTransaction((collections, transaction) => {
       const ref = collections
         .userHealthObservations(userId, collectionName)
-        .doc(observationId)
-      transaction.set(ref, observation)
-    })
+        .doc(observationId);
+      transaction.set(ref, observation);
+    });
   }
 }
