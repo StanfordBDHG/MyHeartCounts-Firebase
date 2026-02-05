@@ -170,6 +170,24 @@ export class NudgeService {
     language: string,
     userData: UserData,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
+    if (userData.genderIdentity === undefined) {
+      logger.error(
+        `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
+      );
+      throw new Error(
+        `User ${userId} is missing required field: genderIdentity`,
+      );
+    }
+
+    if (userData.comorbidities === undefined) {
+      logger.error(
+        `User ${userId} has no comorbidities data. Cannot generate LLM nudges.`,
+      );
+      throw new Error(
+        `User ${userId} is missing required field: comorbidities`,
+      );
+    }
+
     const maxRetries = 3;
     let lastError: Error | null = null;
 
@@ -180,9 +198,9 @@ export class NudgeService {
         const isSpanish = language === "es";
 
         // Build detailed personalization context
-        const genderIdentity = userData.genderIdentity ?? "female";
+        const genderIdentity = userData.genderIdentity;
         const dateOfBirth = userData.dateOfBirth;
-        const comorbidities = userData.comorbidities ?? {};
+        const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
         const educationLevel = userData.educationLevel;
 
@@ -329,7 +347,7 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime ?? "09:00"}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
+        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
 
         const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user to increase their daily physical activity, prioritizing movement that contributes to their step count. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk forms of movement without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: " +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`;
 
@@ -437,13 +455,13 @@ export class NudgeService {
       const nudgeMessage = nudges[dayIndex];
       const nudgeId = randomUUID().toUpperCase();
 
-      const preferredTime = userData.preferredNotificationTime ?? "09:00";
+      const preferredTime = userData.preferredNotificationTime;
       const [hourStr, minuteStr] = preferredTime.split(":");
       const hour = Number(hourStr);
       const minute = Number(minuteStr);
 
       const userDateTime = DateTime.now()
-        .setZone(userData.timeZone ?? "UTC")
+        .setZone(userData.timeZone)
         .plus({ days: dayIndex })
         .set({ hour, minute, second: 0, millisecond: 0 });
 
