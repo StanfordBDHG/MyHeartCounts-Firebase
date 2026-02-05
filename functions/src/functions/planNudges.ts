@@ -449,6 +449,16 @@ export class NudgeService {
     nudges: NudgeMessage[],
     category: string,
   ): Promise<number> {
+    if (!userData.preferredNotificationTime) {
+      throw new Error(
+        `User ${userId} is missing required field: preferredNotificationTime`,
+      );
+    }
+
+    if (!userData.timeZone) {
+      throw new Error(`User ${userId} is missing required field: timeZone`);
+    }
+
     let nudgesCreated = 0;
 
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
