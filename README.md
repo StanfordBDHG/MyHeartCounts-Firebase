@@ -198,6 +198,246 @@ flowchart TD
     style AJ fill:#d3d3d3
 ```
 
+#### User Signup Blocking Function
+
+```mermaid
+flowchart TD
+    A[Firebase Auth Event] -->|beforeUserCreated| B[Extract userId & email]
+    B --> C{Email present?}
+    C -->|No| D[Throw auth/invalid-email]
+    C -->|Yes| E[userService.enrollUserDirectly]
+    E --> F[Create user document in Firestore]
+    F --> G[Trigger userEnrolled event]
+    G --> H[Return custom claims]
+
+    I[Firebase Auth Event] -->|beforeUserSignedIn| J[Extract userId]
+    J --> K[userService.getUser]
+    K --> L[Retrieve user document]
+    L --> M{User found?}
+    M -->|Yes| N[Extract custom claims]
+    M -->|No| O[Return empty claims]
+    N --> P[Return claims & session claims]
+    O --> P
+
+    F -->|Store in| Q[users/USER-ID]
+    D --> R[End - Signup blocked]
+    H --> S[End - User enrolled]
+    P --> T[End - Sign-in allowed]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style E fill:#ffe1f5
+    style F fill:#f5e1ff
+    style G fill:#ffe1f5
+    style Q fill:#ffe1e1
+    style I fill:#e1f5ff
+    style K fill:#ffe1f5
+    style L fill:#f5e1ff
+```
+
+#### Generate Nudges Function
+
+```mermaid
+flowchart TD
+    A[Scheduled: Daily 08:00 UTC] --> B[Fetch all users from Firestore]
+    B --> C[Filter users with triggerNudgeGeneration]
+    C --> D{User in trial & opted in?}
+    D -->|No| E[Skip user]
+    D -->|Yes| F[Check participantGroup & days enrolled]
+
+    F --> G{Days since enrollment?}
+    G -->|7 days| H[Generate predefined nudges]
+    G -->|14 days, Group 1| H
+    G -->|14 days, Group 2| I[Call OpenAI GPT-5.2]
+
+    I --> J[Build personalized context]
+    J -->|age, diseases, stage, education, language| K[LLM generates 7 nudges]
+    K --> L{LLM success?}
+    L -->|No, retry 3x| M[Continue retries]
+    M --> L
+    L -->|Yes| N[Parse LLM response]
+
+    H --> O[Select 7 predefined messages]
+    N --> P[Validate message structure]
+    O --> Q[Schedule 7 nudges]
+    P --> Q
+
+    Q --> R[Write to notificationBacklog]
+    R -->|For each nudge| S[users/USER-ID/notificationBacklog/UUID]
+    S -->|Fields| T[title, body, timestamp, category, isLLMGenerated, generatedAt]
+
+    T --> U[Reset triggerNudgeGeneration: false]
+    U --> V[Log processed count]
+    E --> V
+    V --> W[End]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style I fill:#ffe1f5
+    style K fill:#ffe1f5
+    style H fill:#e1ffe1
+    style R fill:#f5e1ff
+    style S fill:#ffe1e1
+    style W fill:#d3d3d3
+```
+
+#### Archived Sample Functions
+
+```mermaid
+flowchart TD
+    A[File upload event] -->|users/USER-ID/liveHealthSamples/filename| B[Extract userId from path]
+    B --> C[Download compressed file]
+    C --> D[Decompress with fzstd]
+    D --> E[Parse JSON content]
+
+    E --> F{Validate structure}
+    F -->|Invalid| G[Log error & delete file]
+    F -->|Valid| H[Extract observations array]
+
+    H --> I{Parse filename}
+    I -->|SensorKit pattern| J[Map to SensorKitObservations_dataType]
+    I -->|HealthKit pattern| K[Map to HealthObservations_identifier]
+
+    J --> L[Batch write 500 docs at a time]
+    K --> L
+    L -->|Store in| M[users/USER-ID/collection/observationId]
+
+    M --> N[Delete processed file from Storage]
+    N --> O[Log observation count]
+    G --> O
+    O --> P[End]
+
+    style A fill:#e1f5ff
+    style C fill:#fff4e1
+    style D fill:#fff4e1
+    style E fill:#ffe1f5
+    style L fill:#f5e1ff
+    style M fill:#ffe1e1
+    style N fill:#ffe1f5
+    style P fill:#d3d3d3
+```
+
+#### Send Nudges Function
+
+```mermaid
+flowchart TD
+    A[Scheduled: Every 15 minutes] --> B[Fetch all users]
+    B --> C[For each user: Read notificationBacklog]
+    C --> D{Backlog items exist?}
+    D -->|No| E[Skip user]
+    D -->|Yes| F[Check each item timestamp]
+
+    F --> G{timestamp <= now?}
+    G -->|No| H[Keep in backlog]
+    G -->|Yes| I[Get user fcmToken]
+
+    I --> J{fcmToken exists?}
+    J -->|No| K[Create failed history entry]
+    J -->|Yes| L[Send via admin.messaging]
+
+    L --> M{Send successful?}
+    M -->|Yes| N[Create sent history entry]
+    M -->|No| K
+
+    N -->|Write to| O[users/USER-ID/notificationHistory/UUID]
+    K -->|Write to| O
+    O -->|Fields| P[title, body, status, processedTimestamp, errorMessage, isLLMGenerated]
+
+    P --> Q[Delete from notificationBacklog]
+    Q --> R[Log sent count]
+    E --> R
+    H --> R
+    R --> S[End]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#fff4e1
+    style L fill:#ffe1f5
+    style N fill:#f5e1ff
+    style O fill:#ffe1e1
+    style Q fill:#ffe1f5
+    style S fill:#d3d3d3
+```
+
+#### Delete Account Function
+
+```mermaid
+flowchart TD
+    A[User calls markAccountForDeletion] --> B{User authenticated?}
+    B -->|No| C[Throw unauthenticated error]
+    B -->|Yes| D[Extract userId from auth.uid]
+
+    D --> E[userService.getUser]
+    E --> F{User document exists?}
+    F -->|No| G[Throw not-found error]
+    F -->|Yes| H{User already disabled?}
+
+    H -->|Yes| I[Throw failed-precondition error]
+    H -->|No| J[Update user document]
+    J -->|Set fields| K[toBeDeleted: true, markedForDeletionAt: timestamp]
+
+    K -->|Write to| L[users/USER-ID]
+    L --> M[Return success response]
+    M -->|Fields| N[success: true, markedAt: ISO timestamp]
+
+    C --> O[End - Error thrown]
+    G --> O
+    I --> O
+    N --> P[End - Account marked]
+
+    style A fill:#e1f5ff
+    style D fill:#fff4e1
+    style E fill:#ffe1f5
+    style J fill:#f5e1ff
+    style L fill:#ffe1e1
+    style P fill:#d3d3d3
+```
+
+#### Bulk Deletion of Samples Function
+
+```mermaid
+flowchart TD
+    A[User calls deleteHealthSamples] --> B{User authenticated?}
+    B -->|No| C[Throw unauthenticated error]
+    B -->|Yes| D[Validate input schema]
+
+    D --> E{userId, collection, documentIds present?}
+    E -->|No| F[Throw invalid-argument error]
+    E -->|Yes| G{documentIds.length <= 50000?}
+    G -->|No| F
+    G -->|Yes| H{User has permission for userId?}
+
+    H -->|No| I[Throw permission-denied error]
+    H -->|Yes| J[Generate jobId]
+    J --> K[Return immediate response]
+    K -->|Fields| L[status: accepted, jobId, totalSamples, estimatedDurationMinutes]
+
+    L --> M[Start async background processing]
+    M --> N[Batch documentIds into groups of 500]
+    N --> O[For each batch: Retrieve documents]
+    O --> P[Update document status]
+    P -->|Set field| Q[status: entered-in-error]
+
+    Q -->|Update in| R[users/USER-ID/collection/documentId]
+    R --> S[100ms delay between batches]
+    S --> T{More batches?}
+    T -->|Yes| O
+    T -->|No| U[Log completion & stats]
+
+    C --> V[End - Error thrown]
+    F --> V
+    I --> V
+    U --> W[End - Samples marked]
+
+    style A fill:#e1f5ff
+    style D fill:#fff4e1
+    style J fill:#ffe1f5
+    style M fill:#ffe1f5
+    style P fill:#f5e1ff
+    style R fill:#ffe1e1
+    style W fill:#d3d3d3
+```
+
 ### Contributing
 
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/StanfordBDHG/.github/blob/main/CONTRIBUTING.md) and the [contributor covenant code of conduct](https://github.com/StanfordBDHG/.github/blob/main/CODE_OF_CONDUCT.md) first.
