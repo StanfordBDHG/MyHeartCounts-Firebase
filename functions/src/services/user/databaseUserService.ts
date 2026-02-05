@@ -231,6 +231,40 @@ export class DatabaseUserService implements UserService {
     );
   }
 
+  async markAccountForStudyWithdrawl(
+    userId: string,
+    withdrawnAt: Date,
+  ): Promise<void> {
+    await this.databaseService.runTransaction(
+      async (collections, transaction) => {
+        const rawUserRef = collections.firestore
+          .collection("users")
+          .doc(userId);
+        const userDoc = await transaction.get(rawUserRef);
+        const userData = userDoc.data();
+
+        if (
+          userData &&
+          typeof userData === "object" &&
+          "hasWithdrawnFromStudy" in userData &&
+          userData.hasWithdrawnFromStudy
+        ) {
+          throw new https.HttpsError(
+            "already-exists",
+            "Account has already withdrawn from study",
+          );
+        }
+
+        transaction.update(rawUserRef, {
+          hasWithdrawnFromStudy: true,
+        });
+      },
+    );
+    logger.info(
+      `User ${userId} marked their account for study withdrawal at ${withdrawnAt.toISOString()}`,
+    );
+  }
+
   async deleteUser(userId: string): Promise<void> {
     await this.databaseService.bulkWrite(async (collections, writer) => {
       await collections.firestore.recursiveDelete(
