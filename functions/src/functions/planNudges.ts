@@ -506,12 +506,26 @@ export class NudgeService {
         const userId = userDoc.id;
         usersProcessed++;
 
-        if (
-          !userData.timeZone ||
-          !userData.dateOfEnrollment ||
-          !userData.participantGroup
-        ) {
+        if (!userData.participantGroup) {
+          logger.error(
+            `User ${userId} has no participant group assigned. Cannot create nudges.`,
+          );
+          throw new Error(
+            `User ${userId} is missing required field: participantGroup`,
+          );
+        }
+
+        if (!userData.timeZone || !userData.dateOfEnrollment) {
           continue;
+        }
+
+        if (userData.preferredNotificationTime === undefined) {
+          logger.error(
+            `User ${userId} has no preferred notification time. Cannot create nudges.`,
+          );
+          throw new Error(
+            `User ${userId} is missing required field: preferredNotificationTime`,
+          );
         }
 
         if (!userData.didOptInToTrial) {
