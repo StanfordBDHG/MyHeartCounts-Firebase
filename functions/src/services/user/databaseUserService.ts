@@ -257,6 +257,11 @@ export class DatabaseUserService implements UserService {
 
         transaction.update(rawUserRef, {
           hasWithdrawnFromStudy: true,
+          studyWithdrawalRequest: {
+            requestedAt: dateConverter.encode(withdrawnAt),
+            requestedBy: userId,
+            status: "completed",
+          },
         });
       },
     );
