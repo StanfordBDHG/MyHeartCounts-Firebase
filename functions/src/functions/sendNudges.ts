@@ -129,6 +129,14 @@ export class NotificationService {
           continue;
         }
 
+        // Skip users who have withdrawn from the study
+        if (userData.hasWithdrawnFromStudy === true) {
+          logger.info(
+            `Skipping notifications for user ${userId} - withdrawn from study`,
+          );
+          continue;
+        }
+
         const backlogSnapshot = await this.firestore
           .collection("users")
           .doc(userId)
