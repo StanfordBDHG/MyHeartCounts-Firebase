@@ -35,7 +35,7 @@ export const scoreToObservation = (
         code: config.customCode,
         display: config.display,
         system:
-          "https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes",
+          "https://spezi.stanford.edu",
       },
     ],
     text: config.display,

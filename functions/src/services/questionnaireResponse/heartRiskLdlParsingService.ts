@@ -131,7 +131,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
             code: "MHCCustomSampleTypeBloodLipidMeasurement",
             display: "LDL Cholesterol",
             system:
-              "https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes",
+              "https://spezi.stanford.edu",
           },
         ],
       },
