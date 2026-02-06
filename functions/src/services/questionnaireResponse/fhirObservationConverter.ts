@@ -80,7 +80,7 @@ export const scoreToObservation = (
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/OSVersion",
-        valueString: "18.5.0",
+        valueString: process.version,
       },
     ],
   });
