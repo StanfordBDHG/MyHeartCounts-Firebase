@@ -27,8 +27,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(0);
-      expect(score!.domainScores.statusScore).to.equal(0);
+      expect(score?.overallScore).to.equal(0);
+      expect(score?.domainScores.statusScore).to.equal(0);
     });
 
     it("should calculate score 1 for quit->5-years-ago", () => {
@@ -37,8 +37,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(1);
-      expect(score!.domainScores.statusScore).to.equal(1);
+      expect(score?.overallScore).to.equal(1);
+      expect(score?.domainScores.statusScore).to.equal(1);
     });
 
     it("should calculate score 2 for quit-1-5-years-ago", () => {
@@ -47,8 +47,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(2);
-      expect(score!.domainScores.statusScore).to.equal(2);
+      expect(score?.overallScore).to.equal(2);
+      expect(score?.domainScores.statusScore).to.equal(2);
     });
 
     it("should calculate score 3 for quit-<1-year-ago", () => {
@@ -57,8 +57,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(3);
-      expect(score!.domainScores.statusScore).to.equal(3);
+      expect(score?.overallScore).to.equal(3);
+      expect(score?.domainScores.statusScore).to.equal(3);
     });
 
     it("should calculate score 4 for light-smoker/vaper-(<10/day)", () => {
@@ -67,8 +67,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(4);
-      expect(score!.domainScores.statusScore).to.equal(4);
+      expect(score?.overallScore).to.equal(4);
+      expect(score?.domainScores.statusScore).to.equal(4);
     });
 
     it("should return null for unknown smoking status", () => {
@@ -86,8 +86,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(4);
-      expect(score!.domainScores.statusScore).to.equal(4);
+      expect(score?.overallScore).to.equal(4);
+      expect(score?.domainScores.statusScore).to.equal(4);
     });
 
     it("should calculate score 4 for heavy-smoker/vaper-(>20/day)", () => {
@@ -96,8 +96,8 @@ describe("NicotineScoringQuestionnaireResponseService", () => {
 
       expect(score).to.not.be.null;
       expect(score).to.be.instanceOf(Score);
-      expect(score!.overallScore).to.equal(4);
-      expect(score!.domainScores.statusScore).to.equal(4);
+      expect(score?.overallScore).to.equal(4);
+      expect(score?.domainScores.statusScore).to.equal(4);
     });
   });
 

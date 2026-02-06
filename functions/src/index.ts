@@ -52,6 +52,5 @@ export * from "./functions/onUserQuestionnaireResponseWritten.js";
 export * from "./functions/deleteHealthSamples.js";
 export * from "./functions/onArchivedLiveHealthSampleUploaded.js";
 export * from "./functions/markAccountForDeletion.js";
-export * from "./functions/markAccountForStudyWithdrawal.js";
 export * from "./functions/markAccountForStudyReenrollment.js";
 export * from "./functions/processUserDeletions.js";
