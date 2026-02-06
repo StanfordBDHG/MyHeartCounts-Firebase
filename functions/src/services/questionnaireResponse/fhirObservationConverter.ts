@@ -87,7 +87,7 @@ export const scoreToObservation = (
 };
 
 export const getDietObservationConfig = (): QuestionnaireObservationConfig => ({
-  customCode: "diet-mepa-score",
+  customCode: "MHCCustomSampleTypeDietMEPAScore",
   display: "Diet MEPA Score",
   unit: "count",
   unitSystem: "http://unitsofmeasure.org",
@@ -96,7 +96,7 @@ export const getDietObservationConfig = (): QuestionnaireObservationConfig => ({
 
 export const getNicotineObservationConfig =
   (): QuestionnaireObservationConfig => ({
-    customCode: "nicotine-exposure-score",
+    customCode: "MHCCustomSampleTypeNicotineExposure",
     display: "Nicotine Exposure Score",
     unit: "count",
     unitSystem: "http://unitsofmeasure.org",
@@ -104,7 +104,7 @@ export const getNicotineObservationConfig =
   });
 
 export const getWho5ObservationConfig = (): QuestionnaireObservationConfig => ({
-  customCode: "who5-wellbeing-score",
+  customCode: "MHCCustomSampleTypeWHO5Score",
   display: "WHO-5 Well-Being Score",
   unit: "count",
   unitSystem: "http://unitsofmeasure.org",
