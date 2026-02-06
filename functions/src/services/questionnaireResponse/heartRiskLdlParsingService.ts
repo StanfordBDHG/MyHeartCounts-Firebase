@@ -130,8 +130,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
           {
             code: "MHCCustomSampleTypeBloodLipidMeasurement",
             display: "LDL Cholesterol",
-            system:
-              "https://spezi.stanford.edu",
+            system: "https://spezi.stanford.edu",
           },
         ],
       },

@@ -34,8 +34,7 @@ export const scoreToObservation = (
       {
         code: config.customCode,
         display: config.display,
-        system:
-          "https://spezi.stanford.edu",
+        system: "https://spezi.stanford.edu",
       },
     ],
     text: config.display,
