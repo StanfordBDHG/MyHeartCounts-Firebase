@@ -68,7 +68,7 @@ export const scoreToObservation = (
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/source/name",
-        valueString: "My Heart Counts",
+        valueString: "My Heart Counts Firebase",
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/source/bundleIdentifier",
