@@ -45,7 +45,7 @@ export const scoreToObservation = (
     id: observationId,
     status: FHIRObservationStatus.final,
     subject: {
-      reference: `Patient/${userId}`,
+      reference: `user/${userId}`,
     },
     code: codeableConcept,
     valueQuantity: {

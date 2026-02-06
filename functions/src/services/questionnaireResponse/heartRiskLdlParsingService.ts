@@ -119,7 +119,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
       id: observationId,
       status: FHIRObservationStatus.final,
       subject: {
-        reference: `Patient/${userId}`,
+        reference: `user/${userId}`,
       },
       code: {
         coding: [
