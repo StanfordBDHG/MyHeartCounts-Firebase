@@ -12,7 +12,7 @@ import {
   type Score,
   type FHIRCodeableConcept,
 } from "@stanfordbdhg/myheartcounts-models";
-import packageJson from "../../../../package.json";
+import packageJson from "../../../../package.json" assert { type: "json" };
 
 export interface QuestionnaireObservationConfig {
   customCode: string;
