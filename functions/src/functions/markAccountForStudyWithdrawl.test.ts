@@ -23,7 +23,7 @@ describeWithEmulators("function: markAccountForStudyWithdrawal", (env) => {
       { uid: userId },
     );
 
-    expect(result.success).to.be.true;
+    expect(result.success).to.equal(true);
     expect(result.withdrawnAt).to.be.a("string");
     const withdrawnTime = new Date(result.withdrawnAt).getTime();
     expect(withdrawnTime).to.be.lessThanOrEqual(Date.now());

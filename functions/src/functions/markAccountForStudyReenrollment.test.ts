@@ -27,7 +27,7 @@ describeWithEmulators("function: markAccountForStudyReenrollment", (env) => {
       { uid: userId },
     );
 
-    expect(result.success).to.be.true;
+    expect(result.success).to.equal(true);
     expect(result.reenrolledAt).to.be.a("string");
     const reenrolledTime = new Date(result.reenrolledAt).getTime();
     expect(reenrolledTime).to.be.lessThanOrEqual(Date.now());
