@@ -129,9 +129,17 @@ export class NotificationService {
           continue;
         }
 
+        // Skip disabled users
+        if (userData.disabled === true) {
+          logger.info(
+            `Skipping notifications for user ${userId} - account disabled`,
+          );
+          continue;
+        }
+
         // Skip users who have withdrawn from the study
         if (userData.hasWithdrawnFromStudy === true) {
-          logger.info(
+          logger.error(
             `Skipping notifications for user ${userId} - withdrawn from study`,
           );
           continue;

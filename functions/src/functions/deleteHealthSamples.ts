@@ -33,7 +33,6 @@ interface MarkHealthSamplesEnteredInErrorOutput {
 export const deleteHealthSamples = validatedOnCall(
   "deleteHealthSamples",
   markHealthSamplesEnteredInErrorInputSchema,
-  // eslint-disable-next-line @typescript-eslint/require-await
   async (request): Promise<MarkHealthSamplesEnteredInErrorOutput> => {
     const factory = getServiceFactory();
     const credential = factory.credential(request.auth);
