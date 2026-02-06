@@ -37,6 +37,10 @@ export interface UserService {
     userId: string,
     withdrawnAt: Date,
   ): Promise<void>;
+  markAccountForStudyReenrollment(
+    userId: string,
+    reenrolledAt: Date,
+  ): Promise<void>;
   deleteUser(userId: string): Promise<void>;
   deleteExpiredAccounts(): Promise<void>;
 }

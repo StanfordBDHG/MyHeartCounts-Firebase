@@ -255,18 +255,81 @@ export class DatabaseUserService implements UserService {
           );
         }
 
+        // Get existing history or initialize empty array
+        const existingHistory =
+          userData &&
+          typeof userData === "object" &&
+          "studyEnrollmentHistory" in userData &&
+          Array.isArray(userData.studyEnrollmentHistory)
+            ? userData.studyEnrollmentHistory
+            : [];
+
+        // Add new withdrawal entry to history
+        const newHistoryEntry = {
+          action: "withdrawn",
+          timestamp: dateConverter.encode(withdrawnAt),
+          requestedBy: userId,
+        };
+
         transaction.update(rawUserRef, {
           hasWithdrawnFromStudy: true,
-          studyWithdrawalRequest: {
-            requestedAt: dateConverter.encode(withdrawnAt),
-            requestedBy: userId,
-            status: "completed",
-          },
+          studyEnrollmentHistory: [...existingHistory, newHistoryEntry],
         });
       },
     );
     logger.info(
       `User ${userId} marked their account for study withdrawal at ${withdrawnAt.toISOString()}`,
+    );
+  }
+
+  async markAccountForStudyReenrollment(
+    userId: string,
+    reenrolledAt: Date,
+  ): Promise<void> {
+    await this.databaseService.runTransaction(
+      async (collections, transaction) => {
+        const rawUserRef = collections.firestore
+          .collection("users")
+          .doc(userId);
+        const userDoc = await transaction.get(rawUserRef);
+        const userData = userDoc.data();
+
+        if (
+          !userData ||
+          typeof userData !== "object" ||
+          !("hasWithdrawnFromStudy" in userData) ||
+          !userData.hasWithdrawnFromStudy
+        ) {
+          throw new https.HttpsError(
+            "failed-precondition",
+            "Account has not withdrawn from study",
+          );
+        }
+
+        // Get existing history or initialize empty array
+        const existingHistory =
+          userData &&
+          typeof userData === "object" &&
+          "studyEnrollmentHistory" in userData &&
+          Array.isArray(userData.studyEnrollmentHistory)
+            ? userData.studyEnrollmentHistory
+            : [];
+
+        // Add new re-enrollment entry to history
+        const newHistoryEntry = {
+          action: "re-enrolled",
+          timestamp: dateConverter.encode(reenrolledAt),
+          requestedBy: userId,
+        };
+
+        transaction.update(rawUserRef, {
+          hasWithdrawnFromStudy: false,
+          studyEnrollmentHistory: [...existingHistory, newHistoryEntry],
+        });
+      },
+    );
+    logger.info(
+      `User ${userId} re-enrolled in the study at ${reenrolledAt.toISOString()}`,
     );
   }
 

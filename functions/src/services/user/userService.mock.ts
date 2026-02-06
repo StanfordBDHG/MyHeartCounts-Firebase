@@ -95,6 +95,13 @@ export class MockUserService implements UserService {
     return Promise.resolve();
   }
 
+  markAccountForStudyReenrollment(
+    _userId: string,
+    _reenrolledAt: Date,
+  ): Promise<void> {
+    return Promise.resolve();
+  }
+
   deleteUser(_userId: string): Promise<void> {
     return Promise.resolve();
   }
