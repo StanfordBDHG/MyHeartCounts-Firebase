@@ -12,7 +12,7 @@ import {
   type Score,
   type FHIRCodeableConcept,
 } from "@stanfordbdhg/myheartcounts-models";
-import packageJson from "../../../../package.json" assert { type: "json" };
+import { getPackageVersion } from "../../helpers/packageVersion.js";
 
 export interface QuestionnaireObservationConfig {
   customCode: string;
@@ -75,7 +75,7 @@ export const scoreToObservation = (
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/version",
-        valueString: packageJson.version,
+        valueString: getPackageVersion(),
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/OSVersion",
