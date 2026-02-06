@@ -29,9 +29,8 @@ describeWithEmulators("function: markAccountForStudyReenrollment", (env) => {
 
     expect(result.success).to.be.true;
     expect(result.reenrolledAt).to.be.a("string");
-    expect(new Date(result.reenrolledAt).getTime()).to.be.lessThanOrEqual(
-      Date.now(),
-    );
+    const reenrolledTime = new Date(result.reenrolledAt).getTime();
+    expect(reenrolledTime).to.be.lessThanOrEqual(Date.now());
   });
 
   it("throws error when user account not found", async () => {

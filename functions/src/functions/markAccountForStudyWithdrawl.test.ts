@@ -25,9 +25,8 @@ describeWithEmulators("function: markAccountForStudyWithdrawal", (env) => {
 
     expect(result.success).to.be.true;
     expect(result.withdrawnAt).to.be.a("string");
-    expect(new Date(result.withdrawnAt).getTime()).to.be.lessThanOrEqual(
-      Date.now(),
-    );
+    const withdrawnTime = new Date(result.withdrawnAt).getTime();
+    expect(withdrawnTime).to.be.lessThanOrEqual(Date.now());
   });
 
   it("throws error when user account not found", async () => {
