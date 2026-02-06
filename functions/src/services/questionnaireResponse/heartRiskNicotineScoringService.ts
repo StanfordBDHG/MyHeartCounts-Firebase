@@ -95,11 +95,11 @@ export class HeartRiskNicotineScoringQuestionnaireResponseService extends Questi
       }
 
       const answer = responseItem.answer[0];
-      if (answer.valueCoding?.display) {
-        return answer.valueCoding.display;
+      if (answer.valueCoding?.code) {
+        return answer.valueCoding.code;
       }
 
-      logger.warn(`No valueCoding.display found for linkId '${linkId}'`);
+      logger.warn(`No valueCoding.code found for linkId '${linkId}'`);
       return null;
     } catch (error) {
       logger.warn(
