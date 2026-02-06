@@ -9,8 +9,8 @@
 // Small helper function to inject the current functions version to the backend generated FHIR Observations
 
 import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,7 +21,7 @@ interface PackageJson {
 
 let cachedVersion: string | undefined;
 
-export function getPackageVersion(): string {
+export const getPackageVersion = (): string => {
   if (cachedVersion) {
     return cachedVersion;
   }
@@ -36,4 +36,4 @@ export function getPackageVersion(): string {
     console.error("Failed to read package.json version:", error);
     return "unknown";
   }
-}
+};
