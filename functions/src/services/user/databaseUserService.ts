@@ -256,13 +256,21 @@ export class DatabaseUserService implements UserService {
         }
 
         // Get existing history or initialize empty array
-        const existingHistory =
+        const existingHistory: Array<{
+          action: string;
+          timestamp: unknown;
+          requestedBy: string;
+        }> =
           userData &&
           typeof userData === "object" &&
           "studyEnrollmentHistory" in userData &&
-          Array.isArray(userData.studyEnrollmentHistory)
-            ? userData.studyEnrollmentHistory
-            : [];
+          Array.isArray(userData.studyEnrollmentHistory) ?
+            (userData.studyEnrollmentHistory as Array<{
+              action: string;
+              timestamp: unknown;
+              requestedBy: string;
+            }>)
+          : [];
 
         // Add new withdrawal entry to history
         const newHistoryEntry = {
@@ -307,13 +315,19 @@ export class DatabaseUserService implements UserService {
         }
 
         // Get existing history or initialize empty array
-        const existingHistory =
-          userData &&
-          typeof userData === "object" &&
+        const existingHistory: Array<{
+          action: string;
+          timestamp: unknown;
+          requestedBy: string;
+        }> =
           "studyEnrollmentHistory" in userData &&
-          Array.isArray(userData.studyEnrollmentHistory)
-            ? userData.studyEnrollmentHistory
-            : [];
+          Array.isArray(userData.studyEnrollmentHistory) ?
+            (userData.studyEnrollmentHistory as Array<{
+              action: string;
+              timestamp: unknown;
+              requestedBy: string;
+            }>)
+          : [];
 
         // Add new re-enrollment entry to history
         const newHistoryEntry = {
