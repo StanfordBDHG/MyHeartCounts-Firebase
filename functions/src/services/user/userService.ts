@@ -33,6 +33,14 @@ export interface UserService {
   getUser(userId: string): Promise<Document<User> | undefined>;
   updateLastActiveDate(userId: string): Promise<void>;
   markAccountForDeletion(userId: string, markedAt: Date): Promise<void>;
+  markAccountForStudyWithdrawl(
+    userId: string,
+    withdrawnAt: Date,
+  ): Promise<void>;
+  markAccountForStudyReenrollment(
+    userId: string,
+    reenrolledAt: Date,
+  ): Promise<void>;
   deleteUser(userId: string): Promise<void>;
   deleteExpiredAccounts(): Promise<void>;
 }

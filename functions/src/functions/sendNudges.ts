@@ -129,6 +129,22 @@ export class NotificationService {
           continue;
         }
 
+        // Skip disabled users
+        if (userData.disabled === true) {
+          logger.info(
+            `Skipping notifications for user ${userId} - account disabled`,
+          );
+          continue;
+        }
+
+        // Skip users who have withdrawn from the study
+        if (userData.hasWithdrawnFromStudy === true) {
+          logger.error(
+            `Skipping notifications for user ${userId} - withdrawn from study`,
+          );
+          continue;
+        }
+
         const backlogSnapshot = await this.firestore
           .collection("users")
           .doc(userId)

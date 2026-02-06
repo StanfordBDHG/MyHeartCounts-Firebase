@@ -231,6 +231,126 @@ export class DatabaseUserService implements UserService {
     );
   }
 
+  async markAccountForStudyWithdrawl(
+    userId: string,
+    withdrawnAt: Date,
+  ): Promise<void> {
+    await this.databaseService.runTransaction(
+      async (collections, transaction) => {
+        const rawUserRef = collections.firestore
+          .collection("users")
+          .doc(userId);
+        const userDoc = await transaction.get(rawUserRef);
+        const userData = userDoc.data();
+
+        if (
+          userData &&
+          typeof userData === "object" &&
+          "hasWithdrawnFromStudy" in userData &&
+          userData.hasWithdrawnFromStudy
+        ) {
+          throw new https.HttpsError(
+            "already-exists",
+            "Account has already withdrawn from study",
+          );
+        }
+
+        // Get existing history or initialize empty array
+        const existingHistory: Array<{
+          action: string;
+          timestamp: unknown;
+          requestedBy: string;
+        }> =
+          (
+            userData &&
+            typeof userData === "object" &&
+            "studyEnrollmentHistory" in userData &&
+            Array.isArray(userData.studyEnrollmentHistory)
+          ) ?
+            (userData.studyEnrollmentHistory as Array<{
+              action: string;
+              timestamp: unknown;
+              requestedBy: string;
+            }>)
+          : [];
+
+        // Add new withdrawal entry to history
+        const newHistoryEntry = {
+          action: "withdrawn",
+          timestamp: dateConverter.encode(withdrawnAt),
+          requestedBy: userId,
+        };
+
+        transaction.update(rawUserRef, {
+          hasWithdrawnFromStudy: true,
+          studyEnrollmentHistory: [...existingHistory, newHistoryEntry],
+        });
+      },
+    );
+    logger.info(
+      `User ${userId} marked their account for study withdrawal at ${withdrawnAt.toISOString()}`,
+    );
+  }
+
+  async markAccountForStudyReenrollment(
+    userId: string,
+    reenrolledAt: Date,
+  ): Promise<void> {
+    await this.databaseService.runTransaction(
+      async (collections, transaction) => {
+        const rawUserRef = collections.firestore
+          .collection("users")
+          .doc(userId);
+        const userDoc = await transaction.get(rawUserRef);
+        const userData = userDoc.data();
+
+        if (
+          !userData ||
+          typeof userData !== "object" ||
+          !("hasWithdrawnFromStudy" in userData) ||
+          !userData.hasWithdrawnFromStudy
+        ) {
+          throw new https.HttpsError(
+            "failed-precondition",
+            "Account has not withdrawn from study",
+          );
+        }
+
+        // Get existing history or initialize empty array
+        const existingHistory: Array<{
+          action: string;
+          timestamp: unknown;
+          requestedBy: string;
+        }> =
+          (
+            "studyEnrollmentHistory" in userData &&
+            Array.isArray(userData.studyEnrollmentHistory)
+          ) ?
+            (userData.studyEnrollmentHistory as Array<{
+              action: string;
+              timestamp: unknown;
+              requestedBy: string;
+            }>)
+          : [];
+
+        // Add new re-enrollment entry to history
+        const newHistoryEntry = {
+          action: "re-enrolled",
+          timestamp: dateConverter.encode(reenrolledAt),
+          requestedBy: userId,
+        };
+
+        transaction.update(rawUserRef, {
+          hasWithdrawnFromStudy: false,
+          studyEnrollmentHistory: [...existingHistory, newHistoryEntry],
+        });
+      },
+    );
+    logger.info(
+      `User ${userId} re-enrolled in the study at ${reenrolledAt.toISOString()}`,
+    );
+  }
+
   async deleteUser(userId: string): Promise<void> {
     await this.databaseService.bulkWrite(async (collections, writer) => {
       await collections.firestore.recursiveDelete(

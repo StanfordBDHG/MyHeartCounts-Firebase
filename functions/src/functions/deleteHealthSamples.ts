@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { logger } from "firebase-functions/v2";
+import admin from "firebase-admin";
+import { https, logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
@@ -32,13 +33,34 @@ interface MarkHealthSamplesEnteredInErrorOutput {
 export const deleteHealthSamples = validatedOnCall(
   "deleteHealthSamples",
   markHealthSamplesEnteredInErrorInputSchema,
-  // eslint-disable-next-line @typescript-eslint/require-await
   async (request): Promise<MarkHealthSamplesEnteredInErrorOutput> => {
     const factory = getServiceFactory();
     const credential = factory.credential(request.auth);
     const { userId, collection, documentIds } = request.data;
 
     credential.checkUser(userId);
+
+    // Check if user has withdrawn from study
+    const userData = await admin
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .get();
+    const userDataContent = userData.data() as
+      | { hasWithdrawnFromStudy?: boolean }
+      | undefined;
+    const hasWithdrawnFromStudy =
+      userDataContent?.hasWithdrawnFromStudy ?? false;
+
+    if (hasWithdrawnFromStudy) {
+      logger.error(
+        `User ${userId} attempted to delete health samples but has withdrawn from study`,
+      );
+      throw new https.HttpsError(
+        "failed-precondition",
+        "Cannot delete health samples - user has withdrawn from study",
+      );
+    }
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`;
     const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000);

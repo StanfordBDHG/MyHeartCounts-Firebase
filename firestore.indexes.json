@@ -11,8 +11,13 @@
         {
           "fieldPath": "type",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
-      ]
+      ],
+      "density": "SPARSE_ALL"
     },
     {
       "collectionGroup": "notificationHistory",
@@ -25,8 +30,13 @@
         {
           "fieldPath": "timestamp",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
-      ]
+      ],
+      "density": "SPARSE_ALL"
     }
   ],
   "fieldOverrides": [
@@ -50,6 +60,48 @@
         {
           "order": "ASCENDING",
           "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "HealthObservations_HKQuantityTypeIdentifierStepCount",
+      "fieldPath": "issued",
+      "ttl": false,
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "fieldPath": "updated_at",
+      "ttl": false,
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
         }
       ]
     }

@@ -32,6 +32,8 @@ interface UserData {
   didOptInToTrial?: boolean;
   triggerNudgeGeneration?: boolean;
   userLanguage?: string;
+  disabled?: boolean;
+  hasWithdrawnFromStudy?: boolean;
 }
 
 enum Disease {
@@ -544,6 +546,22 @@ export class NudgeService {
         }
 
         if (!userData.timeZone || !userData.dateOfEnrollment) {
+          continue;
+        }
+
+        // Skip disabled users
+        if (userData.disabled === true) {
+          logger.info(
+            `Skipping nudge planning for user ${userId} - account disabled`,
+          );
+          continue;
+        }
+
+        // Skip users who have withdrawn from the study
+        if (userData.hasWithdrawnFromStudy === true) {
+          logger.error(
+            `Skipping nudge planning for user ${userId} - withdrawn from study`,
+          );
           continue;
         }
 
