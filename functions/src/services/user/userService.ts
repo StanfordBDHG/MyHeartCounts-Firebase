@@ -33,7 +33,7 @@ export interface UserService {
   getUser(userId: string): Promise<Document<User> | undefined>;
   updateLastActiveDate(userId: string): Promise<void>;
   markAccountForDeletion(userId: string, markedAt: Date): Promise<void>;
-  markAccountForStudyWithdrawl(
+  markAccountForStudyWithdrawal(
     userId: string,
     withdrawnAt: Date,
   ): Promise<void>;
