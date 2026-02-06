@@ -51,9 +51,7 @@ export const markAccountForStudyReenrollment = validatedOnCall(
     const reenrolledAt = new Date();
     await userService.markAccountForStudyReenrollment(userId, reenrolledAt);
 
-    logger.info(
-      `User ${userId} successfully re-enrolled in the study`,
-    );
+    logger.info(`User ${userId} successfully re-enrolled in the study`);
 
     return {
       success: true,
