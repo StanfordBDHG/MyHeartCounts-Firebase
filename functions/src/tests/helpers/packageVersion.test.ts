@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import { describe, it } from "mocha";
 import { expect } from "chai";
+import { describe, it } from "mocha";
 import { getPackageVersion } from "../../helpers/packageVersion.js";
 
 describe("getPackageVersion", () => {
