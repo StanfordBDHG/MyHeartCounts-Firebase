@@ -261,10 +261,12 @@ export class DatabaseUserService implements UserService {
           timestamp: unknown;
           requestedBy: string;
         }> =
-          userData &&
-          typeof userData === "object" &&
-          "studyEnrollmentHistory" in userData &&
-          Array.isArray(userData.studyEnrollmentHistory) ?
+          (
+            userData &&
+            typeof userData === "object" &&
+            "studyEnrollmentHistory" in userData &&
+            Array.isArray(userData.studyEnrollmentHistory)
+          ) ?
             (userData.studyEnrollmentHistory as Array<{
               action: string;
               timestamp: unknown;
@@ -320,8 +322,10 @@ export class DatabaseUserService implements UserService {
           timestamp: unknown;
           requestedBy: string;
         }> =
-          "studyEnrollmentHistory" in userData &&
-          Array.isArray(userData.studyEnrollmentHistory) ?
+          (
+            "studyEnrollmentHistory" in userData &&
+            Array.isArray(userData.studyEnrollmentHistory)
+          ) ?
             (userData.studyEnrollmentHistory as Array<{
               action: string;
               timestamp: unknown;
