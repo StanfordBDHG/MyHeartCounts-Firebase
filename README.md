@@ -22,8 +22,6 @@ Key features of the backend infrastructure include:
 - User State Handeling
 - Physical Activity Trial with personalized coaching messages using a Large Language Model (LLM) to generate personalized physical activity nudges in a blind study approach to compare predefined nudges and LLM nudges
 
-Addtionally, a collection of various [scripts](assets/scripts) support the active development and ongoing support of the My Heart Counts study.
-
 > [!NOTE]
 > Do you want to learn more about the Stanford Spezi Template Application and how to use, extend, and modify this application? Check out the [Stanford Spezi Template Application documentation](https://stanfordspezi.github.io/SpeziTemplateApplication).
 
