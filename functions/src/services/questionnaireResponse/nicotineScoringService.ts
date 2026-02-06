@@ -24,12 +24,16 @@ import {
 } from "../database/databaseService.js";
 
 export interface NicotineScoreCalculator {
-  calculate(smokingStatus: string): Score;
+  calculate(smokingStatus: string): Score | null;
 }
 
 export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
-  calculate(smokingStatus: string): Score {
+  calculate(smokingStatus: string): Score | null {
     const overallScore = this.smokingStatusToScore(smokingStatus);
+
+    if (overallScore === null) {
+      return null;
+    }
 
     return new Score({
       date: new Date(),
@@ -40,24 +44,22 @@ export class DefaultNicotineScoreCalculator implements NicotineScoreCalculator {
     });
   }
 
-  private smokingStatusToScore(smokingStatus: string): number {
-    // Lookup table based on iOS NicotineExposureCategoryValues enum
+  private smokingStatusToScore(smokingStatus: string): number | null {
+    // Lookup table based on iOS NicotineExposureCategoryValues enum: https://github.com/StanfordBDHG/MyHeartCounts-iOS/blob/main/MyHeartCounts/Heart%20Health%20Dashboard/CustomHealthSample.swift
     switch (smokingStatus) {
-      case "Never smoked/vaped":
+      case "Never Smoked":
         return 0;
-      case "Quit >5 years ago":
+      case "Quit more than 5 years ago":
         return 1;
-      case "Quit 1-5 years ago":
+      case "Quit 1 to 5 years ago":
         return 2;
-      case "Quit <1 year ago":
+      case "Quit within last year, or am using NDS":
         return 3;
-      case "Light smoker/vaper (<10/day)":
-      case "Moderate smoker/vaper (10 to 19/day)":
-      case "Heavy smoker/vaper (>20/day)":
+      case "Actively smoking":
         return 4;
       default:
         logger.warn(`Unknown smoking status: ${smokingStatus}`);
-        return 4;
+        return null;
     }
   }
 }
