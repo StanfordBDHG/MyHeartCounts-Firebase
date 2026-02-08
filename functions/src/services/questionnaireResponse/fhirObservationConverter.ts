@@ -12,6 +12,7 @@ import {
   type Score,
   type FHIRCodeableConcept,
 } from "@stanfordbdhg/myheartcounts-models";
+import { getPackageVersion } from "../../helpers/packageVersion.js";
 
 export interface QuestionnaireObservationConfig {
   customCode: string;
@@ -33,8 +34,7 @@ export const scoreToObservation = (
       {
         code: config.customCode,
         display: config.display,
-        system:
-          "https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes",
+        system: "https://spezi.stanford.edu",
       },
     ],
     text: config.display,
@@ -44,7 +44,7 @@ export const scoreToObservation = (
     id: observationId,
     status: FHIRObservationStatus.final,
     subject: {
-      reference: `Patient/${userId}`,
+      reference: `user/${userId}`,
     },
     code: codeableConcept,
     valueQuantity: {
@@ -67,7 +67,7 @@ export const scoreToObservation = (
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/source/name",
-        valueString: "My Heart Counts",
+        valueString: "My Heart Counts Firebase",
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/source/bundleIdentifier",
@@ -75,18 +75,18 @@ export const scoreToObservation = (
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/version",
-        valueString: "3.0.0 (955)",
+        valueString: getPackageVersion(),
       },
       {
         url: "https://bdh.stanford.edu/fhir/defs/sourceRevision/OSVersion",
-        valueString: "18.5.0",
+        valueString: process.version,
       },
     ],
   });
 };
 
 export const getDietObservationConfig = (): QuestionnaireObservationConfig => ({
-  customCode: "diet-mepa-score",
+  customCode: "MHCCustomSampleTypeDietMEPAScore",
   display: "Diet MEPA Score",
   unit: "count",
   unitSystem: "http://unitsofmeasure.org",
@@ -95,7 +95,7 @@ export const getDietObservationConfig = (): QuestionnaireObservationConfig => ({
 
 export const getNicotineObservationConfig =
   (): QuestionnaireObservationConfig => ({
-    customCode: "nicotine-exposure-score",
+    customCode: "MHCCustomSampleTypeNicotineExposure",
     display: "Nicotine Exposure Score",
     unit: "count",
     unitSystem: "http://unitsofmeasure.org",
@@ -103,7 +103,7 @@ export const getNicotineObservationConfig =
   });
 
 export const getWho5ObservationConfig = (): QuestionnaireObservationConfig => ({
-  customCode: "who5-wellbeing-score",
+  customCode: "MHCCustomSampleTypeWHO5Score",
   display: "WHO-5 Well-Being Score",
   unit: "count",
   unitSystem: "http://unitsofmeasure.org",

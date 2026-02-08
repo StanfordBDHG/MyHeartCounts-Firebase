@@ -216,13 +216,22 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
       });
 
       const smokingStatuses = [
-        "Never smoked/vaped",
-        "Quit >5 years ago",
-        "Quit 1-5 years ago",
-        "Quit <1 year ago",
-        "Light smoker/vaper (<10/day)",
-        "Moderate smoker/vaper (10 to 19/day)",
-        "Heavy smoker/vaper (>20/day)",
+        { code: "never-smoked/vaped", display: "Never smoked/vaped" },
+        { code: "quit->5-years-ago", display: "Quit >5 years ago" },
+        { code: "quit-1-5-years-ago", display: "Quit 1-5 years ago" },
+        { code: "quit-<1-year-ago", display: "Quit <1 year ago" },
+        {
+          code: "light-smoker/vaper-(<10/day)",
+          display: "Light smoker/vaper (<10/day)",
+        },
+        {
+          code: "moderate-smoker/vaper-(10-to-19/day)",
+          display: "Moderate smoker/vaper (10 to 19/day)",
+        },
+        {
+          code: "heavy-smoker/vaper-(>20/day)",
+          display: "Heavy smoker/vaper (>20/day)",
+        },
       ];
 
       for (const status of smokingStatuses) {
@@ -241,7 +250,9 @@ describe("HeartRiskNicotineScoringQuestionnaireResponseService", () => {
                 answer: [
                   {
                     valueCoding: {
-                      display: status,
+                      code: status.code,
+                      display: status.display,
+                      system: "urn:uuid:dd27d607-7d9c-4fa2-e28b-d90a40d628bf",
                     },
                   },
                 ],

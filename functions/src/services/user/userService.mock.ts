@@ -88,7 +88,7 @@ export class MockUserService implements UserService {
     return Promise.resolve();
   }
 
-  markAccountForStudyWithdrawl(
+  markAccountForStudyWithdrawal(
     _userId: string,
     _withdrawnAt: Date,
   ): Promise<void> {
