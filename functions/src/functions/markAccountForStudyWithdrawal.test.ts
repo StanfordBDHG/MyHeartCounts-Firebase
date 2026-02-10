@@ -9,7 +9,7 @@
 import { expect } from "chai";
 import type { https } from "firebase-functions/v2";
 import { it } from "mocha";
-import { markAccountForStudyWithdrawal } from "./markAccountForStudyWithdrawl.js";
+import { markAccountForStudyWithdrawal } from "./markAccountForStudyWithdrawal.js";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
 import { expectError } from "../tests/helpers.js";
 
