@@ -1,5 +1,6 @@
 {
   "name": "functions",
+  "version": "0.1.1",
   "description": "Cloud Functions for Firebase",
   "type": "module",
   "scripts": {

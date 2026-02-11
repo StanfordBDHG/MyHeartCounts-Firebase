@@ -231,7 +231,7 @@ export class DatabaseUserService implements UserService {
     );
   }
 
-  async markAccountForStudyWithdrawl(
+  async markAccountForStudyWithdrawal(
     userId: string,
     withdrawnAt: Date,
   ): Promise<void> {

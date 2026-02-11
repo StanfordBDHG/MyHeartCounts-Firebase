@@ -119,7 +119,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
       id: observationId,
       status: FHIRObservationStatus.final,
       subject: {
-        reference: `Patient/${userId}`,
+        reference: `user/${userId}`,
       },
       code: {
         coding: [
@@ -130,8 +130,7 @@ export class HeartRiskLdlParsingQuestionnaireResponseService extends Questionnai
           {
             code: "MHCCustomSampleTypeBloodLipidMeasurement",
             display: "LDL Cholesterol",
-            system:
-              "https://myheartcounts.stanford.edu/fhir/CodeSystem/observation-codes",
+            system: "https://spezi.stanford.edu",
           },
         ],
       },

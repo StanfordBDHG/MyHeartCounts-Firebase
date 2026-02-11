@@ -11,17 +11,17 @@ import { z } from "zod";
 import { validatedOnCall, defaultServiceAccount } from "./helpers.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
-const markAccountForStudyWithdrawlInputSchema = z.object({});
+const markAccountForStudyWithdrawalInputSchema = z.object({});
 
-interface MarkAccountForStudyWithdrawlOutput {
+interface MarkAccountForStudyWithdrawalOutput {
   success: boolean;
   withdrawnAt: string;
 }
 
-export const markAccountForStudyWithdrawl = validatedOnCall(
-  "markAccountForStudyWithdrawl",
-  markAccountForStudyWithdrawlInputSchema,
-  async (request): Promise<MarkAccountForStudyWithdrawlOutput> => {
+export const markAccountForStudyWithdrawal = validatedOnCall(
+  "markAccountForStudyWithdrawal",
+  markAccountForStudyWithdrawalInputSchema,
+  async (request): Promise<MarkAccountForStudyWithdrawalOutput> => {
     const factory = getServiceFactory();
     const credential = factory.credential(request.auth);
     const userService = factory.user();
@@ -49,7 +49,7 @@ export const markAccountForStudyWithdrawl = validatedOnCall(
     }
 
     const withdrawnAt = new Date();
-    await userService.markAccountForStudyWithdrawl(userId, withdrawnAt);
+    await userService.markAccountForStudyWithdrawal(userId, withdrawnAt);
 
     logger.info(
       `User ${userId} successfully marked their account for study withdrawal`,
