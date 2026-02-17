@@ -1,0 +1,53 @@
+#
+# This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
+#
+# SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Update Package Versions on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - name: Update root package.json
+        uses: BellCubeDev/update-package-version-by-release-tag@v2
+        with:
+          package-json-path: "./package.json"
+
+      - name: Update functions package.json
+        uses: BellCubeDev/update-package-version-by-release-tag@v2
+        with:
+          package-json-path: "./functions/package.json"
+
+      - name: Update models package.json
+        uses: BellCubeDev/update-package-version-by-release-tag@v2
+        with:
+          package-json-path: "./functions/models/package.json"
+
+      - name: Commit updated package.json files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add package.json functions/package.json functions/models/package.json
+          git diff --staged --quiet || git commit -m "chore: update version to ${{ github.event.release.tag_name }}"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.event.release.target_commitish }}
