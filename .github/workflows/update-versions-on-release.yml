@@ -60,7 +60,7 @@ jobs:
           github_token: ${{ steps.app-token.outputs.token }}
           branch: ${{ github.event.release.target_commitish }}
 
-      - name: Update release tag to version-bumped comit
+      - name: Update release tag to version-bumped commit
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
