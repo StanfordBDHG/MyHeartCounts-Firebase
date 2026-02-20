@@ -58,7 +58,7 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
   {
     cpu: 2,
-    memory: "1GiB",
+    memory: "2GiB",
     timeoutSeconds: 300,
     serviceAccount: privilegedServiceAccount,
   },
@@ -107,19 +107,20 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         `Downloaded file ${fileName}, size: ${fileBuffer.length} bytes`,
       );
 
-      let decompressedData: Buffer;
+      // Decompress so decompressedData is eligible for GC
+      // before JSON.parse allocates the full object graph here
+      let jsonString: string;
       try {
-        decompressedData = Buffer.from(decompress(fileBuffer));
+        const decompressedData = Buffer.from(decompress(fileBuffer));
         logger.info(`Decompressed data size: ${decompressedData.length} bytes`);
+        jsonString = decompressedData.toString("utf8");
       } catch (error) {
         logger.error(`Failed to decompress file ${fileName}:`, error);
         return;
       }
 
-      // First, we need to parse the data to determine the collection name dynamically
       let observationsData: unknown[];
       try {
-        const jsonString = decompressedData.toString("utf8");
         const parsedData: unknown = JSON.parse(jsonString);
 
         // Handle both array format and wrapper object format
