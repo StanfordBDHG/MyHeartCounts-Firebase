@@ -111,32 +111,8 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         return;
       }
 
-      // First, we need to parse the data to determine the collection name dynamically
       let observationsData: unknown[];
       try {
-        const jsonString = decompressedData.toString("utf8");
-        const parsedData: unknown = JSON.parse(jsonString);
-
-        // Handle both array format and wrapper object format
-        if (Array.isArray(parsedData)) {
-          observationsData = parsedData;
-        } else if (parsedData && typeof parsedData === "object") {
-          const dataWrapper = parsedData as ParsedDataWrapper;
-          if (Array.isArray(dataWrapper.data)) {
-            // Legacy format with wrapper
-            observationsData = dataWrapper.data;
-            // Optionally validate userId if present
-            if (dataWrapper.userId && dataWrapper.userId !== userId) {
-              logger.error(
-                `User ID mismatch: path userId ${userId} vs data userId ${dataWrapper.userId}`,
-              );
-              return;
-            }
-          } else {
-            logger.error(
-              `Invalid data format in file ${fileName} - expected array or object with data array`,
-            );
-            return;
           }
         } else {
           logger.error(
