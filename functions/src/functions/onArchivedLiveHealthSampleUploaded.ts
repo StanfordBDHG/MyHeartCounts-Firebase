@@ -113,8 +113,8 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
 
       let observationsData: unknown[];
       try {
-          }
-        } else {
+        const parsedData: unknown = JSON.parse(decompressedData.toString("utf8"));
+        if (!Array.isArray(parsedData)) {
           logger.error(
             `Invalid data format in file ${fileName} - expected JSON array`,
           );
