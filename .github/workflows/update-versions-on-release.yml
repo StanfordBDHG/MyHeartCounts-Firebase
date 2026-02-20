@@ -48,9 +48,13 @@ jobs:
           package-json-path: "./functions/models/package.json"
 
       - name: Commit updated package.json files
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git config --local user.email "paulsautomationbot[bot]@users.noreply.github.com"
-          git config --local user.name "paulsautomationbot[bot]"
+          APP_SLUG=$(gh api /app --jq '.slug' 2>/dev/null || echo "github-app")
+          APP_USER_ID=$(gh api "/users/${APP_SLUG}[bot]" --jq '.id' 2>/dev/null || echo "")
+          git config --local user.email "${APP_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git config --local user.name "${APP_SLUG}[bot]"
           git add package.json functions/package.json functions/models/package.json
           git diff --staged --quiet || git commit -m "chore: update version to ${{ github.event.release.tag_name }}"
 
