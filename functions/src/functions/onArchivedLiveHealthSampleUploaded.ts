@@ -11,11 +11,6 @@ import { storage, logger } from "firebase-functions/v2";
 import { decompress } from "fzstd";
 import { privilegedServiceAccount } from "./helpers.js";
 
-interface ParsedDataWrapper {
-  userId?: string;
-  data?: unknown[];
-}
-
 interface ObservationWithId {
   id: string;
   [key: string]: unknown;
@@ -145,10 +140,11 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
           }
         } else {
           logger.error(
-            `Invalid data format in file ${fileName} - expected array or object with data array`,
+            `Invalid data format in file ${fileName} - expected JSON array`,
           );
           return;
         }
+        observationsData = parsedData;
       } catch (error) {
         logger.error(
           `Failed to parse JSON from decompressed data for file ${fileName}:`,
