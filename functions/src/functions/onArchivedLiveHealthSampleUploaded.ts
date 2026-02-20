@@ -189,10 +189,15 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         .doc(userId)
         .collection(collectionName);
 
+      // Firestore limits: 500 operations per batch, 10MB gRPC request payload.
+      // Large SensorKit observations (e.g. deviceUsageReport) can cause the
+      // payload limit here to be hit before the operation limit, so we need track both.
       const BATCH_SIZE = 500;
+      const MAX_BATCH_BYTES = 9 * 1024 * 1024; // 9MB
       let processedCount = 0;
       let currentBatch = admin.firestore().batch();
       let batchOperations = 0;
+      let batchBytes = 0;
 
       for (const observation of observationsData) {
         try {
@@ -217,20 +222,28 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
             continue;
           }
 
-          const docRef = userObservationsCollection.doc(documentId);
-          currentBatch.set(docRef, observation);
-          batchOperations++;
-          processedCount++;
+          const serializedSize = JSON.stringify(observation).length;
 
-          // If we've reached the batch size limit, commit the current batch and start a new one
-          if (batchOperations >= BATCH_SIZE) {
+          // Commit before adding if it would exceed one of the limits
+          if (
+            batchOperations > 0 &&
+            (batchOperations >= BATCH_SIZE ||
+              batchBytes + serializedSize > MAX_BATCH_BYTES)
+          ) {
             await currentBatch.commit();
             logger.info(
-              `Committed batch of ${batchOperations} operations for user ${userId}`,
+              `Committed batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
             );
             currentBatch = admin.firestore().batch();
             batchOperations = 0;
+            batchBytes = 0;
           }
+
+          const docRef = userObservationsCollection.doc(documentId);
+          currentBatch.set(docRef, observation);
+          batchOperations++;
+          batchBytes += serializedSize;
+          processedCount++;
         } catch (error) {
           logger.error(`Failed to prepare observation for batch write:`, error);
         }
@@ -240,7 +253,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       if (batchOperations > 0) {
         await currentBatch.commit();
         logger.info(
-          `Committed final batch of ${batchOperations} operations for user ${userId}`,
+          `Committed final batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
         );
       }
 
