@@ -31,7 +31,9 @@ describe("getPackageVersion", () => {
 
   it("should return the version from package.json", () => {
     const packageJsonPath = join(__dirname, "../../../package.json");
-    const { version: expectedVersion } = JSON.parse(readFileSync(packageJsonPath, "utf-8")) as { version: string };
+    const { version: expectedVersion } = JSON.parse(
+      readFileSync(packageJsonPath, "utf-8"),
+    ) as { version: string };
     expect(getPackageVersion()).to.equal(expectedVersion);
   });
 });
