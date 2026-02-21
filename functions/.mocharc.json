@@ -1,4 +1,5 @@
 {
+  "file": ["lib/tests/mochaHooks.js"],
   "spec": "lib/**/*.test.js",
   "timeout": 60000
 }
