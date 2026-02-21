@@ -11,11 +11,6 @@ import { storage, logger } from "firebase-functions/v2";
 import { decompress } from "fzstd";
 import { privilegedServiceAccount } from "./helpers.js";
 
-interface ParsedDataWrapper {
-  userId?: string;
-  data?: unknown[];
-}
-
 interface ObservationWithId {
   id: string;
   [key: string]: unknown;
@@ -121,35 +116,16 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
 
       let observationsData: unknown[];
       try {
-        const parsedData: unknown = JSON.parse(jsonString);
-
-        // Handle both array format and wrapper object format
-        if (Array.isArray(parsedData)) {
-          observationsData = parsedData;
-        } else if (parsedData && typeof parsedData === "object") {
-          const dataWrapper = parsedData as ParsedDataWrapper;
-          if (Array.isArray(dataWrapper.data)) {
-            // Legacy format with wrapper
-            observationsData = dataWrapper.data;
-            // Optionally validate userId if present
-            if (dataWrapper.userId && dataWrapper.userId !== userId) {
-              logger.error(
-                `User ID mismatch: path userId ${userId} vs data userId ${dataWrapper.userId}`,
-              );
-              return;
-            }
-          } else {
-            logger.error(
-              `Invalid data format in file ${fileName} - expected array or object with data array`,
-            );
-            return;
-          }
-        } else {
+        const parsedData: unknown = JSON.parse(
+          decompressedData.toString("utf8"),
+        );
+        if (!Array.isArray(parsedData)) {
           logger.error(
-            `Invalid data format in file ${fileName} - expected array or object with data array`,
+            `Invalid data format in file ${fileName} - expected JSON array`,
           );
           return;
         }
+        observationsData = parsedData;
       } catch (error) {
         logger.error(
           `Failed to parse JSON from decompressed data for file ${fileName}:`,
