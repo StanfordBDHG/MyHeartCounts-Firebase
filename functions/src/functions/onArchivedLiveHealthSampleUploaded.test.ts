@@ -120,28 +120,6 @@ describe("onArchivedLiveHealthSampleUploaded", () => {
     const isValidObservationsData = (data: unknown): data is unknown[] =>
       Array.isArray(data) && data.length > 0;
 
-    const extractObservationsFromData = (
-      data: unknown,
-      userId: string,
-    ): unknown[] | null => {
-      if (Array.isArray(data)) {
-        return data as unknown[];
-      }
-
-      if (data && typeof data === "object" && "data" in data) {
-        const wrappedData = data as { data: unknown; userId?: string };
-        if (Array.isArray(wrappedData.data)) {
-          // Validate userId if present in legacy format
-          if (wrappedData.userId && wrappedData.userId !== userId) {
-            return null;
-          }
-          return wrappedData.data as unknown[];
-        }
-      }
-
-      return null;
-    };
-
     it("should accept array format observations", () => {
       const data = [{ id: "obs-1" }, { id: "obs-2" }];
       expect(isValidObservationsData(data)).to.be.true;
@@ -155,32 +133,6 @@ describe("onArchivedLiveHealthSampleUploaded", () => {
     it("should reject non-array data", () => {
       const data = { invalid: "structure" };
       expect(isValidObservationsData(data)).to.be.false;
-    });
-
-    it("should extract array format observations", () => {
-      const data = [{ id: "obs-1" }, { id: "obs-2" }];
-      const result = extractObservationsFromData(data, "test-user");
-      expect(result).to.deep.equal(data);
-    });
-
-    it("should extract legacy wrapper format", () => {
-      const data = {
-        userId: "test-user",
-        collection: "heartRateObservations",
-        data: [{ id: "obs-1" }, { id: "obs-2" }],
-      };
-      const result = extractObservationsFromData(data, "test-user");
-      expect(result).to.deep.equal(data.data);
-    });
-
-    it("should reject userId mismatch in legacy format", () => {
-      const data = {
-        userId: "different-user",
-        collection: "heartRateObservations",
-        data: [{ id: "obs-1" }],
-      };
-      const result = extractObservationsFromData(data, "test-user");
-      expect(result).to.be.null;
     });
   });
 
