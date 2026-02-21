@@ -146,7 +146,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         return;
       }
 
-      // Determine collection name directly from filename
+      // Determine collection name from filename
       const collectionName = getCollectionNameFromFileName(fileName);
 
       if (!collectionName) {
