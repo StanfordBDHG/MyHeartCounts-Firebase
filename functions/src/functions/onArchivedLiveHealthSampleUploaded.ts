@@ -17,7 +17,7 @@ interface ObservationWithId {
 }
 
 const getCollectionNameFromFileName = (fileName: string): string | null => {
-  // Check for SensorKit data files first
+  // Check for SensorKit data files
   // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zstd
   const sensorKitPattern =
     /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zstd$/;
@@ -31,7 +31,7 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
     return `SensorKitObservations_${sensorKitDataType}`;
   }
 
-  // Extract any HealthKit identifier from filename
+  // Check for HealthKit data files
   // Pattern: must include "Identifier"
   const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/;
   const hkMatch = hkIdentifierPattern.exec(fileName);
