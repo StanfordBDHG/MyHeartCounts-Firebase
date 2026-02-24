@@ -61,7 +61,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
     const filePath = event.data.name;
 
     if (!filePath.includes("/liveHealthSamples/")) {
-      logger.info(
+      logger.debug(
         `Skipping file ${filePath} - not in liveHealthSamples folder`,
       );
       return;
