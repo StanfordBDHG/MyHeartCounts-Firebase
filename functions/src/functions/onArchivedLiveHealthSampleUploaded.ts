@@ -25,7 +25,7 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 
   if (sensorKitMatch) {
     const sensorKitDataType = sensorKitMatch[1];
-    logger.info(
+    logger.debug(
       `Extracted SensorKit data type from filename: ${sensorKitDataType}`,
     );
     return `SensorKitObservations_${sensorKitDataType}`;
@@ -38,7 +38,7 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 
   if (hkMatch) {
     const healthKitIdentifier = hkMatch[0];
-    logger.info(
+    logger.debug(
       `Extracted HealthKit identifier from filename: ${healthKitIdentifier}`,
     );
     return `HealthObservations_${healthKitIdentifier}`;
@@ -98,7 +98,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       }
 
       const [fileBuffer] = await file.download();
-      logger.info(
+      logger.debug(
         `Downloaded file ${fileName}, size: ${fileBuffer.length} bytes`,
       );
 
@@ -107,7 +107,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       let jsonString: string;
       try {
         const decompressedData = Buffer.from(decompress(fileBuffer));
-        logger.info(`Decompressed data size: ${decompressedData.length} bytes`);
+        logger.debug(`Decompressed data size: ${decompressedData.length} bytes`);
         jsonString = decompressedData.toString("utf8");
       } catch (error) {
         logger.error(`Failed to decompress file ${fileName}:`, error);
@@ -133,7 +133,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       }
 
       if (!Array.isArray(observationsData) || observationsData.length === 0) {
-        logger.info(`No observations found in file ${fileName}`);
+        logger.debug(`No observations found in file ${fileName}`);
         // Still delete the file even if empty
         try {
           await file.delete();
@@ -154,7 +154,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         return;
       }
 
-      logger.info(
+      logger.debug(
         `Processing ${observationsData.length} observations for collection ${collectionName}`,
       );
 
@@ -206,7 +206,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
               batchBytes + serializedSize > MAX_BATCH_BYTES)
           ) {
             await currentBatch.commit();
-            logger.info(
+            logger.debug(
               `Committed batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
             );
             currentBatch = admin.firestore().batch();
@@ -227,13 +227,13 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       // Commit any remaining operations in the final batch
       if (batchOperations > 0) {
         await currentBatch.commit();
-        logger.info(
+        logger.debug(
           `Committed final batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
         );
       }
 
       if (processedCount > 0) {
-        logger.info(
+        logger.debug(
           `Successfully stored ${processedCount} observations in collection ${collectionName} for user ${userId}`,
         );
       } else {
