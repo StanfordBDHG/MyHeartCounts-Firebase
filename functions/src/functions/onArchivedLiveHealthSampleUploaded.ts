@@ -107,7 +107,9 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       let jsonString: string;
       try {
         const decompressedData = Buffer.from(decompress(fileBuffer));
-        logger.debug(`Decompressed data size: ${decompressedData.length} bytes`);
+        logger.debug(
+          `Decompressed data size: ${decompressedData.length} bytes`,
+        );
         jsonString = decompressedData.toString("utf8");
       } catch (error) {
         logger.error(`Failed to decompress file ${fileName}:`, error);
