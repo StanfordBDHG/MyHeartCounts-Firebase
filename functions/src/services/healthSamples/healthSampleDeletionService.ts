@@ -13,6 +13,7 @@ import { CollectionsService } from "../database/collections.js";
 
 export interface HealthSampleDeletionResult {
   totalMarked: number;
+  totalSkipped: number;
   totalFailed: number;
   successRate: string;
 }
@@ -70,6 +71,7 @@ export class HealthSampleDeletionService {
     );
 
     let totalMarked = 0;
+    let totalSkipped = 0;
     let totalFailed = 0;
     let processed = 0;
 
@@ -100,6 +102,11 @@ export class HealthSampleDeletionService {
     for (const result of results) {
       if (result.status === "fulfilled" && result.value.success) {
         totalMarked++;
+      } else if (
+        result.status === "fulfilled" &&
+        result.value.reason === "NOT_FOUND"
+      ) {
+        totalSkipped++;
       } else {
         totalFailed++;
         if (result.status === "rejected") {
@@ -115,7 +122,7 @@ export class HealthSampleDeletionService {
       ((totalMarked / documentIds.length) * 100).toFixed(2) + "%";
 
     logger.info(
-      `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalFailed} failed out of ${documentIds.length} total`,
+      `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalSkipped} skipped (not found), ${totalFailed} failed out of ${documentIds.length} total`,
       {
         jobId,
         requestingUserId,
@@ -123,12 +130,13 @@ export class HealthSampleDeletionService {
         collection,
         totalSamples: documentIds.length,
         totalMarked,
+        totalSkipped,
         totalFailed,
         successRate,
       },
     );
 
-    return { totalMarked, totalFailed, successRate };
+    return { totalMarked, totalSkipped, totalFailed, successRate };
   }
 
   /**
@@ -142,7 +150,7 @@ export class HealthSampleDeletionService {
     documentId: string,
     jobId: string,
     requestingUserId: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<{ success: boolean; reason?: "NOT_FOUND" }> {
     const ref = this.collections.firestore
       .collection("users")
       .doc(userId)
@@ -178,7 +186,7 @@ export class HealthSampleDeletionService {
             documentId,
           },
         );
-        return { success: false };
+        return { success: false, reason: "NOT_FOUND" };
       }
 
       logger.warn(
