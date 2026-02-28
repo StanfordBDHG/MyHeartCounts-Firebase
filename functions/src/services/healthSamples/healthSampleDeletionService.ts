@@ -242,7 +242,8 @@ export class HealthSampleDeletionService {
         return await operation();
       } catch (error) {
         lastError = error;
-        if (!this.isTransientError(error)) throw error;
+        if (!this.isTransientError(error) || attempt >= this.MAX_RETRIES)
+          throw error;
 
         const delay =
           this.RETRY_BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 100;
