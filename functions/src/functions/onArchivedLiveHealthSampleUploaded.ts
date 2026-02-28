@@ -17,7 +17,7 @@ interface ObservationWithId {
 }
 
 const getCollectionNameFromFileName = (fileName: string): string | null => {
-  // Check for SensorKit data files first
+  // Check for SensorKit data files
   // Pattern: com.apple.SensorKit.{dataType}_{UUID}.json.zstd
   const sensorKitPattern =
     /com\.apple\.SensorKit\.([^_]+)_[A-Fa-f0-9-]+\.json\.zstd$/;
@@ -25,20 +25,20 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 
   if (sensorKitMatch) {
     const sensorKitDataType = sensorKitMatch[1];
-    logger.info(
+    logger.debug(
       `Extracted SensorKit data type from filename: ${sensorKitDataType}`,
     );
     return `SensorKitObservations_${sensorKitDataType}`;
   }
 
-  // Extract any HealthKit identifier from filename
+  // Check for HealthKit data files
   // Pattern: must include "Identifier"
   const hkIdentifierPattern = /[A-Za-z]*Identifier[A-Za-z]*/;
   const hkMatch = hkIdentifierPattern.exec(fileName);
 
   if (hkMatch) {
     const healthKitIdentifier = hkMatch[0];
-    logger.info(
+    logger.debug(
       `Extracted HealthKit identifier from filename: ${healthKitIdentifier}`,
     );
     return `HealthObservations_${healthKitIdentifier}`;
@@ -53,7 +53,7 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
   {
     cpu: 2,
-    memory: "1GiB",
+    memory: "2GiB",
     timeoutSeconds: 300,
     serviceAccount: privilegedServiceAccount,
   },
@@ -61,7 +61,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
     const filePath = event.data.name;
 
     if (!filePath.includes("/liveHealthSamples/")) {
-      logger.info(
+      logger.debug(
         `Skipping file ${filePath} - not in liveHealthSamples folder`,
       );
       return;
@@ -98,14 +98,19 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       }
 
       const [fileBuffer] = await file.download();
-      logger.info(
+      logger.debug(
         `Downloaded file ${fileName}, size: ${fileBuffer.length} bytes`,
       );
 
-      let decompressedData: Buffer;
+      // Decompress so decompressedData is eligible for GC
+      // before JSON.parse allocates the full object graph here
+      let jsonString: string;
       try {
-        decompressedData = Buffer.from(decompress(fileBuffer));
-        logger.info(`Decompressed data size: ${decompressedData.length} bytes`);
+        const decompressedData = Buffer.from(decompress(fileBuffer));
+        logger.debug(
+          `Decompressed data size: ${decompressedData.length} bytes`,
+        );
+        jsonString = decompressedData.toString("utf8");
       } catch (error) {
         logger.error(`Failed to decompress file ${fileName}:`, error);
         return;
@@ -113,9 +118,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
 
       let observationsData: unknown[];
       try {
-        const parsedData: unknown = JSON.parse(
-          decompressedData.toString("utf8"),
-        );
+        const parsedData: unknown = JSON.parse(jsonString);
         if (!Array.isArray(parsedData)) {
           logger.error(
             `Invalid data format in file ${fileName} - expected JSON array`,
@@ -132,7 +135,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       }
 
       if (!Array.isArray(observationsData) || observationsData.length === 0) {
-        logger.info(`No observations found in file ${fileName}`);
+        logger.debug(`No observations found in file ${fileName}`);
         // Still delete the file even if empty
         try {
           await file.delete();
@@ -143,7 +146,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         return;
       }
 
-      // Determine collection name directly from filename
+      // Determine collection name from filename
       const collectionName = getCollectionNameFromFileName(fileName);
 
       if (!collectionName) {
@@ -153,7 +156,7 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         return;
       }
 
-      logger.info(
+      logger.debug(
         `Processing ${observationsData.length} observations for collection ${collectionName}`,
       );
 
@@ -163,10 +166,15 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
         .doc(userId)
         .collection(collectionName);
 
+      // Firestore limits: 500 operations per batch, 10MB gRPC request payload.
+      // Large SensorKit observations (e.g. deviceUsageReport) can cause the
+      // payload limit here to be hit before the operation limit, so we need track both.
       const BATCH_SIZE = 500;
+      const MAX_BATCH_BYTES = 9 * 1024 * 1024; // 9MB
       let processedCount = 0;
       let currentBatch = admin.firestore().batch();
       let batchOperations = 0;
+      let batchBytes = 0;
 
       for (const observation of observationsData) {
         try {
@@ -191,20 +199,28 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
             continue;
           }
 
-          const docRef = userObservationsCollection.doc(documentId);
-          currentBatch.set(docRef, observation);
-          batchOperations++;
-          processedCount++;
+          const serializedSize = JSON.stringify(observation).length;
 
-          // If we've reached the batch size limit, commit the current batch and start a new one
-          if (batchOperations >= BATCH_SIZE) {
+          // Commit before adding if it would exceed one of the limits
+          if (
+            batchOperations > 0 &&
+            (batchOperations >= BATCH_SIZE ||
+              batchBytes + serializedSize > MAX_BATCH_BYTES)
+          ) {
             await currentBatch.commit();
-            logger.info(
-              `Committed batch of ${batchOperations} operations for user ${userId}`,
+            logger.debug(
+              `Committed batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
             );
             currentBatch = admin.firestore().batch();
             batchOperations = 0;
+            batchBytes = 0;
           }
+
+          const docRef = userObservationsCollection.doc(documentId);
+          currentBatch.set(docRef, observation);
+          batchOperations++;
+          batchBytes += serializedSize;
+          processedCount++;
         } catch (error) {
           logger.error(`Failed to prepare observation for batch write:`, error);
         }
@@ -213,13 +229,13 @@ export const onArchivedLiveHealthSampleUploaded = storage.onObjectFinalized(
       // Commit any remaining operations in the final batch
       if (batchOperations > 0) {
         await currentBatch.commit();
-        logger.info(
-          `Committed final batch of ${batchOperations} operations for user ${userId}`,
+        logger.debug(
+          `Committed final batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
         );
       }
 
       if (processedCount > 0) {
-        logger.info(
+        logger.debug(
           `Successfully stored ${processedCount} observations in collection ${collectionName} for user ${userId}`,
         );
       } else {
