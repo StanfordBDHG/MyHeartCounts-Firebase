@@ -205,8 +205,8 @@ export class HealthSampleDeletionService {
     items: T[],
     limit: number,
     fn: (item: T) => Promise<R>,
-  ): Promise<PromiseSettledResult<R>[]> {
-    const results: PromiseSettledResult<R>[] = new Array(items.length);
+  ): Promise<Array<PromiseSettledResult<R>>> {
+    const results = new Array<PromiseSettledResult<R>>(items.length);
     let nextIndex = 0;
 
     const worker = async (): Promise<void> => {
@@ -245,8 +245,7 @@ export class HealthSampleDeletionService {
         if (!this.isTransientError(error)) throw error;
 
         const delay =
-          this.RETRY_BASE_DELAY_MS * Math.pow(2, attempt) +
-          Math.random() * 100;
+          this.RETRY_BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 100;
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -264,12 +263,15 @@ export class HealthSampleDeletionService {
 
   private isNotFoundError(error: unknown): boolean {
     const { numeric, string } = this.extractErrorCode(error);
-    return numeric === this.NOT_FOUND_NUMERIC || string === this.NOT_FOUND_STRING;
+    return (
+      numeric === this.NOT_FOUND_NUMERIC || string === this.NOT_FOUND_STRING
+    );
   }
 
-  private extractErrorCode(
-    error: unknown,
-  ): { numeric?: number; string?: string } {
+  private extractErrorCode(error: unknown): {
+    numeric?: number;
+    string?: string;
+  } {
     if (error === null || typeof error !== "object") return {};
     const code = (error as { code?: unknown }).code;
     if (typeof code === "number") return { numeric: code };
