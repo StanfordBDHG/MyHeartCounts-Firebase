@@ -13,13 +13,39 @@ import { CollectionsService } from "../database/collections.js";
 
 export interface HealthSampleDeletionResult {
   totalMarked: number;
+  totalSkipped: number;
   totalFailed: number;
   successRate: string;
 }
 
 export class HealthSampleDeletionService {
   private readonly collections: CollectionsService;
-  private readonly BATCH_SIZE = 500;
+
+  // Max simultaneous Firestore RPCs. Keeping this low prevents DEADLINE_EXCEEDED
+  // errors that occur when hundreds of concurrent ops saturate the connection pool.
+  private readonly CONCURRENCY_LIMIT = 25;
+
+  // Log a progress line every N documents so long jobs stay observable.
+  private readonly PROGRESS_LOG_INTERVAL = 1000;
+
+  // gRPC / Firebase error codes that are safe to retry automatically.
+  // Numeric codes come from raw gRPC transport; string codes from FirestoreError.
+  // 4 / "deadline-exceeded"  – DEADLINE_EXCEEDED
+  // 8 / "resource-exhausted" – RESOURCE_EXHAUSTED
+  // 14 / "unavailable"       – UNAVAILABLE
+  private readonly TRANSIENT_NUMERIC_CODES = new Set([4, 8, 14]);
+  private readonly TRANSIENT_STRING_CODES = new Set([
+    "deadline-exceeded",
+    "resource-exhausted",
+    "unavailable",
+  ]);
+
+  // gRPC / Firebase NOT_FOUND – document does not exist.
+  private readonly NOT_FOUND_NUMERIC = 5;
+  private readonly NOT_FOUND_STRING = "not-found";
+
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_BASE_DELAY_MS = 250;
 
   constructor(firestore?: admin.firestore.Firestore) {
     this.collections = new CollectionsService(firestore ?? admin.firestore());
@@ -32,53 +58,63 @@ export class HealthSampleDeletionService {
     collection: string,
     documentIds: string[],
   ): Promise<HealthSampleDeletionResult> {
-    let totalMarked = 0;
-    let totalFailed = 0;
-
     logger.info(
-      `Starting async entered-in-error marking job '${jobId}': processing ${documentIds.length} samples in collection '${collection}' in batches of ${this.BATCH_SIZE}`,
+      `Starting async entered-in-error marking job '${jobId}': processing ${documentIds.length} samples in collection '${collection}' with concurrency limit ${this.CONCURRENCY_LIMIT}`,
       {
         jobId,
         requestingUserId,
         targetUserId,
         collection,
         totalSamples: documentIds.length,
-        batchSize: this.BATCH_SIZE,
+        concurrencyLimit: this.CONCURRENCY_LIMIT,
       },
     );
 
-    // Process samples in batches
-    for (let i = 0; i < documentIds.length; i += this.BATCH_SIZE) {
-      const batch = documentIds.slice(i, i + this.BATCH_SIZE);
-      const batchNumber = Math.floor(i / this.BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(documentIds.length / this.BATCH_SIZE);
+    let totalMarked = 0;
+    let totalSkipped = 0;
+    let totalFailed = 0;
+    let processed = 0;
 
-      logger.info(
-        `Processing batch ${batchNumber}/${totalBatches} for job '${jobId}' (${batch.length} samples)`,
-        {
+    const results = await this.runWithConcurrencyLimit(
+      documentIds,
+      this.CONCURRENCY_LIMIT,
+      async (documentId) => {
+        const result = await this.markSampleAsEnteredInError(
+          targetUserId,
+          collection,
+          documentId,
           jobId,
           requestingUserId,
-          targetUserId,
-          batchNumber,
-          totalBatches,
-          batchSize: batch.length,
-        },
-      );
+        );
 
-      const batchResults = await this.processBatch(
-        targetUserId,
-        collection,
-        batch,
-        jobId,
-        requestingUserId,
-      );
+        processed++;
+        if (processed % this.PROGRESS_LOG_INTERVAL === 0) {
+          logger.info(
+            `Job '${jobId}' progress: ${processed}/${documentIds.length} processed`,
+            { jobId, processed, total: documentIds.length },
+          );
+        }
 
-      totalMarked += batchResults.marked;
-      totalFailed += batchResults.failed;
+        return result;
+      },
+    );
 
-      // Small delay between batches to avoid overwhelming the system
-      if (i + this.BATCH_SIZE < documentIds.length) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    for (const result of results) {
+      if (result.status === "fulfilled" && result.value.success) {
+        totalMarked++;
+      } else if (
+        result.status === "fulfilled" &&
+        result.value.reason === "NOT_FOUND"
+      ) {
+        totalSkipped++;
+      } else {
+        totalFailed++;
+        if (result.status === "rejected") {
+          logger.error(
+            `Unhandled promise rejection in job '${jobId}': ${String(result.reason)}`,
+            { jobId, error: String(result.reason) },
+          );
+        }
       }
     }
 
@@ -86,7 +122,7 @@ export class HealthSampleDeletionService {
       ((totalMarked / documentIds.length) * 100).toFixed(2) + "%";
 
     logger.info(
-      `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalFailed} failed out of ${documentIds.length} total`,
+      `Async entered-in-error marking job '${jobId}' completed: ${totalMarked} marked, ${totalSkipped} skipped (not found), ${totalFailed} failed out of ${documentIds.length} total`,
       {
         jobId,
         requestingUserId,
@@ -94,59 +130,54 @@ export class HealthSampleDeletionService {
         collection,
         totalSamples: documentIds.length,
         totalMarked,
+        totalSkipped,
         totalFailed,
         successRate,
       },
     );
 
-    return {
-      totalMarked,
-      totalFailed,
-      successRate,
-    };
+    return { totalMarked, totalSkipped, totalFailed, successRate };
   }
 
-  private async processBatch(
+  /**
+   * Marks a single sample as entered-in-error via a direct update (no prior
+   * read), retrying on transient errors. Treats NOT_FOUND as a soft skip
+   * rather than a failure worth retrying.
+   */
+  private async markSampleAsEnteredInError(
     userId: string,
     collection: string,
-    batch: string[],
+    documentId: string,
     jobId: string,
     requestingUserId: string,
-  ): Promise<{ marked: number; failed: number }> {
-    let marked = 0;
-    let failed = 0;
+  ): Promise<{ success: boolean; reason?: "NOT_FOUND" }> {
+    const ref = this.collections.firestore
+      .collection("users")
+      .doc(userId)
+      .collection(collection)
+      .doc(documentId);
 
-    // Use Promise.allSettled for concurrent processing within batch
-    const promises = batch.map(async (documentId) => {
-      try {
-        const doc = await this.collections.firestore
-          .collection("users")
-          .doc(userId)
-          .collection(collection)
-          .doc(documentId)
-          .get();
+    try {
+      await this.withRetry(() =>
+        ref.update({ status: FHIRObservationStatus.entered_in_error }),
+      );
 
-        if (!doc.exists) {
-          logger.debug(
-            `Sample not found during job '${jobId}': '${documentId}' in collection '${collection}'`,
-            {
-              jobId,
-              requestingUserId,
-              targetUserId: userId,
-              collection,
-              documentId,
-            },
-          );
-          return { success: false, documentId };
-        }
+      logger.debug(
+        `Marked sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}'`,
+        {
+          jobId,
+          requestingUserId,
+          targetUserId: userId,
+          collection,
+          documentId,
+        },
+      );
 
-        // Mark as entered-in-error instead of deleting (FHIR compliant)
-        await doc.ref.update({
-          status: FHIRObservationStatus.entered_in_error,
-        });
-
+      return { success: true };
+    } catch (error) {
+      if (this.isNotFoundError(error)) {
         logger.debug(
-          `Marked sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}'`,
+          `Sample not found during job '${jobId}': '${documentId}' in collection '${collection}'`,
           {
             jobId,
             requestingUserId,
@@ -155,47 +186,105 @@ export class HealthSampleDeletionService {
             documentId,
           },
         );
-
-        return { success: true, documentId };
-      } catch (error) {
-        logger.warn(
-          `Failed to mark sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}': ${String(error)}`,
-          {
-            jobId,
-            requestingUserId,
-            targetUserId: userId,
-            collection,
-            documentId,
-            error: String(error),
-          },
-        );
-        return { success: false, documentId };
+        return { success: false, reason: "NOT_FOUND" };
       }
-    });
 
-    const results = await Promise.allSettled(promises);
+      logger.warn(
+        `Failed to mark sample as entered-in-error in job '${jobId}': '${documentId}' from collection '${collection}': ${String(error)}`,
+        {
+          jobId,
+          requestingUserId,
+          targetUserId: userId,
+          collection,
+          documentId,
+          error: String(error),
+        },
+      );
+      return { success: false };
+    }
+  }
 
-    for (const result of results) {
-      if (result.status === "fulfilled") {
-        if (result.value.success) {
-          marked++;
-        } else {
-          failed++;
+  /**
+   * Worker-pool concurrency limiter. Spawns `limit` workers that each pull
+   * the next item from a shared index, so a slow item never blocks others.
+   * Returns a PromiseSettledResult array in the same order as `items`.
+   */
+  private async runWithConcurrencyLimit<T, R>(
+    items: T[],
+    limit: number,
+    fn: (item: T) => Promise<R>,
+  ): Promise<Array<PromiseSettledResult<R>>> {
+    const results = new Array<PromiseSettledResult<R>>(items.length);
+    let nextIndex = 0;
+
+    const worker = async (): Promise<void> => {
+      while (nextIndex < items.length) {
+        const index = nextIndex++;
+        try {
+          results[index] = {
+            status: "fulfilled",
+            value: await fn(items[index]),
+          };
+        } catch (error) {
+          results[index] = { status: "rejected", reason: error };
         }
-      } else {
-        failed++;
-        logger.error(
-          `Promise failed in batch processing for job '${jobId}': ${String(result.reason)}`,
-          {
-            jobId,
-            requestingUserId,
-            targetUserId: userId,
-            error: String(result.reason),
-          },
-        );
+      }
+    };
+
+    await Promise.all(
+      Array.from({ length: Math.min(limit, items.length) }, worker),
+    );
+
+    return results;
+  }
+
+  /**
+   * Retries `operation` up to MAX_RETRIES times when a transient error occurs,
+   * using exponential back-off with random jitter to spread retry storms.
+   */
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        if (!this.isTransientError(error) || attempt >= this.MAX_RETRIES)
+          throw error;
+
+        const delay =
+          this.RETRY_BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 100;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
-    return { marked, failed };
+    throw lastError;
+  }
+
+  private isTransientError(error: unknown): boolean {
+    const { numeric, string } = this.extractErrorCode(error);
+    return (
+      (numeric !== undefined && this.TRANSIENT_NUMERIC_CODES.has(numeric)) ||
+      (string !== undefined && this.TRANSIENT_STRING_CODES.has(string))
+    );
+  }
+
+  private isNotFoundError(error: unknown): boolean {
+    const { numeric, string } = this.extractErrorCode(error);
+    return (
+      numeric === this.NOT_FOUND_NUMERIC || string === this.NOT_FOUND_STRING
+    );
+  }
+
+  private extractErrorCode(error: unknown): {
+    numeric?: number;
+    string?: string;
+  } {
+    if (error === null || typeof error !== "object") return {};
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "number") return { numeric: code };
+    if (typeof code === "string") return { string: code };
+    return {};
   }
 }
