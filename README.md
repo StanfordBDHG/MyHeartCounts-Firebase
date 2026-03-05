@@ -113,6 +113,7 @@ Branches are following a `<type>/<short-description>` naming structure, e.g. `fe
 #### Prefixes in branches
 
 - `feature/` – new functionality
+- `tweak/` – small adjustment, minor polish
 - `bug/` – bug fixes
 - `chore/` – maintenance tasks
 - `hotfix/` – urgent production fixes
@@ -124,6 +125,7 @@ Branches are following a `<type>/<short-description>` naming structure, e.g. `fe
 #### Prefixes in issues
 
 - `[BUG]` – something is broken or behaving unexpectedly
+- `[TWEAK]` – small adjustment, minor polish
 - `[FEATURE]` – new functionality request
 - `[CHORE]` – maintenance, dependencies, tooling
 - `[DOCS]` – documentation additions or fixes
