@@ -108,7 +108,7 @@ We aim for 70% test covarage in this project. Please be sure to rebuild the proj
 
 ### Labels / Development Naming Conventions
 
-Branches are following a `<type>/<short-description>` naming structure, e.g. `feature/user-authentication` or `chore/update-dependencies`. If there is a ticket/issue number that is associated with the banch, the ticket number is part of the branch name: `<type>/<issue-number>-<short-description>` (e.g. `feature/123-user-authentication` or `hotfix/789-payment-timeout`).
+Branches are following a `<type>/<short-description>` naming structure, e.g. `feature/user-authentication` or `chore/update-dependencies`. If there is a ticket/issue number that is associated with the branch, the ticket number is part of the branch name: `<type>/<issue-number>-<short-description>` (e.g. `feature/123-user-authentication` or `hotfix/789-payment-timeout`).
 
 #### Prefixes in branches
 
