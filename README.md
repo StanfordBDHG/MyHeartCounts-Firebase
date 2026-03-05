@@ -106,6 +106,39 @@ This can be especially useful if you're using an operating system like Windows, 
 
 We aim for 70% test covarage in this project. Please be sure to rebuild the project after making changes by running `npm run prepare` or `npm run build` before executing `npm run test:ci`.
 
+### Labels / Development Naming Conventions
+
+Branches are following a `<type>/<short-description>` naming structure, e.g. `feature/user-authentication` or `chore/update-dependencies`. If there is a ticket/issue number that is associated with the branch, the ticket number is part of the branch name: `<type>/<issue-number>-<short-description>` (e.g. `feature/123-user-authentication` or `hotfix/789-payment-timeout`).
+
+#### Prefixes in branches
+
+- `feature/` – new functionality
+- `tweak/` – small adjustment, minor polish
+- `bug/` – bug fixes
+- `chore/` – maintenance tasks
+- `hotfix/` – urgent production fixes
+- `refactor/` – code restructuring
+- `docs/` – documentation only
+- `test/` – test additions
+- `release/` – release preparation (e.g. release/4.1.0)
+
+#### Prefixes in issues
+
+- `[BUG]` – something is broken or behaving unexpectedly
+- `[TWEAK]` – small adjustment, minor polish
+- `[FEATURE]` – new functionality request
+- `[CHORE]` – maintenance, dependencies, tooling
+- `[DOCS]` – documentation additions or fixes
+- `[REFACTOR]` – code restructuring without behavior change
+- `[TEST]` – adding or fixing tests
+- `[PERF]` – performance improvements
+- `[HOTFIX]` – urgent production fix
+- `[SECURITY]` – vulnerability or security concern
+- `[QUESTION]` – needs clarification or discussion
+- `[BLOCKED]` – waiting on something external
+- `[SPIKE]` – research/investigation task
+- `[BREAKING]` – introduces a breaking change
+
 ### Deployment Overview
 
 For this study, we choose to have three environments to test, stage and then run the code in production:
