@@ -118,7 +118,7 @@ All project files must adhere to version 3.3 of the REUSE Specification. A templ
 reuse annotate \
   --copyright="Stanford University and the project authors (see CONTRIBUTORS.md)" \
   --license="MIT" \
-  --year="2026" \
+  --year="$(date +%Y)" \
   --copyright-prefix=spdx \
   --template=spezi \
   --merge-copyrights \
