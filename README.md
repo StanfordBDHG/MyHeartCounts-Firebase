@@ -1,6 +1,7 @@
-<!-- 
-This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
-SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+<!--
+This source file is part of the MyHeart Counts project
+
+SPDX-FileCopyrightText: 2025, 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 SPDX-License-Identifier: MIT
 -->
 [![Build and Test](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml)
@@ -109,6 +110,25 @@ We aim for 70% test covarage in this project. Please be sure to rebuild the proj
 ### Labels / Development Naming Conventions
 
 Branches are following a `<type>/<short-description>` naming structure, e.g. `feature/user-authentication` or `chore/update-dependencies`. If there is a ticket/issue number that is associated with the branch, the ticket number is part of the branch name: `<type>/<issue-number>-<short-description>` (e.g. `feature/123-user-authentication` or `hotfix/789-payment-timeout`).
+
+### REUSE Compatibility
+
+All project files must adhere to version 3.3 of the REUSE Specification. A template for the file header is provided as [spezi.jinja2](.reuse/templates/spezi.jinja2), which can be auto-applied with:
+
+```bash
+reuse annotate \
+  --copyright="Stanford University and the project authors (see CONTRIBUTORS.md)" \
+  --license="MIT" \
+  --year="$(date +%Y)" \
+  --copyright-prefix=spdx \
+  --template=spezi \
+  --merge-copyrights \
+  --recursive \
+  --fallback-dot-license \
+  .
+```
+
+Before submitting a new PR, make sure `reuse lint` does not throw any errors about missing copyright/licensing information.
 
 #### Prefixes in branches
 

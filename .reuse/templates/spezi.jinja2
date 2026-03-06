@@ -1,0 +1,6 @@
+This source file is part of the MyHeart Counts project
+
+{% for copyright_line in copyright_lines %}{{ copyright_line }}
+{% endfor %}
+{% for expression in spdx_expressions %}SPDX-License-Identifier: {{ expression }}
+{% endfor %}
