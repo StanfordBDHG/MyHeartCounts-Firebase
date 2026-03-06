@@ -1,6 +1,7 @@
-<!-- 
-This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project
-SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+<!--
+This source file is part of the MyHeart Counts project
+
+SPDX-FileCopyrightText: 2025, 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 SPDX-License-Identifier: MIT
 -->
 [![Build and Test](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/StanfordBDHG/MyHeartCounts-Firebase/actions/workflows/build-and-test.yml)

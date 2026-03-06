@@ -1,10 +1,7 @@
+// This source file is part of the MyHeart Counts project
 //
-// This source file is part of the MyHeartCounts-Firebase project
-//
-// SPDX-FileCopyrightText: 2023 Stanford University
-//
+// SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
-//
 
 // Small helper function to inject the current functions version to the backend generated FHIR Observations
 

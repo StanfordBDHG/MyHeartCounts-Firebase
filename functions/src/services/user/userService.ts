@@ -1,10 +1,7 @@
+// This source file is part of the MyHeart Counts project
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
-//
-// SPDX-FileCopyrightText: 2023 Stanford University
-//
+// SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
-//
 
 import { type User, type UserAuth } from "@stanfordbdhg/myheartcounts-models";
 import { type Document } from "../database/databaseService.js";

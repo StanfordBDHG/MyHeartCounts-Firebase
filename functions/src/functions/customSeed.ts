@@ -1,10 +1,7 @@
+// This source file is part of the MyHeart Counts project
 //
-// This source file is part of the Stanford Biodesign Digital Health MyHeart Counts open-source project based on the Stanford Spezi Template Application project
-//
-// SPDX-FileCopyrightText: 2025 Stanford University
-//
+// SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
-//
 
 import { customSeedingOptionsSchema } from "@stanfordbdhg/myheartcounts-models";
 import { validatedOnRequest, privilegedServiceAccount } from "./helpers.js";
