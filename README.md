@@ -139,25 +139,34 @@ Before submitting a new PR, make sure `reuse lint` does not throw any errors abo
 - `hotfix/` – urgent production fixes
 - `refactor/` – code restructuring
 - `docs/` – documentation only
-- `test/` – test additions
+- `test/` – test additions/test changes
 - `release/` – release preparation (e.g. release/4.1.0)
 
-#### Prefixes in issues
+#### Labels in issues
 
-- `[BUG]` – something is broken or behaving unexpectedly
-- `[TWEAK]` – small adjustment, minor polish
-- `[FEATURE]` – new functionality request
-- `[CHORE]` – maintenance, dependencies, tooling
-- `[DOCS]` – documentation additions or fixes
-- `[REFACTOR]` – code restructuring without behavior change
-- `[TEST]` – adding or fixing tests
-- `[PERF]` – performance improvements
-- `[HOTFIX]` – urgent production fix
-- `[SECURITY]` – vulnerability or security concern
-- `[QUESTION]` – needs clarification or discussion
-- `[BLOCKED]` – waiting on something external
-- `[SPIKE]` – research/investigation task
-- `[BREAKING]` – introduces a breaking change
+For adding searchable metadata to issues and PRs, we use these custom labels:
+- `bug` – something is broken or behaving unexpectedly
+- `dependencies` – pull requests that update a dependency file
+- `duplicate` – this issue or pull request already exists
+- `enhancement` – new feature or request
+- `good first issue` – good for newcomers
+- `help wanted` – extra attention is needed
+- `invalid` – this doesn't seem right
+- `javascript` – pull requests that update javascript code
+- `wontfix` – this will not be worked on
+- `tweak` – small adjustment, minor polish
+- `feature` – new functionality request
+- `chore` – maintenance, dependencies, tooling
+- `docs` – documentation additions or fixes
+- `refactor` – code restructuring without behavior change
+- `tests` – adding or fixing tests
+- `performance` – performance improvements
+- `hotfix` – urgent production fix
+- `security` – vulnerability or security concern
+- `question` – needs clarification or discussion
+- `blocked` – waiting on something external
+- `spike` – research/investigation task
+- `breaking` – introduces a breaking change
 
 ### Deployment Overview
 
