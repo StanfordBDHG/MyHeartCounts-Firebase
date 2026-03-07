@@ -142,18 +142,17 @@ Before submitting a new PR, make sure `reuse lint` does not throw any errors abo
 - `test/` – test additions/test changes
 - `release/` – release preparation (e.g. release/4.1.0)
 
-#### Lables in issues
+#### Labels in issues
 
 For adding searchable metadata to issues and PRs, we use these custom labels:
 - `bug` – something is broken or behaving unexpectedly
 - `dependencies` – pull requests that update a dependency file
 - `duplicate` – this issue or pull request already exists
 - `enhancement` – new feature or request
-- `good first issue` – good for newcomersGood for newcomers
+- `good first issue` – good for newcomers
 - `help wanted` – extra attention is needed
 - `invalid` – this doesn't seem right
 - `javascript` – pull requests that update javascript code
-- `question` – further information is requested
 - `wontfix` – this will not be worked on
 - `tweak` – small adjustment, minor polish
 - `feature` – new functionality request
