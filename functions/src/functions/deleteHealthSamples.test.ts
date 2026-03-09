@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 import { expect } from "chai";
+import admin from "firebase-admin";
 import type { https } from "firebase-functions/v2";
 import { deleteHealthSamples } from "./deleteHealthSamples.js";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
@@ -119,6 +120,35 @@ describeWithEmulators(
           expect(httpsError.code).to.equal("permission-denied");
         },
       );
+    });
+
+    it("should queue NOT_FOUND documents to pendingHealthSampleDeletions", async () => {
+      const userId = await env.createUser({});
+
+      await env.call(
+        deleteHealthSamples,
+        {
+          userId,
+          collection: "heartRateObservations",
+          documentIds: ["non-existent-doc"],
+        },
+        { uid: userId },
+      );
+
+      // Wait for the async background processing to complete
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const snapshot = await admin
+        .firestore()
+        .collection("pendingHealthSampleDeletions")
+        .get();
+      expect(snapshot.size).to.equal(1);
+
+      const data = snapshot.docs[0].data();
+      expect(data.userId).to.equal(userId);
+      expect(data.collection).to.equal("heartRateObservations");
+      expect(data.documentId).to.equal("non-existent-doc");
+      expect(data.reason).to.equal("NOT_FOUND");
     });
 
     it("should handle large batch marking requests", async () => {
