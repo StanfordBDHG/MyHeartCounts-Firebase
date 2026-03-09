@@ -108,5 +108,6 @@ export const deleteHealthSamples = validatedOnCall(
     invoker: "public",
     serviceAccount: privilegedServiceAccount,
     memory: "1GiB",
+    timeoutSeconds: 3600,
   },
 );
