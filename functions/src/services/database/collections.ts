@@ -94,4 +94,12 @@ export class CollectionsService {
       .collection(collectionName)
       .withConverter(new DatabaseConverter(fhirObservationConverter.value));
   }
+
+  get pendingHealthSampleDeletions() {
+    return this.firestore.collection("pendingHealthSampleDeletions");
+  }
+
+  get failedHealthSampleDeletions() {
+    return this.firestore.collection("failedHealthSampleDeletions");
+  }
 }
