@@ -46,6 +46,7 @@
     "@types/mocha": "^10.0.7",
     "@types/node": "^22",
     "@types/sinon": "^21.0.0",
+    "@stanfordspezi/spezi-web-configurations": "^0.6.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "c8": "^10.1.2",
