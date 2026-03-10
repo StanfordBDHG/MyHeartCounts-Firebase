@@ -63,6 +63,7 @@ interface NudgeMessage extends BaseNudgeMessage {
 export class NudgeService {
   // Properties
 
+  private static readonly DEFAULT_NOTIFICATION_TIME = "09:00";
   private readonly firestore: admin.firestore.Firestore;
 
   // Constructor
@@ -346,10 +347,12 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTime = userData.preferredNotificationTime ?? "09:00";
-        if (!userData.preferredNotificationTime) {
+        const notificationTime =
+          userData.preferredNotificationTime?.trim() ||
+          NudgeService.DEFAULT_NOTIFICATION_TIME;
+        if (notificationTime === NudgeService.DEFAULT_NOTIFICATION_TIME && userData.preferredNotificationTime?.trim() !== NudgeService.DEFAULT_NOTIFICATION_TIME) {
           logger.warn(
-            `User ${userId} has no preferred notification time for LLM prompt. Assuming 09:00 as default.`,
+            `User ${userId} has no preferred notification time for LLM prompt. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
           );
         }
         const notificationTimeContext = `This user prefers to receive recommendation at ${notificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
@@ -454,11 +457,13 @@ export class NudgeService {
     nudges: NudgeMessage[],
     category: string,
   ): Promise<number> {
-    if (!userData.preferredNotificationTime) {
+    const preferredTime =
+      userData.preferredNotificationTime?.trim() ||
+      NudgeService.DEFAULT_NOTIFICATION_TIME;
+    if (preferredTime === NudgeService.DEFAULT_NOTIFICATION_TIME && !userData.preferredNotificationTime?.trim()) {
       logger.warn(
-        `User ${userId} has no preferred notification time in createNudgesForUser. Assuming 09:00 as default.`,
+        `User ${userId} has no preferred notification time in createNudgesForUser. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
       );
-      userData.preferredNotificationTime = "09:00";
     }
 
     if (!userData.timeZone) {
@@ -470,8 +475,6 @@ export class NudgeService {
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
       const nudgeMessage = nudges[dayIndex];
       const nudgeId = randomUUID().toUpperCase();
-
-      const preferredTime = userData.preferredNotificationTime;
       const [hourStr, minuteStr] = preferredTime.split(":");
       const hour = Number(hourStr);
       const minute = Number(minuteStr);
@@ -569,11 +572,16 @@ export class NudgeService {
           continue;
         }
 
-        if (userData.preferredNotificationTime === undefined) {
+        const rawNotificationTime =
+          userData.preferredNotificationTime?.trim();
+        if (!rawNotificationTime) {
           logger.warn(
-            `User ${userId} has no preferred notification time. Assuming 09:00 as default.`,
+            `User ${userId} has no preferred notification time. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
           );
-          userData.preferredNotificationTime = "09:00";
+          userData.preferredNotificationTime =
+            NudgeService.DEFAULT_NOTIFICATION_TIME;
+        } else {
+          userData.preferredNotificationTime = rawNotificationTime;
         }
 
         if (!userData.didOptInToTrial) {
