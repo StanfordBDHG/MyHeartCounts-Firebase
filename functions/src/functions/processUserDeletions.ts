@@ -4,10 +4,10 @@
 // SPDX-License-Identifier: MIT
 
 import { Storage } from "@google-cloud/storage";
-import type { User } from "@stanfordbdhg/myheartcounts-models";
 import { logger } from "firebase-functions/v2";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { privilegedServiceAccount } from "./helpers.js";
+import type { User } from "../models/index.js";
 import type { Document } from "../services/database/databaseService.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 

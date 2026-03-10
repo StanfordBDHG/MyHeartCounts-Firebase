@@ -3,12 +3,9 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import {
-  type UserClaims,
-  userClaimsSchema,
-} from "@stanfordbdhg/myheartcounts-models";
 import { https, logger } from "firebase-functions/v2";
 import { type AuthData } from "firebase-functions/v2/tasks";
+import { type UserClaims, userClaimsSchema } from "../../models/index.js";
 
 export class Credential {
   // Stored Properties

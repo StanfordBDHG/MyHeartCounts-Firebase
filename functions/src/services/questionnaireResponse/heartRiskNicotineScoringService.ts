@@ -4,10 +4,6 @@
 // SPDX-License-Identifier: MIT
 
 import { randomUUID } from "crypto";
-import {
-  type Score,
-  type FHIRQuestionnaireResponse,
-} from "@stanfordbdhg/myheartcounts-models";
 import { logger } from "firebase-functions";
 import {
   scoreToObservation,
@@ -15,6 +11,10 @@ import {
 } from "./fhirObservationConverter.js";
 import { DefaultNicotineScoreCalculator } from "./nicotineScoringService.js";
 import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
+import {
+  type Score,
+  type FHIRQuestionnaireResponse,
+} from "../../models/index.js";
 import {
   type Document,
   type DatabaseService,

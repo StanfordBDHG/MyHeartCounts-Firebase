@@ -3,10 +3,10 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { Lazy } from "@stanfordbdhg/myheartcounts-models";
 import admin from "firebase-admin";
 import { type AuthData } from "firebase-functions/v2/tasks";
 import { type ServiceFactory } from "./serviceFactory.js";
+import { Lazy } from "../../models/index.js";
 import { Credential } from "../credential/credential.js";
 import { FirestoreService } from "../database/firestoreService.js";
 import { DatabaseHistoryService } from "../history/databaseHistoryService.js";

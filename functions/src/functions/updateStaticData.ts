@@ -3,16 +3,16 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import {
-  updateStaticDataInputSchema,
-  type UpdateStaticDataOutput,
-} from "@stanfordbdhg/myheartcounts-models";
 import { type z } from "zod";
 import {
   validatedOnCall,
   validatedOnRequest,
   privilegedServiceAccount,
 } from "./helpers.js";
+import {
+  updateStaticDataInputSchema,
+  type UpdateStaticDataOutput,
+} from "../models/index.js";
 // eslint-disable-next-line import/no-cycle -- Factory pattern requires circular dependency for service initialization
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 import { type ServiceFactory } from "../services/factory/serviceFactory.js";

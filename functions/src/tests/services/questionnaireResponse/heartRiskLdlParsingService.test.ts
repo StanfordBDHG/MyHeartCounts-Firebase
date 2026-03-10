@@ -7,9 +7,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
-import { FHIRQuestionnaireResponse } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { describe, it } from "mocha";
+import { FHIRQuestionnaireResponse } from "../../../models/index.js";
 import { HeartRiskLdlParsingQuestionnaireResponseService } from "../../../services/questionnaireResponse/heartRiskLdlParsingService.js";
 
 describe("HeartRiskLdlParsingQuestionnaireResponseService", () => {

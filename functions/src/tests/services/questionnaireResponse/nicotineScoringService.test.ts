@@ -5,12 +5,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
-import {
-  FHIRQuestionnaireResponse,
-  Score,
-} from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { describe, it } from "mocha";
+import { FHIRQuestionnaireResponse, Score } from "../../../models/index.js";
 import {
   DefaultNicotineScoreCalculator,
   NicotineScoringQuestionnaireResponseService,

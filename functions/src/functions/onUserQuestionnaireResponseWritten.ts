@@ -3,12 +3,12 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { privilegedServiceAccount } from "./helpers.js";
 import {
   type FHIRQuestionnaireResponse,
   fhirQuestionnaireResponseConverter,
-} from "@stanfordbdhg/myheartcounts-models";
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
-import { privilegedServiceAccount } from "./helpers.js";
+} from "../models/index.js";
 import { DatabaseConverter } from "../services/database/databaseConverter.js";
 import { type Document } from "../services/database/databaseService.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";

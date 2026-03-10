@@ -3,6 +3,8 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { type Firestore } from "firebase-admin/firestore";
+import { DatabaseConverter } from "./databaseConverter.js";
 import {
   fhirObservationConverter,
   fhirQuestionnaireConverter,
@@ -11,9 +13,7 @@ import {
   userConverter,
   userDeviceConverter,
   userMessageConverter,
-} from "@stanfordbdhg/myheartcounts-models";
-import { type Firestore } from "firebase-admin/firestore";
-import { DatabaseConverter } from "./databaseConverter.js";
+} from "../../models/index.js";
 import { historyChangeItemConverter } from "../history/historyService.js";
 
 export class CollectionsService {

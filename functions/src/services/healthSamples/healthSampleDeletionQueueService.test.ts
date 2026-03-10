@@ -3,10 +3,10 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { FHIRObservationStatus } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { Timestamp } from "firebase-admin/firestore";
 import { HealthSampleDeletionQueueService } from "./healthSampleDeletionQueueService.js";
+import { FHIRObservationStatus } from "../../models/index.js";
 import { describeWithEmulators } from "../../tests/functions/testEnvironment.js";
 
 describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {

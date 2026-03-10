@@ -3,15 +3,15 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { expect } from "chai";
+import { logger } from "firebase-functions";
 import {
   FHIRQuestionnaireResponse,
   QuestionnaireReference,
   UserMessage,
   UserMessageType,
   CachingStrategy,
-} from "@stanfordbdhg/myheartcounts-models";
-import { expect } from "chai";
-import { logger } from "firebase-functions";
+} from "../../models/index.js";
 import { TriggerServiceImpl } from "../../services/trigger/triggerService.js";
 import { describeWithEmulators } from "../../tests/functions/testEnvironment.js";
 

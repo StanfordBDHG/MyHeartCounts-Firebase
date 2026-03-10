@@ -4,16 +4,16 @@
 // SPDX-License-Identifier: MIT
 
 import { setTimeout } from "timers/promises";
+import { type Auth } from "firebase-admin/auth";
+import { type UserRecord } from "firebase-functions/v1/auth";
+import { https, logger } from "firebase-functions/v2";
+import { type EnrollUserOptions, type UserService } from "./userService.js";
 import {
   advanceDateByDays,
   dateConverter,
   User,
   type UserAuth,
-} from "@stanfordbdhg/myheartcounts-models";
-import { type Auth } from "firebase-admin/auth";
-import { type UserRecord } from "firebase-functions/v1/auth";
-import { https, logger } from "firebase-functions/v2";
-import { type EnrollUserOptions, type UserService } from "./userService.js";
+} from "../../models/index.js";
 import {
   type Document,
   type DatabaseService,

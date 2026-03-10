@@ -40,11 +40,6 @@ jobs:
         with:
           package-json-path: "./functions/package.json"
 
-      - name: Update models package.json
-        uses: BellCubeDev/update-package-version-by-release-tag@v2
-        with:
-          package-json-path: "./functions/models/package.json"
-
       - name: Commit updated package.json files
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -53,7 +48,7 @@ jobs:
           APP_USER_ID=$(gh api "/users/${APP_SLUG}[bot]" --jq '.id')
           git config --local user.email "${APP_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
           git config --local user.name "${APP_SLUG}[bot]"
-          git add package.json functions/package.json functions/models/package.json
+          git add package.json functions/package.json
           git diff --staged --quiet || git commit -m "chore: update version to ${{ github.event.release.tag_name }}"
 
       - name: Push changes

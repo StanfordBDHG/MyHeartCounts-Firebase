@@ -3,11 +3,11 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { FHIRObservationStatus } from "@stanfordbdhg/myheartcounts-models";
 import admin from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import type { PendingHealthSampleDeletion } from "./pendingHealthSampleDeletion.js";
+import { FHIRObservationStatus } from "../../models/index.js";
 import { CollectionsService } from "../database/collections.js";
 
 const MAX_QUEUE_RETRIES = 10;

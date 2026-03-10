@@ -3,16 +3,16 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { logger } from "firebase-functions";
+// eslint-disable-next-line import/no-cycle
+import { _updateStaticData } from "../../functions/updateStaticData.js";
 import {
   type FHIRQuestionnaireResponse,
   type User,
   type CachingStrategy,
   StaticDataComponent,
   type UserRegistration,
-} from "@stanfordbdhg/myheartcounts-models";
-import { logger } from "firebase-functions";
-// eslint-disable-next-line import/no-cycle
-import { _updateStaticData } from "../../functions/updateStaticData.js";
+} from "../../models/index.js";
 import { type Document } from "../database/databaseService.js";
 import { type ServiceFactory } from "../factory/serviceFactory.js";
 

@@ -5,11 +5,11 @@
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
-import { type UserAuth } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import admin from "firebase-admin";
 import { describe } from "mocha";
 import { type UserService } from "./userService.js";
+import { type UserAuth } from "../../models/index.js";
 import { type MockFirestore } from "../../tests/mocks/firestore.js";
 import { cleanupMocks, setupMockFirebase } from "../../tests/setup.js";
 import { CollectionsService } from "../database/collections.js";

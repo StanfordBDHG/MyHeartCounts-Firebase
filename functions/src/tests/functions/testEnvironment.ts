@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: MIT
 
 import http from "http";
-import { Lazy, User } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import admin from "firebase-admin";
 import { type DocumentSnapshot, Timestamp } from "firebase-admin/firestore";
@@ -14,6 +13,7 @@ import {
   type CallableRequest,
 } from "firebase-functions/v2/https";
 import firebaseFunctionsTest from "firebase-functions-test";
+import { Lazy, User } from "../../models/index.js";
 import { CollectionsService } from "../../services/database/collections.js";
 import { getServiceFactory } from "../../services/factory/getServiceFactory.js";
 import { type ServiceFactory } from "../../services/factory/serviceFactory.js";

@@ -3,12 +3,9 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import {
-  FHIRQuestionnaireResponse,
-  Score,
-} from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { describe, it } from "mocha";
+import { FHIRQuestionnaireResponse, Score } from "../../../models/index.js";
 import type { DatabaseService } from "../../../services/database/databaseService.js";
 import {
   DefaultWho5ScoreCalculator,
