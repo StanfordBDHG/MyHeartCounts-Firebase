@@ -346,7 +346,14 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
+        const notificationTime =
+          userData.preferredNotificationTime ?? "09:00";
+        if (!userData.preferredNotificationTime) {
+          logger.warn(
+            `User ${userId} has no preferred notification time for LLM prompt. Assuming 09:00 as default.`,
+          );
+        }
+        const notificationTimeContext = `This user prefers to receive recommendation at ${notificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
 
         const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user to increase their daily physical activity, prioritizing movement that contributes to their step count. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk forms of movement without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: " +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`;
 
@@ -449,9 +456,10 @@ export class NudgeService {
     category: string,
   ): Promise<number> {
     if (!userData.preferredNotificationTime) {
-      throw new Error(
-        `User ${userId} is missing required field: preferredNotificationTime`,
+      logger.warn(
+        `User ${userId} has no preferred notification time in createNudgesForUser. Assuming 09:00 as default.`,
       );
+      userData.preferredNotificationTime = "09:00";
     }
 
     if (!userData.timeZone) {
@@ -563,12 +571,10 @@ export class NudgeService {
         }
 
         if (userData.preferredNotificationTime === undefined) {
-          logger.error(
-            `User ${userId} has no preferred notification time. Cannot create nudges.`,
+          logger.warn(
+            `User ${userId} has no preferred notification time. Assuming 09:00 as default.`,
           );
-          throw new Error(
-            `User ${userId} is missing required field: preferredNotificationTime`,
-          );
+          userData.preferredNotificationTime = "09:00";
         }
 
         if (!userData.didOptInToTrial) {
