@@ -347,10 +347,12 @@ export class NudgeService {
         }
 
         // Build preferred notification time
+        const rawNotifTime = userData.preferredNotificationTime?.trim();
         const notificationTime =
-          userData.preferredNotificationTime?.trim() ||
-          NudgeService.DEFAULT_NOTIFICATION_TIME;
-        if (notificationTime === NudgeService.DEFAULT_NOTIFICATION_TIME && userData.preferredNotificationTime?.trim() !== NudgeService.DEFAULT_NOTIFICATION_TIME) {
+          rawNotifTime !== undefined && rawNotifTime !== "" ?
+            rawNotifTime
+          : NudgeService.DEFAULT_NOTIFICATION_TIME;
+        if (notificationTime !== rawNotifTime) {
           logger.warn(
             `User ${userId} has no preferred notification time for LLM prompt. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
           );
@@ -457,10 +459,12 @@ export class NudgeService {
     nudges: NudgeMessage[],
     category: string,
   ): Promise<number> {
+    const rawPrefTime = userData.preferredNotificationTime?.trim();
     const preferredTime =
-      userData.preferredNotificationTime?.trim() ||
-      NudgeService.DEFAULT_NOTIFICATION_TIME;
-    if (preferredTime === NudgeService.DEFAULT_NOTIFICATION_TIME && !userData.preferredNotificationTime?.trim()) {
+      rawPrefTime !== undefined && rawPrefTime !== "" ?
+        rawPrefTime
+      : NudgeService.DEFAULT_NOTIFICATION_TIME;
+    if (preferredTime !== rawPrefTime) {
       logger.warn(
         `User ${userId} has no preferred notification time in createNudgesForUser. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
       );
@@ -572,8 +576,7 @@ export class NudgeService {
           continue;
         }
 
-        const rawNotificationTime =
-          userData.preferredNotificationTime?.trim();
+        const rawNotificationTime = userData.preferredNotificationTime?.trim();
         if (!rawNotificationTime) {
           logger.warn(
             `User ${userId} has no preferred notification time. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
