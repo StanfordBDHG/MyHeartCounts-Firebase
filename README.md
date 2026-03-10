@@ -74,10 +74,9 @@ This section contains developer information to kickstart local- and cloud develo
 
 To use Firebase functions for your own project or to emulate them for client applications, this section will help to give an overview of the different packages in use and how to install, build, test and launch them.
 
-This repository contains two separate packages.
+This repository contains one additional package:
 
-- The package located in [functions/models](functions/models) contains model types including decoding/encoding functions and useful extensions that are shared between the Firebase functions.
-- The package located in [functions](functions) contains the Firebase functions and services that are called from these functions. This package has a local dependency on the package in [functions/models](functions/models). Therefore, the functions package does not work (e. g. for linting, building, etc) without building the models package first.
+- The package located in [functions](functions) contains the Firebase functions and services that are called from these functions.
 
 ### Project Scripts
 
