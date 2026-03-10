@@ -3,10 +3,10 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { CachingStrategy } from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import admin from "firebase-admin";
 import { type StaticDataService } from "./staticDataService.js";
+import { CachingStrategy } from "../../../models/index.js";
 import { cleanupMocks, setupMockFirebase } from "../../../tests/setup.js";
 import { getServiceFactory } from "../../factory/getServiceFactory.js";
 

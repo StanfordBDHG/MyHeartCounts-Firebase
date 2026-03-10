@@ -3,13 +3,10 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import {
-  CachingStrategy,
-  StaticDataComponent,
-} from "@stanfordbdhg/myheartcounts-models";
 import { expect } from "chai";
 import { it } from "mocha";
 import { _updateStaticData } from "./updateStaticData.js";
+import { CachingStrategy, StaticDataComponent } from "../models/index.js";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
 
 describeWithEmulators("function: updateStaticData", (env) => {

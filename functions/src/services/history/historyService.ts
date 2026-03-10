@@ -3,13 +3,10 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import {
-  dateConverter,
-  SchemaConverter,
-} from "@stanfordbdhg/myheartcounts-models";
 import { type DocumentSnapshot } from "firebase-admin/firestore";
 import { type Change } from "firebase-functions";
 import { z } from "zod";
+import { dateConverter, SchemaConverter } from "../../models/index.js";
 
 export const historyChangeItemConverter = new SchemaConverter({
   schema: z.object({

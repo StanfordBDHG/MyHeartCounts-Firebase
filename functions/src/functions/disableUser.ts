@@ -3,11 +3,11 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
 import {
   disableUserInputSchema,
   type DisableUserOutput,
-} from "@stanfordbdhg/myheartcounts-models";
-import { validatedOnCall, privilegedServiceAccount } from "./helpers.js";
+} from "../models/index.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const disableUser = validatedOnCall(

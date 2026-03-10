@@ -3,8 +3,8 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { User, type UserAuth } from "@stanfordbdhg/myheartcounts-models";
 import { type EnrollUserOptions, type UserService } from "./userService.js";
+import { User, type UserAuth } from "../../models/index.js";
 import { type Document } from "../database/databaseService.js";
 
 export class MockUserService implements UserService {

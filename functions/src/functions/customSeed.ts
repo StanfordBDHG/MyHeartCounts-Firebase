@@ -3,8 +3,8 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { customSeedingOptionsSchema } from "@stanfordbdhg/myheartcounts-models";
 import { validatedOnRequest, privilegedServiceAccount } from "./helpers.js";
+import { customSeedingOptionsSchema } from "../models/index.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const customSeed = validatedOnRequest(

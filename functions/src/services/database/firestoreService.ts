@@ -3,7 +3,6 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { Lazy } from "@stanfordbdhg/myheartcounts-models";
 import {
   type BulkWriter,
   type BulkWriterOptions,
@@ -12,6 +11,7 @@ import {
 } from "firebase-admin/firestore";
 import { CollectionsService } from "./collections.js";
 import { type Document, type DatabaseService } from "./databaseService.js";
+import { Lazy } from "../../models/index.js";
 
 export class FirestoreService implements DatabaseService {
   // Properties

@@ -3,7 +3,6 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import { type SchemaConverter } from "@stanfordbdhg/myheartcounts-models";
 import {
   type DocumentData,
   type DocumentSnapshot,
@@ -11,6 +10,7 @@ import {
 } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { type z } from "zod";
+import { type SchemaConverter } from "../../models/index.js";
 
 export class DatabaseConverter<
   Schema extends z.ZodTypeAny,

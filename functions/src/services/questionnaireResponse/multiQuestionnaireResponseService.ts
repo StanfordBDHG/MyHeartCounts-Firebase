@@ -3,8 +3,8 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
-import type { FHIRQuestionnaireResponse } from "@stanfordbdhg/myheartcounts-models";
 import { QuestionnaireResponseService } from "./questionnaireResponseService.js";
+import type { FHIRQuestionnaireResponse } from "../../models/index.js";
 import type { Document } from "../database/databaseService.js";
 
 export class MultiQuestionnaireResponseService extends QuestionnaireResponseService {

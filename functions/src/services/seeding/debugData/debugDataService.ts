@@ -3,6 +3,10 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { type Auth } from "firebase-admin/auth";
+import { type CollectionReference } from "firebase-admin/firestore";
+import { type Storage } from "firebase-admin/storage";
+import { logger } from "firebase-functions";
 import {
   advanceDateByDays,
   type CustomSeedingOptions,
@@ -13,11 +17,7 @@ import {
   UserMessage,
   type UserSeedingOptions,
   userSeedingOptionsSchema,
-} from "@stanfordbdhg/myheartcounts-models";
-import { type Auth } from "firebase-admin/auth";
-import { type CollectionReference } from "firebase-admin/firestore";
-import { type Storage } from "firebase-admin/storage";
-import { logger } from "firebase-functions";
+} from "../../../models/index.js";
 import { type CollectionsService } from "../../database/collections.js";
 import { type DatabaseService } from "../../database/databaseService.js";
 import { SeedingService } from "../seedingService.js";

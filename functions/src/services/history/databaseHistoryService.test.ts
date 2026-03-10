@@ -3,13 +3,13 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { expect } from "chai";
+import { it } from "mocha";
 import {
   UserDevice,
   userDeviceConverter,
   UserDevicePlatform,
-} from "@stanfordbdhg/myheartcounts-models";
-import { expect } from "chai";
-import { it } from "mocha";
+} from "../../models/index.js";
 import { describeWithEmulators } from "../../tests/functions/testEnvironment.js";
 
 describeWithEmulators("DatabaseHistoryService", (env) => {

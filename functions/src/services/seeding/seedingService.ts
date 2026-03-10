@@ -4,10 +4,10 @@
 // SPDX-License-Identifier: MIT
 
 import fs from "fs";
-import { CachingStrategy } from "@stanfordbdhg/myheartcounts-models";
 import { type CollectionReference } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { z } from "zod";
+import { CachingStrategy } from "../../models/index.js";
 
 export interface SeedingOptions {
   useIndicesAsKeys: boolean;

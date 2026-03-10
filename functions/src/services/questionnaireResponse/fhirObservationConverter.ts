@@ -3,13 +3,13 @@
 // SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 // SPDX-License-Identifier: MIT
 
+import { getPackageVersion } from "../../helpers/packageVersion.js";
 import {
   FHIRObservation,
   FHIRObservationStatus,
   type Score,
   type FHIRCodeableConcept,
-} from "@stanfordbdhg/myheartcounts-models";
-import { getPackageVersion } from "../../helpers/packageVersion.js";
+} from "../../models/index.js";
 
 export interface QuestionnaireObservationConfig {
   customCode: string;
