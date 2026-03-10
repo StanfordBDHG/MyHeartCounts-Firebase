@@ -346,8 +346,7 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTime =
-          userData.preferredNotificationTime ?? "09:00";
+        const notificationTime = userData.preferredNotificationTime ?? "09:00";
         if (!userData.preferredNotificationTime) {
           logger.warn(
             `User ${userId} has no preferred notification time for LLM prompt. Assuming 09:00 as default.`,
