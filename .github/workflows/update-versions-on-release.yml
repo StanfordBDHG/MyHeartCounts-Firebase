@@ -40,11 +40,6 @@ jobs:
         with:
           package-json-path: "./functions/package.json"
 
-      - name: Update models package.json
-        uses: BellCubeDev/update-package-version-by-release-tag@v2
-        with:
-          package-json-path: "./functions/models/package.json"
-
       - name: Commit updated package.json files
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
