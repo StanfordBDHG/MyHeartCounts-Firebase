@@ -23,7 +23,6 @@ interface MarkHealthSamplesEnteredInErrorOutput {
   status: "accepted" | "processing";
   jobId: string;
   totalSamples: number;
-  estimatedDurationMinutes: number;
   message: string;
 }
 
@@ -60,48 +59,46 @@ export const deleteHealthSamples = validatedOnCall(
     }
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000);
 
     logger.info(
-      `User '${credential.userId}' initiated async entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
+      `User '${credential.userId}' initiated entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
       {
         jobId,
         requestingUserId: credential.userId,
         targetUserId: userId,
         collection,
         samplesCount: documentIds.length,
-        estimatedDurationMinutes,
       },
     );
 
     const deletionService = new HealthSampleDeletionService();
-    deletionService
-      .processHealthSamplesEnteredInError(
+
+    try {
+      await deletionService.processHealthSamplesEnteredInError(
         jobId,
         credential.userId,
         userId,
         collection,
         documentIds,
-      )
-      .catch((error: unknown) => {
-        logger.error(
-          `Async entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
-          {
-            jobId,
-            requestingUserId: credential.userId,
-            targetUserId: userId,
-            collection,
-            error: String(error),
-          },
-        );
-      });
+      );
+    } catch (error: unknown) {
+      logger.error(
+        `Entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
+        {
+          jobId,
+          requestingUserId: credential.userId,
+          targetUserId: userId,
+          collection,
+          error: String(error),
+        },
+      );
+    }
 
     return {
       status: "accepted",
       jobId,
       totalSamples: documentIds.length,
-      estimatedDurationMinutes,
-      message: `Marking job started. Processing ${documentIds.length} samples as entered-in-error asynchronously.`,
+      message: `Marking job completed. Processed ${documentIds.length} samples as entered-in-error.`,
     };
   },
   {

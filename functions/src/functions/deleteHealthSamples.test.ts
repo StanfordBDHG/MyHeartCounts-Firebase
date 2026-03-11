@@ -94,9 +94,8 @@ describeWithEmulators(
       expect(result.status).to.equal("accepted");
       expect(result.jobId).to.be.a("string");
       expect(result.totalSamples).to.equal(1);
-      expect(result.estimatedDurationMinutes).to.be.a("number");
       expect(result.message).to.include(
-        "Processing 1 samples as entered-in-error asynchronously",
+        "Processed 1 samples as entered-in-error",
       );
     });
 
@@ -135,9 +134,6 @@ describeWithEmulators(
         { uid: userId },
       );
 
-      // Wait for the async background processing to complete
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
       const snapshot = await admin
         .firestore()
         .collection("pendingHealthSampleDeletions")
@@ -175,7 +171,7 @@ describeWithEmulators(
       expect(result.totalSamples).to.equal(1000);
       expect(result.estimatedDurationMinutes).to.equal(1); // 1000 samples = 1 minute
       expect(result.message).to.include(
-        "Processing 1000 samples as entered-in-error asynchronously",
+        "Processed 1000 samples as entered-in-error",
       );
     });
   },
