@@ -20,10 +20,13 @@ const markHealthSamplesEnteredInErrorInputSchema = z.object({
 });
 
 interface MarkHealthSamplesEnteredInErrorOutput {
-  status: "accepted" | "processing";
+  status: "accepted";
   jobId: string;
   totalSamples: number;
-  estimatedDurationMinutes: number;
+  totalMarked: number;
+  totalQueued: number;
+  totalSkipped: number;
+  totalFailed: number;
   message: string;
 }
 
@@ -60,48 +63,55 @@ export const deleteHealthSamples = validatedOnCall(
     }
 
     const jobId = `del_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-    const estimatedDurationMinutes = Math.ceil(documentIds.length / 1000);
 
     logger.info(
-      `User '${credential.userId}' initiated async entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
+      `User '${credential.userId}' initiated entered-in-error marking job '${jobId}' for ${documentIds.length} health samples in collection '${collection}' for user '${userId}'`,
       {
         jobId,
         requestingUserId: credential.userId,
         targetUserId: userId,
         collection,
         samplesCount: documentIds.length,
-        estimatedDurationMinutes,
       },
     );
 
     const deletionService = new HealthSampleDeletionService();
-    deletionService
-      .processHealthSamplesEnteredInError(
+
+    let summary;
+    try {
+      summary = await deletionService.processHealthSamplesEnteredInError(
         jobId,
         credential.userId,
         userId,
         collection,
         documentIds,
-      )
-      .catch((error: unknown) => {
-        logger.error(
-          `Async entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
-          {
-            jobId,
-            requestingUserId: credential.userId,
-            targetUserId: userId,
-            collection,
-            error: String(error),
-          },
-        );
-      });
+      );
+    } catch (error: unknown) {
+      logger.error(
+        `Entered-in-error marking job '${jobId}' failed with error: ${String(error)}`,
+        {
+          jobId,
+          requestingUserId: credential.userId,
+          targetUserId: userId,
+          collection,
+          error: String(error),
+        },
+      );
+      throw new https.HttpsError(
+        "internal",
+        `Entered-in-error marking job '${jobId}' failed`,
+      );
+    }
 
     return {
       status: "accepted",
       jobId,
       totalSamples: documentIds.length,
-      estimatedDurationMinutes,
-      message: `Marking job started. Processing ${documentIds.length} samples as entered-in-error asynchronously.`,
+      totalMarked: summary.totalMarked,
+      totalQueued: summary.totalQueued,
+      totalSkipped: summary.totalSkipped,
+      totalFailed: summary.totalFailed,
+      message: `Marking job completed. ${summary.totalMarked} marked, ${summary.totalQueued} queued for retry, ${summary.totalSkipped} skipped, ${summary.totalFailed} failed out of ${documentIds.length} samples.`,
     };
   },
   {
