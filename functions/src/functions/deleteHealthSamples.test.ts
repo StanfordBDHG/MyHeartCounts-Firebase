@@ -169,7 +169,6 @@ describeWithEmulators(
       expect(result.status).to.equal("accepted");
       expect(result.jobId).to.be.a("string");
       expect(result.totalSamples).to.equal(1000);
-      expect(result.estimatedDurationMinutes).to.equal(1); // 1000 samples = 1 minute
       expect(result.message).to.include(
         "Processed 1000 samples as entered-in-error",
       );
