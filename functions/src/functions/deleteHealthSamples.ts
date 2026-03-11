@@ -20,7 +20,7 @@ const markHealthSamplesEnteredInErrorInputSchema = z.object({
 });
 
 interface MarkHealthSamplesEnteredInErrorOutput {
-  status: "accepted" | "processing";
+  status: "accepted";
   jobId: string;
   totalSamples: number;
   totalMarked: number;
