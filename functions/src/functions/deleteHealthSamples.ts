@@ -23,6 +23,10 @@ interface MarkHealthSamplesEnteredInErrorOutput {
   status: "accepted" | "processing";
   jobId: string;
   totalSamples: number;
+  totalMarked: number;
+  totalQueued: number;
+  totalSkipped: number;
+  totalFailed: number;
   message: string;
 }
 
@@ -73,8 +77,9 @@ export const deleteHealthSamples = validatedOnCall(
 
     const deletionService = new HealthSampleDeletionService();
 
+    let summary;
     try {
-      await deletionService.processHealthSamplesEnteredInError(
+      summary = await deletionService.processHealthSamplesEnteredInError(
         jobId,
         credential.userId,
         userId,
@@ -102,7 +107,11 @@ export const deleteHealthSamples = validatedOnCall(
       status: "accepted",
       jobId,
       totalSamples: documentIds.length,
-      message: `Marking job completed. Processed ${documentIds.length} samples as entered-in-error.`,
+      totalMarked: summary.totalMarked,
+      totalQueued: summary.totalQueued,
+      totalSkipped: summary.totalSkipped,
+      totalFailed: summary.totalFailed,
+      message: `Marking job completed. ${summary.totalMarked} marked, ${summary.totalQueued} queued for retry, ${summary.totalSkipped} skipped, ${summary.totalFailed} failed out of ${documentIds.length} samples.`,
     };
   },
   {
