@@ -63,6 +63,7 @@ interface NudgeMessage extends BaseNudgeMessage {
 export class NudgeService {
   // Properties
 
+  private static readonly DEFAULT_NOTIFICATION_TIME = "09:00";
   private readonly firestore: admin.firestore.Firestore;
 
   // Constructor
@@ -346,7 +347,17 @@ export class NudgeService {
         }
 
         // Build preferred notification time
-        const notificationTimeContext = `This user prefers to receive recommendation at ${userData.preferredNotificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
+        const rawNotifTime = userData.preferredNotificationTime?.trim();
+        const notificationTime =
+          rawNotifTime !== undefined && rawNotifTime !== "" ?
+            rawNotifTime
+          : NudgeService.DEFAULT_NOTIFICATION_TIME;
+        if (notificationTime !== rawNotifTime) {
+          logger.warn(
+            `User ${userId} has no preferred notification time for LLM prompt. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
+          );
+        }
+        const notificationTimeContext = `This user prefers to receive recommendation at ${notificationTime}. Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they recieve the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
 
         const prompt = `"Write 7 motivational messages that are proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user to increase their daily physical activity, prioritizing movement that contributes to their step count. Also create a title for each of push notifications that is a short summary/call to action of the push notification that is paired with it. Return the response as a JSON array with exactly 7 objects, each having "title" and "body" fields. If there is a disease context given, you can reference that disease in some of the nudges. When generating nudges, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk forms of movement without adding extra exercises or medical disclaimers not provided. Keep messages concise, calm, and practical; focus on one clear activity with plain language. Keep recommendations practical, varied, and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. Each nudge should be personalized to the following information: " +  ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} + "Think carefully before delivering the prompts to ensure they are personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`;
 
@@ -448,9 +459,14 @@ export class NudgeService {
     nudges: NudgeMessage[],
     category: string,
   ): Promise<number> {
-    if (!userData.preferredNotificationTime) {
-      throw new Error(
-        `User ${userId} is missing required field: preferredNotificationTime`,
+    const rawPrefTime = userData.preferredNotificationTime?.trim();
+    const preferredTime =
+      rawPrefTime !== undefined && rawPrefTime !== "" ?
+        rawPrefTime
+      : NudgeService.DEFAULT_NOTIFICATION_TIME;
+    if (preferredTime !== rawPrefTime) {
+      logger.warn(
+        `User ${userId} has no preferred notification time in createNudgesForUser. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
       );
     }
 
@@ -463,8 +479,6 @@ export class NudgeService {
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
       const nudgeMessage = nudges[dayIndex];
       const nudgeId = randomUUID().toUpperCase();
-
-      const preferredTime = userData.preferredNotificationTime;
       const [hourStr, minuteStr] = preferredTime.split(":");
       const hour = Number(hourStr);
       const minute = Number(minuteStr);
@@ -562,13 +576,15 @@ export class NudgeService {
           continue;
         }
 
-        if (userData.preferredNotificationTime === undefined) {
-          logger.error(
-            `User ${userId} has no preferred notification time. Cannot create nudges.`,
+        const rawNotificationTime = userData.preferredNotificationTime?.trim();
+        if (!rawNotificationTime) {
+          logger.warn(
+            `User ${userId} has no preferred notification time. Assuming ${NudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
           );
-          throw new Error(
-            `User ${userId} is missing required field: preferredNotificationTime`,
-          );
+          userData.preferredNotificationTime =
+            NudgeService.DEFAULT_NOTIFICATION_TIME;
+        } else {
+          userData.preferredNotificationTime = rawNotificationTime;
         }
 
         if (!userData.didOptInToTrial) {

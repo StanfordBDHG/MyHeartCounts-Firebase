@@ -325,6 +325,52 @@ describeWithEmulators("function: planNudges", (env) => {
       const userData = userDoc.data();
       expect(userData?.triggerNudgeGeneration).to.be.false;
     });
+
+    it("falls back to 09:00 when preferredNotificationTime is missing", async () => {
+      const enrollmentDate = new Date();
+      enrollmentDate.setDate(enrollmentDate.getDate() - 7);
+
+      const userId = "test-user-no-notif-time";
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .set({
+          timeZone: "America/New_York",
+          dateOfEnrollment: admin.firestore.Timestamp.fromDate(enrollmentDate),
+          participantGroup: 1,
+          userLanguage: "en",
+          didOptInToTrial: true,
+        });
+
+      await createNudgeNotifications();
+
+      const backlogSnapshot = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .orderBy("timestamp")
+        .get();
+
+      expect(backlogSnapshot.size).to.equal(7);
+
+      const firstNudge = backlogSnapshot.docs[0].data();
+      expect(firstNudge.category).to.equal("nudge-predefined");
+      expect(firstNudge.title).to.be.a("string");
+      expect(firstNudge.body).to.be.a("string");
+
+      // Verify that the fallback time of 09:00 was used
+      const timestamps = backlogSnapshot.docs.map(
+        (doc) => doc.data().timestamp as Timestamp,
+      );
+      for (const timestamp of timestamps) {
+        const utcDate = timestamp.toDate();
+        const localDateTime = DateTime.fromJSDate(utcDate, {
+          zone: "America/New_York",
+        });
+        expect(localDateTime.hour).to.equal(9);
+        expect(localDateTime.minute).to.equal(0);
+      }
+    });
   });
 
   describe("Time zone handling", () => {
