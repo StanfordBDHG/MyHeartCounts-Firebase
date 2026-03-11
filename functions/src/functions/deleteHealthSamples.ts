@@ -92,6 +92,10 @@ export const deleteHealthSamples = validatedOnCall(
           error: String(error),
         },
       );
+      throw new https.HttpsError(
+        "internal",
+        `Entered-in-error marking job '${jobId}' failed`,
+      );
     }
 
     return {
