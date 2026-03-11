@@ -136,9 +136,6 @@ export class NotificationService {
 
         // Skip users who have withdrawn from the study
         if (userData.hasWithdrawnFromStudy === true) {
-          logger.error(
-            `Skipping notifications for user ${userId} - withdrawn from study`,
-          );
           continue;
         }
 
