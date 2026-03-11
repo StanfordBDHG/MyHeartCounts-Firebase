@@ -94,9 +94,8 @@ describeWithEmulators(
       expect(result.status).to.equal("accepted");
       expect(result.jobId).to.be.a("string");
       expect(result.totalSamples).to.equal(1);
-      expect(result.message).to.include(
-        "Processed 1 samples as entered-in-error",
-      );
+      expect(result.message).to.include("Marking job completed.");
+      expect(result.message).to.include("out of 1 samples");
     });
 
     it("should deny access to other users samples", async () => {
@@ -169,9 +168,8 @@ describeWithEmulators(
       expect(result.status).to.equal("accepted");
       expect(result.jobId).to.be.a("string");
       expect(result.totalSamples).to.equal(1000);
-      expect(result.message).to.include(
-        "Processed 1000 samples as entered-in-error",
-      );
+      expect(result.message).to.include("Marking job completed.");
+      expect(result.message).to.include("out of 1000 samples");
     });
   },
 );
