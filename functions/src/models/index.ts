@@ -16,6 +16,7 @@ export * from "./fhir/fhirObservation.js";
 export * from "./fhir/fhirQuestionnaire.js";
 export * from "./fhir/fhirQuestionnaireResponse.js";
 export * from "./functions/customSeed.js";
+export * from "./functions/joinWaitlist.js";
 export * from "./functions/updateStaticData.js";
 export * from "./functions/updateUserInformation.js";
 export * from "./helpers/date+extras.js";
