@@ -76,4 +76,40 @@ describeWithEmulators("function: joinWaitlist", (env) => {
     const snapshot = await env.firestore.collection("waitlist").get();
     expect(snapshot.docs).to.have.lengthOf(2);
   });
+
+  it("is idempotent for duplicate region and email", async () => {
+    await env.callAnonymous(joinWaitlist, {
+      region: "us-west",
+      email: "test@example.com",
+    });
+    await env.callAnonymous(joinWaitlist, {
+      region: "us-west",
+      email: "test@example.com",
+    });
+
+    const snapshot = await env.firestore.collection("waitlist").get();
+    expect(snapshot.docs).to.have.lengthOf(1);
+
+    const data = snapshot.docs[0].data();
+    expect(data.region).to.equal("us-west");
+    expect(data.email).to.equal("test@example.com");
+  });
+
+  it("normalizes email and region for idempotency", async () => {
+    await env.callAnonymous(joinWaitlist, {
+      region: "  US-West ",
+      email: " Test@Example.COM ",
+    });
+    await env.callAnonymous(joinWaitlist, {
+      region: "us-west",
+      email: "test@example.com",
+    });
+
+    const snapshot = await env.firestore.collection("waitlist").get();
+    expect(snapshot.docs).to.have.lengthOf(1);
+
+    const data = snapshot.docs[0].data();
+    expect(data.region).to.equal("us-west");
+    expect(data.email).to.equal("test@example.com");
+  });
 });
