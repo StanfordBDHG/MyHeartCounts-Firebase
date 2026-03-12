@@ -18,7 +18,7 @@ describeWithEmulators(
       await env.firestore
         .collection("users")
         .doc(userId)
-        .collection("heartRateObservations")
+        .collection("HealthObservations_HKQuantityTypeIdentifierHeartRate")
         .doc("doc1")
         .set({ status: "final", value: 72 });
 
@@ -29,7 +29,7 @@ describeWithEmulators(
         .collection("pendingHealthSampleDeletions")
         .add({
           userId,
-          collection: "heartRateObservations",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
           documentId: "doc1",
           jobId: "job1",
           requestingUserId: userId,

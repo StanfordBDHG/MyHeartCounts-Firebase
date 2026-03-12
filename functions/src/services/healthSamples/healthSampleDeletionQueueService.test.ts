@@ -20,7 +20,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
     it("should add an item to the pending deletions collection", async () => {
       await queueService.enqueue({
         userId: "user1",
-        collection: "heartRateObservations",
+        collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
         documentId: "doc1",
         jobId: "job1",
         requestingUserId: "user1",
@@ -37,7 +37,9 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
 
       const data = snapshot.docs[0].data();
       expect(data.userId).to.equal("user1");
-      expect(data.collection).to.equal("heartRateObservations");
+      expect(data.collection).to.equal(
+        "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+      );
       expect(data.documentId).to.equal("doc1");
       expect(data.jobId).to.equal("job1");
       expect(data.reason).to.equal("NOT_FOUND");
@@ -50,7 +52,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
 
       await queueService.enqueue({
         userId: "user1",
-        collection: "heartRateObservations",
+        collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
         documentId: "doc1",
         jobId: "job1",
         requestingUserId: "user1",
@@ -74,7 +76,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
 
       await queueService.enqueue({
         userId: "user1",
-        collection: "heartRateObservations",
+        collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
         documentId: "doc1",
         jobId: "job1",
         requestingUserId: "user1",
@@ -110,7 +112,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       await env.firestore
         .collection("users")
         .doc(userId)
-        .collection("heartRateObservations")
+        .collection("HealthObservations_HKQuantityTypeIdentifierHeartRate")
         .doc("doc1")
         .set({ status: "final", value: 72 });
 
@@ -121,7 +123,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .collection("pendingHealthSampleDeletions")
         .add({
           userId,
-          collection: "heartRateObservations",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
           documentId: "doc1",
           jobId: "job1",
           requestingUserId: userId,
@@ -140,7 +142,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       const doc = await env.firestore
         .collection("users")
         .doc(userId)
-        .collection("heartRateObservations")
+        .collection("HealthObservations_HKQuantityTypeIdentifierHeartRate")
         .doc("doc1")
         .get();
       expect(doc.data()?.status).to.equal(
@@ -164,7 +166,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .collection("pendingHealthSampleDeletions")
         .add({
           userId: "nonexistent-user",
-          collection: "heartRateObservations",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
           documentId: "nonexistent-doc",
           jobId: "job1",
           requestingUserId: "user1",
@@ -195,7 +197,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .collection("pendingHealthSampleDeletions")
         .add({
           userId: "nonexistent-user",
-          collection: "heartRateObservations",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
           documentId: "nonexistent-doc",
           jobId: "job1",
           requestingUserId: "user1",
@@ -231,6 +233,84 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       expect(failedData.failedAt).to.be.an.instanceOf(Timestamp);
     });
 
+    it("should skip items where payload userId does not match path owner", async () => {
+      // Create queue doc under user1 but payload says user2
+      await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId: "user2",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: "user1",
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
+
+      const result = await queueService.processQueue();
+      expect(result.skipped).to.equal(1);
+      expect(result.succeeded).to.equal(0);
+
+      // Verify the invalid item was removed from queue
+      const snapshot = await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .get();
+      expect(snapshot.size).to.equal(0);
+    });
+
+    it("should skip items with disallowed collection name", async () => {
+      await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId: "user1",
+          collection: "../../admin/secrets",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: "user1",
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
+
+      const result = await queueService.processQueue();
+      expect(result.skipped).to.equal(1);
+      expect(result.succeeded).to.equal(0);
+    });
+
+    it("should skip items with invalid documentId containing path separator", async () => {
+      await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId: "user1",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+          documentId: "../../otherCollection/otherDoc",
+          jobId: "job1",
+          requestingUserId: "user1",
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
+
+      const result = await queueService.processQueue();
+      expect(result.skipped).to.equal(1);
+      expect(result.succeeded).to.equal(0);
+    });
+
     it("should not process items with future nextRetryAt", async () => {
       await env.firestore
         .collection("users")
@@ -238,7 +318,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .collection("pendingHealthSampleDeletions")
         .add({
           userId: "user1",
-          collection: "heartRateObservations",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
           documentId: "doc1",
           jobId: "job1",
           requestingUserId: "user1",

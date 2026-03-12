@@ -18,6 +18,11 @@ const MAX_BACKOFF_MS = 3_600_000;
 const NOT_FOUND_BASE_DELAY_MS = 30_000;
 const TRANSIENT_ERROR_BASE_DELAY_MS = 60_000;
 
+const PERMITTED_COLLECTION_PATTERN =
+  /^(?:HealthObservations|SensorKitObservations)_[A-Za-z][A-Za-z0-9]*$/;
+
+const VALID_REASONS = new Set(["TRANSIENT_ERROR", "NOT_FOUND"]);
+
 export class HealthSampleDeletionQueueService {
   private readonly collections: CollectionsService;
 
@@ -64,6 +69,7 @@ export class HealthSampleDeletionQueueService {
     succeeded: number;
     requeued: number;
     deadLettered: number;
+    skipped: number;
   }> {
     const now = Timestamp.now();
     const snapshot = await this.collections.allPendingHealthSampleDeletions
@@ -74,7 +80,13 @@ export class HealthSampleDeletionQueueService {
 
     if (snapshot.empty) {
       logger.info("No pending health sample deletions to process");
-      return { processed: 0, succeeded: 0, requeued: 0, deadLettered: 0 };
+      return {
+        processed: 0,
+        succeeded: 0,
+        requeued: 0,
+        deadLettered: 0,
+        skipped: 0,
+      };
     }
 
     logger.info(`Processing ${snapshot.size} pending health sample deletions`, {
@@ -84,6 +96,7 @@ export class HealthSampleDeletionQueueService {
     let succeeded = 0;
     let requeued = 0;
     let deadLettered = 0;
+    let skipped = 0;
 
     const results = await this.runWithConcurrencyLimit(
       snapshot.docs,
@@ -103,6 +116,9 @@ export class HealthSampleDeletionQueueService {
           case "dead-lettered":
             deadLettered++;
             break;
+          case "skipped":
+            skipped++;
+            break;
         }
       } else {
         logger.error(
@@ -112,8 +128,8 @@ export class HealthSampleDeletionQueueService {
     }
 
     logger.info(
-      `Queue processing complete: ${succeeded} succeeded, ${requeued} requeued, ${deadLettered} dead-lettered`,
-      { processed: snapshot.size, succeeded, requeued, deadLettered },
+      `Queue processing complete: ${succeeded} succeeded, ${requeued} requeued, ${deadLettered} dead-lettered, ${skipped} skipped`,
+      { processed: snapshot.size, succeeded, requeued, deadLettered, skipped },
     );
 
     return {
@@ -121,16 +137,88 @@ export class HealthSampleDeletionQueueService {
       succeeded,
       requeued,
       deadLettered,
+      skipped,
     };
+  }
+
+  private parseOwnerUserId(
+    doc: FirebaseFirestore.QueryDocumentSnapshot,
+  ): string | null {
+    // Path: users/{userId}/pendingHealthSampleDeletions/{docId}
+    const segments = doc.ref.path.split("/");
+    if (
+      segments.length === 4 &&
+      segments[0] === "users" &&
+      segments[2] === "pendingHealthSampleDeletions" &&
+      segments[1].length > 0
+    ) {
+      return segments[1];
+    }
+    return null;
+  }
+
+  private validateQueueItem(
+    item: PendingHealthSampleDeletion,
+    ownerUserId: string,
+  ): string | null {
+    if (item.userId !== ownerUserId) {
+      return `payload userId '${item.userId}' does not match path-derived owner '${ownerUserId}'`;
+    }
+    if (
+      typeof item.collection !== "string" ||
+      !PERMITTED_COLLECTION_PATTERN.test(item.collection)
+    ) {
+      return `collection '${String(item.collection)}' is not a permitted collection name`;
+    }
+    if (
+      typeof item.documentId !== "string" ||
+      item.documentId.length === 0 ||
+      item.documentId.includes("/")
+    ) {
+      return `invalid documentId '${String(item.documentId)}'`;
+    }
+    if (typeof item.retryCount !== "number" || item.retryCount < 0) {
+      return `invalid retryCount '${String(item.retryCount)}'`;
+    }
+    if (typeof item.reason !== "string" || !VALID_REASONS.has(item.reason)) {
+      return `invalid reason '${String(item.reason)}'`;
+    }
+    return null;
   }
 
   private async processQueueItem(
     doc: FirebaseFirestore.QueryDocumentSnapshot,
-  ): Promise<"succeeded" | "requeued" | "dead-lettered"> {
+  ): Promise<"succeeded" | "requeued" | "dead-lettered" | "skipped"> {
+    const ownerUserId = this.parseOwnerUserId(doc);
+    if (ownerUserId === null) {
+      logger.error(
+        `Skipping queue item with unexpected path: '${doc.ref.path}'`,
+      );
+      await doc.ref.delete();
+      return "skipped";
+    }
+
     const item = doc.data() as PendingHealthSampleDeletion;
+
+    const validationError = this.validateQueueItem(item, ownerUserId);
+    if (validationError !== null) {
+      logger.error(
+        `Skipping invalid queue item '${doc.ref.path}': ${validationError}`,
+        {
+          path: doc.ref.path,
+          ownerUserId,
+          payloadUserId: item.userId,
+          collection: item.collection,
+          documentId: item.documentId,
+        },
+      );
+      await doc.ref.delete();
+      return "skipped";
+    }
+
     const ref = this.collections.firestore
       .collection("users")
-      .doc(item.userId)
+      .doc(ownerUserId)
       .collection(item.collection)
       .doc(item.documentId);
 
@@ -146,7 +234,7 @@ export class HealthSampleDeletionQueueService {
           `Moving item to dead-letter after ${MAX_QUEUE_RETRIES} retries: '${item.documentId}' in '${item.collection}' for job '${item.jobId}'`,
           {
             jobId: item.jobId,
-            userId: item.userId,
+            userId: ownerUserId,
             collection: item.collection,
             documentId: item.documentId,
             retryCount: newRetryCount,
@@ -154,7 +242,7 @@ export class HealthSampleDeletionQueueService {
           },
         );
 
-        await this.collections.failedHealthSampleDeletions(item.userId).add({
+        await this.collections.failedHealthSampleDeletions(ownerUserId).add({
           ...item,
           retryCount: newRetryCount,
           lastError: String(error),
