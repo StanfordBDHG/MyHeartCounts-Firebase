@@ -23,18 +23,22 @@ describeWithEmulators(
         .set({ status: "final", value: 72 });
 
       // Add a pending deletion item with past nextRetryAt
-      await env.firestore.collection("pendingHealthSampleDeletions").add({
-        userId,
-        collection: "heartRateObservations",
-        documentId: "doc1",
-        jobId: "job1",
-        requestingUserId: userId,
-        reason: "NOT_FOUND",
-        lastError: null,
-        retryCount: 0,
-        createdAt: Timestamp.now(),
-        nextRetryAt: Timestamp.fromMillis(0),
-      });
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId,
+          collection: "heartRateObservations",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: userId,
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
 
       // Directly invoke the queue service (same as the scheduled function does)
       const queueService = new HealthSampleDeletionQueueService(env.firestore);
@@ -45,6 +49,8 @@ describeWithEmulators(
 
       // Verify queue is empty
       const pendingSnapshot = await env.firestore
+        .collection("users")
+        .doc(userId)
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(pendingSnapshot.size).to.equal(0);

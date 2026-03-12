@@ -29,6 +29,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       });
 
       const snapshot = await env.firestore
+        .collection("users")
+        .doc("user1")
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(snapshot.size).to.equal(1);
@@ -57,6 +59,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       });
 
       const snapshot = await env.firestore
+        .collection("users")
+        .doc("user1")
         .collection("pendingHealthSampleDeletions")
         .get();
       const data = snapshot.docs[0].data();
@@ -79,6 +83,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       });
 
       const snapshot = await env.firestore
+        .collection("users")
+        .doc("user1")
         .collection("pendingHealthSampleDeletions")
         .get();
       const data = snapshot.docs[0].data();
@@ -109,18 +115,22 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .set({ status: "final", value: 72 });
 
       // Enqueue with a past nextRetryAt so it's ready to process
-      await env.firestore.collection("pendingHealthSampleDeletions").add({
-        userId,
-        collection: "heartRateObservations",
-        documentId: "doc1",
-        jobId: "job1",
-        requestingUserId: userId,
-        reason: "NOT_FOUND",
-        lastError: null,
-        retryCount: 0,
-        createdAt: Timestamp.now(),
-        nextRetryAt: Timestamp.fromMillis(0),
-      });
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId,
+          collection: "heartRateObservations",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: userId,
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
 
       const result = await queueService.processQueue();
       expect(result.succeeded).to.equal(1);
@@ -139,6 +149,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
 
       // Verify the queue item was removed
       const queueSnapshot = await env.firestore
+        .collection("users")
+        .doc(userId)
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(queueSnapshot.size).to.equal(0);
@@ -146,24 +158,30 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
 
     it("should requeue a failed item with incremented retryCount", async () => {
       // Enqueue with a non-existent document (will fail on update)
-      await env.firestore.collection("pendingHealthSampleDeletions").add({
-        userId: "nonexistent-user",
-        collection: "heartRateObservations",
-        documentId: "nonexistent-doc",
-        jobId: "job1",
-        requestingUserId: "user1",
-        reason: "NOT_FOUND",
-        lastError: null,
-        retryCount: 0,
-        createdAt: Timestamp.now(),
-        nextRetryAt: Timestamp.fromMillis(0),
-      });
+      await env.firestore
+        .collection("users")
+        .doc("nonexistent-user")
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId: "nonexistent-user",
+          collection: "heartRateObservations",
+          documentId: "nonexistent-doc",
+          jobId: "job1",
+          requestingUserId: "user1",
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
 
       const result = await queueService.processQueue();
       expect(result.requeued).to.equal(1);
 
       // Verify retryCount was incremented
       const queueSnapshot = await env.firestore
+        .collection("users")
+        .doc("nonexistent-user")
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(queueSnapshot.size).to.equal(1);
@@ -171,30 +189,38 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
     });
 
     it("should move item to dead-letter after max retries", async () => {
-      await env.firestore.collection("pendingHealthSampleDeletions").add({
-        userId: "nonexistent-user",
-        collection: "heartRateObservations",
-        documentId: "nonexistent-doc",
-        jobId: "job1",
-        requestingUserId: "user1",
-        reason: "TRANSIENT_ERROR",
-        lastError: "Error: 4 DEADLINE_EXCEEDED",
-        retryCount: 9,
-        createdAt: Timestamp.now(),
-        nextRetryAt: Timestamp.fromMillis(0),
-      });
+      await env.firestore
+        .collection("users")
+        .doc("nonexistent-user")
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId: "nonexistent-user",
+          collection: "heartRateObservations",
+          documentId: "nonexistent-doc",
+          jobId: "job1",
+          requestingUserId: "user1",
+          reason: "TRANSIENT_ERROR",
+          lastError: "Error: 4 DEADLINE_EXCEEDED",
+          retryCount: 9,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
 
       const result = await queueService.processQueue();
       expect(result.deadLettered).to.equal(1);
 
       // Verify item was removed from pending
       const pendingSnapshot = await env.firestore
+        .collection("users")
+        .doc("nonexistent-user")
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(pendingSnapshot.size).to.equal(0);
 
       // Verify item was added to dead-letter
       const failedSnapshot = await env.firestore
+        .collection("users")
+        .doc("nonexistent-user")
         .collection("failedHealthSampleDeletions")
         .get();
       expect(failedSnapshot.size).to.equal(1);
@@ -206,24 +232,30 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
     });
 
     it("should not process items with future nextRetryAt", async () => {
-      await env.firestore.collection("pendingHealthSampleDeletions").add({
-        userId: "user1",
-        collection: "heartRateObservations",
-        documentId: "doc1",
-        jobId: "job1",
-        requestingUserId: "user1",
-        reason: "NOT_FOUND",
-        lastError: null,
-        retryCount: 0,
-        createdAt: Timestamp.now(),
-        nextRetryAt: Timestamp.fromMillis(Date.now() + 3_600_000),
-      });
+      await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId: "user1",
+          collection: "heartRateObservations",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: "user1",
+          reason: "NOT_FOUND",
+          lastError: null,
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(Date.now() + 3_600_000),
+        });
 
       const result = await queueService.processQueue();
       expect(result.processed).to.equal(0);
 
       // Item should still be in queue
       const snapshot = await env.firestore
+        .collection("users")
+        .doc("user1")
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(snapshot.size).to.equal(1);

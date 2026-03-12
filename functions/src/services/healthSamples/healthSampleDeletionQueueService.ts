@@ -54,7 +54,7 @@ export class HealthSampleDeletionQueueService {
       nextRetryAt,
     };
 
-    await this.collections.pendingHealthSampleDeletions.add(item);
+    await this.collections.pendingHealthSampleDeletions(params.userId).add(item);
   }
 
   async processQueue(): Promise<{
@@ -64,7 +64,7 @@ export class HealthSampleDeletionQueueService {
     deadLettered: number;
   }> {
     const now = Timestamp.now();
-    const snapshot = await this.collections.pendingHealthSampleDeletions
+    const snapshot = await this.collections.allPendingHealthSampleDeletions
       .where("nextRetryAt", "<=", now)
       .orderBy("nextRetryAt", "asc")
       .limit(QUEUE_BATCH_SIZE)
@@ -152,7 +152,7 @@ export class HealthSampleDeletionQueueService {
           },
         );
 
-        await this.collections.failedHealthSampleDeletions.add({
+        await this.collections.failedHealthSampleDeletions(item.userId).add({
           ...item,
           retryCount: newRetryCount,
           lastError: String(error),
