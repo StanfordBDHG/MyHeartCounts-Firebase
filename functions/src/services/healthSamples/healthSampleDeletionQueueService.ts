@@ -34,18 +34,19 @@ const KNOWN_ERROR_CODES: Record<string | number, string> = {
   unavailable: "UNAVAILABLE",
 };
 
-function sanitizeErrorForStorage(error: unknown): string {
+const sanitizeErrorForStorage = (error: unknown): string => {
   if (error !== null && typeof error === "object") {
     const code = (error as { code?: unknown }).code;
     if (code !== undefined) {
-      const mapped = KNOWN_ERROR_CODES[code as string | number];
-      if (mapped !== undefined) return mapped;
+      const mapped: string | undefined =
+        KNOWN_ERROR_CODES[code as string | number];
+      if (mapped) return mapped;
       if (typeof code === "number") return `GRPC_${code}`;
       if (typeof code === "string") return code;
     }
   }
   return "UNKNOWN_ERROR";
-}
+};
 
 export class HealthSampleDeletionQueueService {
   private readonly collections: CollectionsService;
@@ -197,20 +198,20 @@ export class HealthSampleDeletionQueueService {
       typeof item.collection !== "string" ||
       !PERMITTED_COLLECTION_PATTERN.test(item.collection)
     ) {
-      return `collection '${String(item.collection)}' is not a permitted collection name`;
+      return `collection '${item.collection}' is not a permitted collection name`;
     }
     if (
       typeof item.documentId !== "string" ||
       item.documentId.length === 0 ||
       item.documentId.includes("/")
     ) {
-      return `invalid documentId '${String(item.documentId)}'`;
+      return `invalid documentId '${item.documentId}'`;
     }
     if (typeof item.retryCount !== "number" || item.retryCount < 0) {
       return `invalid retryCount '${String(item.retryCount)}'`;
     }
     if (typeof item.reason !== "string" || !VALID_REASONS.has(item.reason)) {
-      return `invalid reason '${String(item.reason)}'`;
+      return `invalid reason '${item.reason}'`;
     }
     return null;
   }
