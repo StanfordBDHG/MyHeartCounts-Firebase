@@ -6,8 +6,8 @@
 import { z } from "zod";
 
 export const joinWaitlistInputSchema = z.object({
-  region: z.string().min(1),
-  email: z.string().email(),
+  region: z.string().trim().min(1),
+  email: z.string().trim().email(),
 });
 export type JoinWaitlistInput = z.input<typeof joinWaitlistInputSchema>;
 
