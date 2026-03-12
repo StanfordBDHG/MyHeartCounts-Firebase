@@ -24,8 +24,6 @@ export interface UserService {
     options: EnrollUserOptions,
   ): Promise<Document<User>>;
   finishUserEnrollment(user: Document<User>): Promise<void>;
-  disableUser(userId: string): Promise<void>;
-  enableUser(userId: string): Promise<void>;
   getAllPatients(): Promise<Array<Document<User>>>;
   getUser(userId: string): Promise<Document<User> | undefined>;
   updateLastActiveDate(userId: string): Promise<void>;
