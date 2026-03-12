@@ -54,7 +54,9 @@ export class HealthSampleDeletionQueueService {
       nextRetryAt,
     };
 
-    await this.collections.pendingHealthSampleDeletions(params.userId).add(item);
+    await this.collections
+      .pendingHealthSampleDeletions(params.userId)
+      .add(item);
   }
 
   async processQueue(): Promise<{
