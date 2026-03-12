@@ -44,7 +44,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       expect(data.jobId).to.equal("job1");
       expect(data.reason).to.equal("NOT_FOUND");
       expect(data.retryCount).to.equal(0);
-      expect(data.lastError).to.equal("Error: 5 NOT_FOUND");
+      expect(data.lastError).to.equal("UNKNOWN_ERROR");
     });
 
     it("should set nextRetryAt 30s in the future for NOT_FOUND", async () => {

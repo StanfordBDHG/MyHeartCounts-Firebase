@@ -23,6 +23,30 @@ const PERMITTED_COLLECTION_PATTERN =
 
 const VALID_REASONS = new Set(["TRANSIENT_ERROR", "NOT_FOUND"]);
 
+const KNOWN_ERROR_CODES: Record<string | number, string> = {
+  5: "NOT_FOUND",
+  "not-found": "NOT_FOUND",
+  4: "DEADLINE_EXCEEDED",
+  "deadline-exceeded": "DEADLINE_EXCEEDED",
+  8: "RESOURCE_EXHAUSTED",
+  "resource-exhausted": "RESOURCE_EXHAUSTED",
+  14: "UNAVAILABLE",
+  unavailable: "UNAVAILABLE",
+};
+
+function sanitizeErrorForStorage(error: unknown): string {
+  if (error !== null && typeof error === "object") {
+    const code = (error as { code?: unknown }).code;
+    if (code !== undefined) {
+      const mapped = KNOWN_ERROR_CODES[code as string | number];
+      if (mapped !== undefined) return mapped;
+      if (typeof code === "number") return `GRPC_${code}`;
+      if (typeof code === "string") return code;
+    }
+  }
+  return "UNKNOWN_ERROR";
+}
+
 export class HealthSampleDeletionQueueService {
   private readonly collections: CollectionsService;
 
@@ -46,6 +70,11 @@ export class HealthSampleDeletionQueueService {
       : TRANSIENT_ERROR_BASE_DELAY_MS;
     const nextRetryAt = Timestamp.fromMillis(now.toMillis() + baseDelayMs);
 
+    const sanitizedLastError =
+      params.lastError !== null ?
+        sanitizeErrorForStorage(params.lastError)
+      : null;
+
     const item: PendingHealthSampleDeletion = {
       userId: params.userId,
       collection: params.collection,
@@ -53,7 +82,7 @@ export class HealthSampleDeletionQueueService {
       jobId: params.jobId,
       requestingUserId: params.requestingUserId,
       reason: params.reason,
-      lastError: params.lastError,
+      lastError: sanitizedLastError,
       retryCount: 0,
       createdAt: now,
       nextRetryAt,
@@ -245,7 +274,7 @@ export class HealthSampleDeletionQueueService {
         await this.collections.failedHealthSampleDeletions(ownerUserId).add({
           ...item,
           retryCount: newRetryCount,
-          lastError: String(error),
+          lastError: sanitizeErrorForStorage(error),
           failedAt: Timestamp.now(),
         });
         await doc.ref.delete();
@@ -267,7 +296,7 @@ export class HealthSampleDeletionQueueService {
       await doc.ref.update({
         retryCount: newRetryCount,
         nextRetryAt,
-        lastError: String(error),
+        lastError: sanitizeErrorForStorage(error),
       });
 
       return "requeued";
