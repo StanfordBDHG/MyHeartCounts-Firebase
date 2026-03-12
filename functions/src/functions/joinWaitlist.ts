@@ -19,18 +19,14 @@ export const joinWaitlist = validatedOnCall(
     const email = request.data.email.trim().toLowerCase();
     const docId = `${region}_${email}`;
 
-    await admin
-      .firestore()
-      .collection("waitlist")
-      .doc(docId)
-      .set(
-        {
-          region: region,
-          email: email,
-          createdAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
+    await admin.firestore().collection("waitlist").doc(docId).set(
+      {
+        region: region,
+        email: email,
+        createdAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
   },
   {
     invoker: "public",

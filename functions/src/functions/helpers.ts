@@ -31,9 +31,7 @@ export const validatedOnCall = <Schema extends z.ZodTypeAny, Return>(
   const wrappedHandler = async (request: CallableRequest): Promise<Return> => {
     try {
       if (helperOptions?.logRequestData === false) {
-        logger.debug(
-          `onCall(${name}) from user '${request.auth?.uid}'`,
-        );
+        logger.debug(`onCall(${name}) from user '${request.auth?.uid}'`);
       } else {
         logger.debug(
           `onCall(${name}) from user '${request.auth?.uid}' with '${JSON.stringify(request.data)}'`,
