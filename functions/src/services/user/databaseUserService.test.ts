@@ -166,6 +166,17 @@ describe("DatabaseUserService", () => {
       await userService.deleteExpiredAccounts();
     });
 
+    it("revokes refresh tokens for a user", async () => {
+      const userId = "userToRevokeTokens";
+
+      await userService.enrollUserDirectly(userId, {
+        isSingleSignOn: false,
+      });
+
+      // Revoking refresh tokens should not throw
+      await userService.revokeRefreshTokens(userId);
+    });
+
     it("marks account for deletion", async () => {
       const userId = "userToMarkForDeletion";
 

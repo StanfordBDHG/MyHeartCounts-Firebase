@@ -38,4 +38,8 @@ export interface UserService {
   ): Promise<void>;
   deleteUser(userId: string): Promise<void>;
   deleteExpiredAccounts(): Promise<void>;
+
+  // Session Management
+
+  revokeRefreshTokens(userId: string): Promise<void>;
 }
