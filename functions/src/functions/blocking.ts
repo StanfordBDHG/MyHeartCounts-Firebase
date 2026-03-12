@@ -70,16 +70,13 @@ export const beforeUserSignedInFunction = beforeUserSignedIn(
     serviceAccount: defaultServiceAccount,
   },
   async (event) => {
-    try {
-      // Ensure event.data exists
-      if (!event.data) {
-        logger.error("User data not available in event");
-        throw new https.HttpsError(
-          "invalid-argument",
-          "User data is required.",
-        );
-      }
+    // Ensure event.data exists
+    if (!event.data) {
+      logger.error("User data not available in event");
+      throw new https.HttpsError("invalid-argument", "User data is required.");
+    }
 
+    try {
       const userService = getServiceFactory().user();
       const user = await userService.getUser(event.data.uid);
       if (user !== undefined) {
