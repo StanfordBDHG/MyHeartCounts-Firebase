@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 import admin from "firebase-admin";
-import { https } from "firebase-functions";
+import { https } from "firebase-functions/v2";
 import { defaultServiceAccount } from "./functions/helpers.js";
 
 // Initialize Firebase with default settings
