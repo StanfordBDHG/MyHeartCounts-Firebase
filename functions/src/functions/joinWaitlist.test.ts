@@ -54,7 +54,7 @@ describeWithEmulators("function: joinWaitlist", (env) => {
 
   it("rejects missing fields", async () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await env.callAnonymous(joinWaitlist, {} as any);
       expect.fail("Should have thrown an error");
     } catch (error) {
