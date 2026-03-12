@@ -4,9 +4,10 @@
 // SPDX-License-Identifier: MIT
 
 import { z } from "zod";
+import { ISOCountryCode } from "../types/isoCountryCode.js";
 
 export const joinWaitlistInputSchema = z.object({
-  region: z.string().trim().min(1),
+  region: z.nativeEnum(ISOCountryCode),
   email: z.string().trim().email(),
 });
 export type JoinWaitlistInput = z.input<typeof joinWaitlistInputSchema>;

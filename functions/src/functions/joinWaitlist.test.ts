@@ -13,7 +13,7 @@ import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
 describeWithEmulators("function: joinWaitlist", (env) => {
   it("successfully adds an entry to the waitlist", async () => {
     await env.callAnonymous(joinWaitlist, {
-      region: "us-west",
+      region: "US",
       email: "test@example.com",
     });
 
@@ -21,7 +21,7 @@ describeWithEmulators("function: joinWaitlist", (env) => {
     expect(snapshot.docs).to.have.lengthOf(1);
 
     const data = snapshot.docs[0].data();
-    expect(data.region).to.equal("us-west");
+    expect(data.region).to.equal("US");
     expect(data.email).to.equal("test@example.com");
     expect(data.createdAt).to.exist;
   });
@@ -29,7 +29,7 @@ describeWithEmulators("function: joinWaitlist", (env) => {
   it("rejects invalid email addresses", async () => {
     try {
       await env.callAnonymous(joinWaitlist, {
-        region: "us-west",
+        region: "US",
         email: "not-an-email",
       });
       expect.fail("Should have thrown an error");
@@ -39,10 +39,23 @@ describeWithEmulators("function: joinWaitlist", (env) => {
     }
   });
 
-  it("rejects empty region", async () => {
+  it("rejects invalid ISO country code", async () => {
     try {
       await env.callAnonymous(joinWaitlist, {
-        region: "",
+        region: "INVALID",
+        email: "test@example.com",
+      });
+      expect.fail("Should have thrown an error");
+    } catch (error) {
+      expect(error).to.be.instanceOf(https.HttpsError);
+      expect((error as https.HttpsError).code).to.equal("invalid-argument");
+    }
+  });
+
+  it("rejects lowercase country codes", async () => {
+    try {
+      await env.callAnonymous(joinWaitlist, {
+        region: "us",
         email: "test@example.com",
       });
       expect.fail("Should have thrown an error");
@@ -65,11 +78,11 @@ describeWithEmulators("function: joinWaitlist", (env) => {
 
   it("allows multiple entries for different regions", async () => {
     await env.callAnonymous(joinWaitlist, {
-      region: "us-west",
+      region: "US",
       email: "test@example.com",
     });
     await env.callAnonymous(joinWaitlist, {
-      region: "eu-central",
+      region: "DE",
       email: "test@example.com",
     });
 
@@ -79,11 +92,11 @@ describeWithEmulators("function: joinWaitlist", (env) => {
 
   it("is idempotent for duplicate region and email", async () => {
     await env.callAnonymous(joinWaitlist, {
-      region: "us-west",
+      region: "US",
       email: "test@example.com",
     });
     await env.callAnonymous(joinWaitlist, {
-      region: "us-west",
+      region: "US",
       email: "test@example.com",
     });
 
@@ -91,17 +104,17 @@ describeWithEmulators("function: joinWaitlist", (env) => {
     expect(snapshot.docs).to.have.lengthOf(1);
 
     const data = snapshot.docs[0].data();
-    expect(data.region).to.equal("us-west");
+    expect(data.region).to.equal("US");
     expect(data.email).to.equal("test@example.com");
   });
 
-  it("normalizes email and region for idempotency", async () => {
+  it("normalizes email for idempotency", async () => {
     await env.callAnonymous(joinWaitlist, {
-      region: "  US-West ",
+      region: "US",
       email: " Test@Example.COM ",
     });
     await env.callAnonymous(joinWaitlist, {
-      region: "us-west",
+      region: "US",
       email: "test@example.com",
     });
 
@@ -109,7 +122,7 @@ describeWithEmulators("function: joinWaitlist", (env) => {
     expect(snapshot.docs).to.have.lengthOf(1);
 
     const data = snapshot.docs[0].data();
-    expect(data.region).to.equal("us-west");
+    expect(data.region).to.equal("US");
     expect(data.email).to.equal("test@example.com");
   });
 });

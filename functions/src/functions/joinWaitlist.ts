@@ -15,7 +15,7 @@ export const joinWaitlist = validatedOnCall(
   "joinWaitlist",
   joinWaitlistInputSchema,
   async (request): Promise<JoinWaitlistOutput> => {
-    const region = request.data.region.toLowerCase();
+    const region = request.data.region;
     const email = request.data.email.toLowerCase();
     const docId = `${region}_${email}`;
 
