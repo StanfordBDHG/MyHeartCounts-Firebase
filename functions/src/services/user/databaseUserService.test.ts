@@ -101,20 +101,6 @@ describe("DatabaseUserService", () => {
       });
     });
 
-    it("disables and enables users", async () => {
-      // Test disable user
-      await userService.disableUser(testUserId);
-
-      let user = await userService.getUser(testUserId);
-      expect(user?.content.disabled).to.be.true;
-
-      // Test enable user
-      await userService.enableUser(testUserId);
-
-      user = await userService.getUser(testUserId);
-      expect(user?.content.disabled).to.be.false;
-    });
-
     it("updates last active date", async () => {
       // Test update last active date
       const beforeUpdate = await userService.getUser(testUserId);
@@ -178,6 +164,17 @@ describe("DatabaseUserService", () => {
     it("cleans up expired accounts", async () => {
       // Just test that the method doesn't throw
       await userService.deleteExpiredAccounts();
+    });
+
+    it("revokes refresh tokens for a user", async () => {
+      const userId = "userToRevokeTokens";
+
+      await userService.enrollUserDirectly(userId, {
+        isSingleSignOn: false,
+      });
+
+      // Revoking refresh tokens should not throw
+      await userService.revokeRefreshTokens(userId);
     });
 
     it("marks account for deletion", async () => {

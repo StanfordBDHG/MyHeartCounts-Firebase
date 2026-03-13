@@ -94,6 +94,31 @@ export class MockAuth {
     this.collections[uid] = undefined;
   }
 
+  revokeRefreshTokens(uid: string): void {
+    const user = this.collections[uid];
+    if (user !== undefined) {
+      const updatedUser: UserRecord = {
+        uid: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber,
+        disabled: user.disabled,
+        metadata: user.metadata,
+        providerData: user.providerData,
+        passwordHash: user.passwordHash,
+        passwordSalt: user.passwordSalt,
+        tokensValidAfterTime: new Date().toISOString(),
+        tenantId: user.tenantId,
+        multiFactor: user.multiFactor,
+        customClaims: user.customClaims,
+        toJSON: () => ({}),
+      };
+      this.collections[uid] = updatedUser;
+    }
+  }
+
   createUser(props: {
     email?: string;
     password?: string;

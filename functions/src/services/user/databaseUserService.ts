@@ -151,26 +151,6 @@ export class DatabaseUserService implements UserService {
 
   // Users
 
-  async disableUser(userId: string): Promise<void> {
-    await this.databaseService.runTransaction((collections, transaction) => {
-      transaction.update(collections.users.doc(userId), {
-        disabled: true,
-      });
-    });
-
-    await this.updateClaims(userId);
-  }
-
-  async enableUser(userId: string): Promise<void> {
-    await this.databaseService.runTransaction((collections, transaction) => {
-      transaction.update(collections.users.doc(userId), {
-        disabled: false,
-      });
-    });
-
-    await this.updateClaims(userId);
-  }
-
   async getAllPatients(): Promise<Array<Document<User>>> {
     return this.databaseService.getQuery<User>(
       (collections) => collections.users,
@@ -358,6 +338,13 @@ export class DatabaseUserService implements UserService {
       await this.auth.deleteUser(userId);
       logger.info(`Deleted user auth with id '${userId}'.`);
     });
+  }
+
+  async revokeRefreshTokens(userId: string): Promise<void> {
+    await this.auth.revokeRefreshTokens(userId);
+    logger.info(
+      `DatabaseUserService.revokeRefreshTokens(${userId}): Revoked all refresh tokens.`,
+    );
   }
 
   async deleteExpiredAccounts(): Promise<void> {

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 import admin from "firebase-admin";
-import { https } from "firebase-functions";
+import { https } from "firebase-functions/v2";
 import { defaultServiceAccount } from "./functions/helpers.js";
 
 // Initialize Firebase with default settings
@@ -39,10 +39,9 @@ export {
   beforeUserSignedInFunction as beforeUserSignedIn,
 } from "./functions/blocking.js";
 export * from "./functions/customSeed.js";
+export * from "./functions/joinWaitlist.js";
 export * from "./functions/updateStaticData.js";
 export * from "./functions/updateUserInformation.js";
-export * from "./functions/disableUser.js";
-export * from "./functions/enableUser.js";
 export * from "./functions/planNudges.js";
 export * from "./functions/sendNudges.js";
 export * from "./functions/onUserQuestionnaireResponseWritten.js";

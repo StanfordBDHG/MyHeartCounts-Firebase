@@ -135,6 +135,8 @@ describeWithEmulators(
 
       const snapshot = await admin
         .firestore()
+        .collection("users")
+        .doc(userId)
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(snapshot.size).to.equal(1);
