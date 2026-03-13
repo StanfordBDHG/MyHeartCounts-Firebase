@@ -80,8 +80,9 @@ export const beforeUserSignedInFunction = beforeUserSignedIn(
       const userService = getServiceFactory().user();
       const user = await userService.getUser(event.data.uid);
       if (user !== undefined) {
-        // Revoke all existing refresh tokens to enforce single-device login.
-        // This invalidates sessions on all other devices.
+        // Revoke all existing refresh tokens to limit concurrent sessions.
+        // Note: existing ID tokens on other devices remain valid until expiry
+        // (up to 1 hour); this only prevents those sessions from refreshing.
         await userService.revokeRefreshTokens(event.data.uid);
 
         logger.info("beforeUserSignedIn finished successfully.");
