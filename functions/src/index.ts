@@ -39,6 +39,7 @@ export {
   beforeUserSignedInFunction as beforeUserSignedIn,
 } from "./functions/blocking.js";
 export * from "./functions/customSeed.js";
+export * from "./functions/joinWaitlist.js";
 export * from "./functions/updateStaticData.js";
 export * from "./functions/updateUserInformation.js";
 export * from "./functions/planNudges.js";

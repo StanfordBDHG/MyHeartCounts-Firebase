@@ -26,12 +26,17 @@ export const validatedOnCall = <Schema extends z.ZodTypeAny, Return>(
   options: CallableOptions = {
     invoker: "public",
   },
+  helperOptions?: { logRequestData?: boolean },
 ): CallableFunction<z.input<Schema>, Promise<Return>> => {
   const wrappedHandler = async (request: CallableRequest): Promise<Return> => {
     try {
-      logger.debug(
-        `onCall(${name}) from user '${request.auth?.uid}' with '${JSON.stringify(request.data)}'`,
-      );
+      if (helperOptions?.logRequestData === false) {
+        logger.debug(`onCall(${name}) from user '${request.auth?.uid}'`);
+      } else {
+        logger.debug(
+          `onCall(${name}) from user '${request.auth?.uid}' with '${JSON.stringify(request.data)}'`,
+        );
+      }
       const validatedData = schema.parse(request.data) as z.output<Schema>;
       const validatedRequest: CallableRequest<z.output<Schema>> = {
         ...request,
