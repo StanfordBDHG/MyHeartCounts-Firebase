@@ -254,4 +254,5 @@ export enum ISOCountryCode {
   YE = "YE",
   ZM = "ZM",
   ZW = "ZW",
+  XK = "XK", // Kosovo not officially part of ISO 3166-1, still used by apple as it seems
 }
