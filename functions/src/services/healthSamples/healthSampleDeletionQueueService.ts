@@ -207,7 +207,7 @@ export class HealthSampleDeletionQueueService {
     ) {
       return `invalid documentId '${item.documentId}'`;
     }
-    if (typeof item.retryCount !== "number" || item.retryCount < 0) {
+    if (!Number.isInteger(item.retryCount) || item.retryCount < 0) {
       return `invalid retryCount '${String(item.retryCount)}'`;
     }
     if (typeof item.reason !== "string" || !VALID_REASONS.has(item.reason)) {
