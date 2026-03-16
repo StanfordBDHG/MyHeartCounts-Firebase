@@ -173,8 +173,14 @@ describe("DatabaseUserService", () => {
         isSingleSignOn: false,
       });
 
-      // Revoking refresh tokens should not throw
+      const before = await admin.auth().getUser(userId);
+      const tokensBefore = before.tokensValidAfterTime;
+
       await userService.revokeRefreshTokens(userId);
+
+      const after = await admin.auth().getUser(userId);
+      expect(after.tokensValidAfterTime).to.be.a("string");
+      expect(after.tokensValidAfterTime).to.not.equal(tokensBefore);
     });
 
     it("marks account for deletion", async () => {
