@@ -91,6 +91,16 @@ export class EmulatorTestEnvironment {
     } as unknown as CallableRequest<Input>);
   }
 
+  async callAnonymous<Input, Output>(
+    func: CallableFunction<Input, Output>,
+    input: Input,
+  ): Promise<Output> {
+    const wrapped = this.wrapper.wrap(func);
+    return wrapped({
+      data: input,
+    } as unknown as CallableRequest<Input>);
+  }
+
   async cleanup() {
     const collections = await admin.firestore().listCollections();
     for (const collection of collections) {
