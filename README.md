@@ -22,6 +22,7 @@ Key features of the backend infrastructure include:
 - Questinaire parsing
 - User State Handeling
 - Physical Activity Trial with personalized coaching messages using a Large Language Model (LLM) to generate personalized physical activity nudges in a blind study approach to compare predefined nudges and LLM nudges
+- Region-based waitlist for anonymous users (no account required) using ISO 3166-1 alpha-2 country codes
 
 > [!NOTE]
 > Do you want to learn more about the Stanford Spezi Template Application and how to use, extend, and modify this application? Check out the [Stanford Spezi Template Application documentation](https://stanfordspezi.github.io/SpeziTemplateApplication).
@@ -47,6 +48,7 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |Path|Purpose|Fields|
 |-|-|-|
 |`/feedback/{UUID}`|Collection for Participant-Submitted Feedback|`accountId`, `appBuildNumber`, `appVersion`, `date`, `deviceInfo` (`model`, `osVersion`, `systemName`), `message`, `timeZone` (`identifier`)|
+|`/waitlist/{REGION}_{EMAIL}`|Region-based waitlist entries for anonymous users|`region` (ISO 3166-1 alpha-2), `email`, `createdAt`|
 |`/users/{USER-ID}`|User Document|`biologicalSexAtBirth`, `bloodType`, `comorbidities` (Disease : year), `dateOfBirth`, `dateOfEnrollment`, `didOptInToTrial`, `disabled`, `fcmToken`, `futureStudies`, `heightInCM`, `householdIncomeUS`, `language`, `lastActiveDate`, `lastSignedConsentDate`, `lastSignedConsentVersion`, `latinoStatus`, `mhcGenderIdentity`, `mostRecentOnboardingStep`, `participantGroup`, `preferredNotificationTime`, `preferredWorkoutTypes`, `raceEthnicity`, `timeZone`, `usRegion`, `weightInKG`|
 |`/users/{USER-ID}/questionnaireResponses/{UUID}`|FHIR questionnaire responses|See [FHIR questionnaireresponse documentation](https://build.fhir.org/questionnaireresponse.html)|
 |`/users/{USER-ID}/notificationBacklog/{UUID}`|Backlog of Notifications to send|`body`, `category`, `generatedAt`, `id`, `isLLMGenerated`, `timestamp`, `title`|
