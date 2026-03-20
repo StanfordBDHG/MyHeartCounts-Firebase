@@ -499,6 +499,51 @@ flowchart TD
     style W fill:#d3d3d3
 ```
 
+#### Pending Health Sample Deletion Queue Function
+
+```mermaid
+flowchart TD
+    A[Scheduled: Every 30 minutes] --> B[Query pendingHealthSampleDeletions]
+    B -->|nextRetryAt <= now, limit 500| C{Queue empty?}
+    C -->|Yes| D[Log: Nothing to process]
+    C -->|No| E[Process items with concurrency limit 10]
+
+    E --> F[For each item: Validate]
+    F --> G{Valid item?}
+    G -->|No| H[Delete invalid item & skip]
+    G -->|Yes| I[Update target document status]
+
+    I -->|Set field| J[status: entered-in-error]
+    J -->|Update in| K[users/USER-ID/collection/documentId]
+
+    K --> L{Update successful?}
+    L -->|Yes| M[Delete queue item]
+    L -->|No| N{retryCount >= 10?}
+
+    N -->|No| O[Increment retryCount]
+    O --> P[Calculate exponential backoff]
+    P -->|Update| Q[nextRetryAt with backoff, capped at 1h]
+
+    N -->|Yes| R[Move to dead-letter collection]
+    R -->|Write to| S[users/USER-ID/failedHealthSampleDeletions]
+
+    M --> T[Log completion stats]
+    H --> T
+    Q --> T
+    S --> T
+    D --> T
+    T --> U[End]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style E fill:#fff4e1
+    style I fill:#ffe1f5
+    style J fill:#f5e1ff
+    style K fill:#ffe1e1
+    style R fill:#ffe1f5
+    style U fill:#d3d3d3
+```
+
 ### Contributing
 
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/StanfordBDHG/.github/blob/main/CONTRIBUTING.md) and the [contributor covenant code of conduct](https://github.com/StanfordBDHG/.github/blob/main/CODE_OF_CONDUCT.md) first.
