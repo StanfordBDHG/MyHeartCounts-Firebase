@@ -8,12 +8,12 @@ import {
   beforeUserCreated,
   beforeUserSignedIn,
 } from "firebase-functions/v2/identity";
-import { privilegedServiceAccount } from "./helpers.js";
+import { defaultServiceAccount } from "./helpers.js";
 import { getServiceFactory } from "../services/factory/getServiceFactory.js";
 
 export const beforeUserCreatedFunction = beforeUserCreated(
   {
-    serviceAccount: privilegedServiceAccount,
+    serviceAccount: defaultServiceAccount,
   },
   async (event) => {
     // Ensure event.data exists
@@ -67,7 +67,7 @@ export const beforeUserCreatedFunction = beforeUserCreated(
 
 export const beforeUserSignedInFunction = beforeUserSignedIn(
   {
-    serviceAccount: privilegedServiceAccount,
+    serviceAccount: defaultServiceAccount,
   },
   async (event) => {
     // Ensure event.data exists
@@ -80,27 +80,6 @@ export const beforeUserSignedInFunction = beforeUserSignedIn(
       const userService = getServiceFactory().user();
       const user = await userService.getUser(event.data.uid);
       if (user !== undefined) {
-        // Revoke all existing refresh tokens to limit concurrent sessions.
-        // During initial sign-up, the Auth user record may not be fully
-        // committed yet when this blocking function fires, so we gracefully
-        // handle the "user not found" case (there are no tokens to revoke).
-        try {
-          await userService.revokeRefreshTokens(event.data.uid);
-        } catch (revokeError) {
-          if (
-            revokeError instanceof Error &&
-            revokeError.message.includes(
-              "There is no user record corresponding to the provided identifier",
-            )
-          ) {
-            logger.info(
-              "Skipping token revocation - Auth user record not yet available (initial sign-up).",
-            );
-          } else {
-            throw revokeError;
-          }
-        }
-
         logger.info("beforeUserSignedIn finished successfully.");
         return {
           customClaims: user.content.claims,

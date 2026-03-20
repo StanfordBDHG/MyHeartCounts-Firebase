@@ -166,23 +166,6 @@ describe("DatabaseUserService", () => {
       await userService.deleteExpiredAccounts();
     });
 
-    it("revokes refresh tokens for a user", async () => {
-      const userId = "userToRevokeTokens";
-
-      await userService.enrollUserDirectly(userId, {
-        isSingleSignOn: false,
-      });
-
-      const before = await admin.auth().getUser(userId);
-      const tokensBefore = before.tokensValidAfterTime;
-
-      await userService.revokeRefreshTokens(userId);
-
-      const after = await admin.auth().getUser(userId);
-      expect(after.tokensValidAfterTime).to.be.a("string");
-      expect(after.tokensValidAfterTime).to.not.equal(tokensBefore);
-    });
-
     it("marks account for deletion", async () => {
       const userId = "userToMarkForDeletion";
 

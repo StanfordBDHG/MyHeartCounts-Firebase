@@ -340,13 +340,6 @@ export class DatabaseUserService implements UserService {
     });
   }
 
-  async revokeRefreshTokens(userId: string): Promise<void> {
-    await this.auth.revokeRefreshTokens(userId);
-    logger.info(
-      `DatabaseUserService.revokeRefreshTokens(${userId}): Revoked all refresh tokens.`,
-    );
-  }
-
   async deleteExpiredAccounts(): Promise<void> {
     const oneDayAgo = advanceDateByDays(new Date(), -1);
     const promises: Array<Promise<void>> = [];

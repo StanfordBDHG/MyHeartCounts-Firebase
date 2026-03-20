@@ -98,8 +98,4 @@ export class MockUserService implements UserService {
   deleteExpiredAccounts(): Promise<void> {
     return Promise.resolve();
   }
-
-  revokeRefreshTokens(_userId: string): Promise<void> {
-    return Promise.resolve();
-  }
 }
