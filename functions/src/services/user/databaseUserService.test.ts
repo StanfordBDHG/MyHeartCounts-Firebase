@@ -101,20 +101,6 @@ describe("DatabaseUserService", () => {
       });
     });
 
-    it("disables and enables users", async () => {
-      // Test disable user
-      await userService.disableUser(testUserId);
-
-      let user = await userService.getUser(testUserId);
-      expect(user?.content.disabled).to.be.true;
-
-      // Test enable user
-      await userService.enableUser(testUserId);
-
-      user = await userService.getUser(testUserId);
-      expect(user?.content.disabled).to.be.false;
-    });
-
     it("updates last active date", async () => {
       // Test update last active date
       const beforeUpdate = await userService.getUser(testUserId);

@@ -95,11 +95,21 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(fhirObservationConverter.value));
   }
 
-  get pendingHealthSampleDeletions() {
-    return this.firestore.collection("pendingHealthSampleDeletions");
+  pendingHealthSampleDeletions(userId: string) {
+    return this.firestore
+      .collection("users")
+      .doc(userId)
+      .collection("pendingHealthSampleDeletions");
   }
 
-  get failedHealthSampleDeletions() {
-    return this.firestore.collection("failedHealthSampleDeletions");
+  get allPendingHealthSampleDeletions() {
+    return this.firestore.collectionGroup("pendingHealthSampleDeletions");
+  }
+
+  failedHealthSampleDeletions(userId: string) {
+    return this.firestore
+      .collection("users")
+      .doc(userId)
+      .collection("failedHealthSampleDeletions");
   }
 }

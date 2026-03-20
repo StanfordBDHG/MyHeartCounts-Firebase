@@ -151,26 +151,6 @@ export class DatabaseUserService implements UserService {
 
   // Users
 
-  async disableUser(userId: string): Promise<void> {
-    await this.databaseService.runTransaction((collections, transaction) => {
-      transaction.update(collections.users.doc(userId), {
-        disabled: true,
-      });
-    });
-
-    await this.updateClaims(userId);
-  }
-
-  async enableUser(userId: string): Promise<void> {
-    await this.databaseService.runTransaction((collections, transaction) => {
-      transaction.update(collections.users.doc(userId), {
-        disabled: false,
-      });
-    });
-
-    await this.updateClaims(userId);
-  }
-
   async getAllPatients(): Promise<Array<Document<User>>> {
     return this.databaseService.getQuery<User>(
       (collections) => collections.users,

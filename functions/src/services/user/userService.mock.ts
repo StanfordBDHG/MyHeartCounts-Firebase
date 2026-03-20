@@ -49,14 +49,6 @@ export class MockUserService implements UserService {
 
   // Methods - User
 
-  disableUser(_userId: string): Promise<void> {
-    return Promise.resolve();
-  }
-
-  enableUser(_userId: string): Promise<void> {
-    return Promise.resolve();
-  }
-
   getAllPatients(): Promise<Array<Document<User>>> {
     return Promise.resolve([]);
   }
