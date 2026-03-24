@@ -45,7 +45,7 @@ describeWithEmulators("function: planOnboardingReminder", (env) => {
       expect(reminder.category).to.equal("onboarding-reminder");
       expect(reminder.title).to.equal("Finish Onboarding into MHC!");
       expect(reminder.body).to.equal(
-        "Complete your setup to start tracking your heart health with MyHeartCounts.",
+        "Complete your setup to start tracking your heart health with My Heart Counts.",
       );
       expect(reminder.timestamp).to.be.instanceOf(admin.firestore.Timestamp);
       expect(reminder.isLLMGenerated).to.be.false;
@@ -281,7 +281,7 @@ describeWithEmulators("function: planOnboardingReminder", (env) => {
         .set({
           id: "existing-reminder",
           title: "Finish Onboarding into MHC!",
-          body: "Complete your setup to start tracking your heart health with MyHeartCounts.",
+          body: "Complete your setup to start tracking your heart health with My Heart Counts.",
           timestamp: admin.firestore.Timestamp.now(),
           category: "onboarding-reminder",
           isLLMGenerated: false,
@@ -322,7 +322,7 @@ describeWithEmulators("function: planOnboardingReminder", (env) => {
         .doc("sent-reminder")
         .set({
           title: "Finish Onboarding into MHC!",
-          body: "Complete your setup to start tracking your heart health with MyHeartCounts.",
+          body: "Complete your setup to start tracking your heart health with My Heart Counts.",
           originalTimestamp: admin.firestore.Timestamp.now(),
           processedTimestamp: admin.firestore.Timestamp.now(),
           status: "sent",

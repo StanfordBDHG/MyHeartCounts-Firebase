@@ -161,7 +161,7 @@ export class OnboardingReminderService {
           .set({
             id: nudgeId,
             title: "Finish Onboarding into MHC!",
-            body: "Complete your setup to start tracking your heart health with MyHeartCounts.",
+            body: "Complete your setup to start tracking your heart health with My Heart Counts.",
             timestamp: admin.firestore.Timestamp.fromDate(utcTime),
             category: OnboardingReminderService.ONBOARDING_REMINDER_CATEGORY,
             isLLMGenerated: false,
