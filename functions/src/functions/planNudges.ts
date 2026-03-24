@@ -181,19 +181,28 @@ export class NudgeService {
     language: string,
     userData: UserData,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
-    const resolvedGenderIdentity =
-      userData.genderIdentity ??
-      (userData.mhcGenderIdentity !== undefined ?
-        mhcGenderIdentityMap[userData.mhcGenderIdentity]
-      : undefined);
+    let resolvedGenderIdentity = userData.genderIdentity;
 
     if (resolvedGenderIdentity === undefined) {
-      logger.error(
-        `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
-      );
-      throw new Error(
-        `User ${userId} is missing required field: genderIdentity`,
-      );
+      if (userData.mhcGenderIdentity !== undefined) {
+        resolvedGenderIdentity =
+          mhcGenderIdentityMap[userData.mhcGenderIdentity];
+        if (resolvedGenderIdentity === undefined) {
+          logger.error(
+            `User ${userId} has unmapped mhcGenderIdentity value: ${userData.mhcGenderIdentity}. Cannot generate LLM nudges.`,
+          );
+          throw new Error(
+            `User ${userId} has invalid mhcGenderIdentity: ${userData.mhcGenderIdentity}`,
+          );
+        }
+      } else {
+        logger.error(
+          `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
+        );
+        throw new Error(
+          `User ${userId} is missing required field: genderIdentity`,
+        );
+      }
     }
 
     if (userData.comorbidities === undefined) {
