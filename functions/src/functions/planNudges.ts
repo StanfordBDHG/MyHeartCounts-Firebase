@@ -18,6 +18,7 @@ import {
 
 interface UserData {
   genderIdentity?: string;
+  mhcGenderIdentity?: number;
   dateOfBirth?: Date | string | admin.firestore.Timestamp;
   comorbidities?: Record<string, unknown>;
   stageOfChange?: string;
@@ -31,6 +32,7 @@ interface UserData {
   userLanguage?: string;
   disabled?: boolean;
   hasWithdrawnFromStudy?: boolean;
+  mostRecentOnboardingStep?: string;
 }
 
 enum Disease {
@@ -55,6 +57,15 @@ enum EducationLevel {
   COLLEGE = "college",
   COLLAGE = "collage",
 }
+
+const mhcGenderIdentityMap: Partial<Record<number, string>> = {
+  0: "prefer not to state",
+  1: "male",
+  2: "female",
+  3: "trans female",
+  4: "trans male",
+  5: "other",
+};
 
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp;
@@ -170,13 +181,28 @@ export class NudgeService {
     language: string,
     userData: UserData,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
-    if (userData.genderIdentity === undefined) {
-      logger.error(
-        `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
-      );
-      throw new Error(
-        `User ${userId} is missing required field: genderIdentity`,
-      );
+    let resolvedGenderIdentity = userData.genderIdentity;
+
+    if (resolvedGenderIdentity === undefined) {
+      if (userData.mhcGenderIdentity !== undefined) {
+        resolvedGenderIdentity =
+          mhcGenderIdentityMap[userData.mhcGenderIdentity];
+        if (resolvedGenderIdentity === undefined) {
+          logger.error(
+            `User ${userId} has unmapped mhcGenderIdentity value: ${userData.mhcGenderIdentity}. Cannot generate LLM nudges.`,
+          );
+          throw new Error(
+            `User ${userId} has invalid mhcGenderIdentity: ${userData.mhcGenderIdentity}`,
+          );
+        }
+      } else {
+        logger.error(
+          `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
+        );
+        throw new Error(
+          `User ${userId} is missing required field: genderIdentity`,
+        );
+      }
     }
 
     if (userData.comorbidities === undefined) {
@@ -198,7 +224,7 @@ export class NudgeService {
         const isSpanish = language === "es";
 
         // Build detailed personalization context
-        const genderIdentity = userData.genderIdentity;
+        const genderIdentity = resolvedGenderIdentity;
         const dateOfBirth = userData.dateOfBirth;
         const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
@@ -235,8 +261,16 @@ export class NudgeService {
         let genderContext = "";
         if (genderIdentity === "male") {
           genderContext = "This participant is male.";
-        } else {
+        } else if (genderIdentity === "female") {
           genderContext = "This participant is female.";
+        } else if (genderIdentity === "trans female") {
+          genderContext = "This participant is a trans female.";
+        } else if (genderIdentity === "trans male") {
+          genderContext = "This participant is a trans male.";
+        } else if (genderIdentity === "prefer not to state") {
+          genderContext = "";
+        } else {
+          genderContext = "";
         }
 
         // Build disease context from comorbidities
@@ -546,6 +580,13 @@ export class NudgeService {
         const userData = userDoc.data() as UserData;
         const userId = userDoc.id;
         usersProcessed++;
+
+        if (userData.mostRecentOnboardingStep !== "finalStep") {
+          logger.warn(
+            `Skipping user ${userId}: onboarding not completed (mostRecentOnboardingStep: ${userData.mostRecentOnboardingStep ?? "undefined"}).`,
+          );
+          continue;
+        }
 
         if (!userData.participantGroup) {
           logger.error(
