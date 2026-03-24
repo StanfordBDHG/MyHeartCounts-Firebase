@@ -84,6 +84,7 @@ export class OnboardingReminderService {
         "==",
         OnboardingReminderService.ONBOARDING_REMINDER_CATEGORY,
       )
+      .where("status", "==", "sent")
       .limit(1)
       .get();
 
