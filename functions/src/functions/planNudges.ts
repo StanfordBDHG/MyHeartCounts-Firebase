@@ -18,6 +18,7 @@ import {
 
 interface UserData {
   genderIdentity?: string;
+  mhcGenderIdentity?: number;
   dateOfBirth?: Date | string | admin.firestore.Timestamp;
   comorbidities?: Record<string, unknown>;
   stageOfChange?: string;
@@ -55,6 +56,15 @@ enum EducationLevel {
   COLLEGE = "college",
   COLLAGE = "collage",
 }
+
+const mhcGenderIdentityMap: Record<number, string> = {
+  0: "prefer not to state",
+  1: "male",
+  2: "female",
+  3: "trans female",
+  4: "trans male",
+  5: "other",
+};
 
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp;
@@ -170,7 +180,13 @@ export class NudgeService {
     language: string,
     userData: UserData,
   ): Promise<{ nudges: NudgeMessage[]; usedFallback: boolean }> {
-    if (userData.genderIdentity === undefined) {
+    const resolvedGenderIdentity =
+      userData.genderIdentity ??
+      (userData.mhcGenderIdentity !== undefined ?
+        mhcGenderIdentityMap[userData.mhcGenderIdentity]
+      : undefined);
+
+    if (resolvedGenderIdentity === undefined) {
       logger.error(
         `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
       );
@@ -198,7 +214,7 @@ export class NudgeService {
         const isSpanish = language === "es";
 
         // Build detailed personalization context
-        const genderIdentity = userData.genderIdentity;
+        const genderIdentity = resolvedGenderIdentity;
         const dateOfBirth = userData.dateOfBirth;
         const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
@@ -235,8 +251,16 @@ export class NudgeService {
         let genderContext = "";
         if (genderIdentity === "male") {
           genderContext = "This participant is male.";
-        } else {
+        } else if (genderIdentity === "female") {
           genderContext = "This participant is female.";
+        } else if (genderIdentity === "trans female") {
+          genderContext = "This participant is a trans female.";
+        } else if (genderIdentity === "trans male") {
+          genderContext = "This participant is a trans male.";
+        } else if (genderIdentity === "prefer not to state") {
+          genderContext = "";
+        } else {
+          genderContext = "";
         }
 
         // Build disease context from comorbidities
