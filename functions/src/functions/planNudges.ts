@@ -32,6 +32,7 @@ interface UserData {
   userLanguage?: string;
   disabled?: boolean;
   hasWithdrawnFromStudy?: boolean;
+  mostRecentOnboardingStep?: string;
 }
 
 enum Disease {
@@ -570,6 +571,13 @@ export class NudgeService {
         const userData = userDoc.data() as UserData;
         const userId = userDoc.id;
         usersProcessed++;
+
+        if (userData.mostRecentOnboardingStep !== "finalStep") {
+          logger.warn(
+            `Skipping user ${userId}: onboarding not completed (mostRecentOnboardingStep: ${userData.mostRecentOnboardingStep ?? "undefined"}).`,
+          );
+          continue;
+        }
 
         if (!userData.participantGroup) {
           logger.error(
