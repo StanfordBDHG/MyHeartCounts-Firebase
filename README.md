@@ -22,6 +22,7 @@ Key features of the backend infrastructure include:
 - Questinaire parsing
 - User State Handeling
 - Physical Activity Trial with personalized coaching messages using a Large Language Model (LLM) to generate personalized physical activity nudges in a blind study approach to compare predefined nudges and LLM nudges
+- Region-based waitlist for anonymous users (no account required) using ISO 3166-1 alpha-2 country codes
 
 > [!NOTE]
 > Do you want to learn more about the Stanford Spezi Template Application and how to use, extend, and modify this application? Check out the [Stanford Spezi Template Application documentation](https://stanfordspezi.github.io/SpeziTemplateApplication).
@@ -47,6 +48,7 @@ My Heart Counts Firebase makes extensive usage of both the Firestore Database (N
 |Path|Purpose|Fields|
 |-|-|-|
 |`/feedback/{UUID}`|Collection for Participant-Submitted Feedback|`accountId`, `appBuildNumber`, `appVersion`, `date`, `deviceInfo` (`model`, `osVersion`, `systemName`), `message`, `timeZone` (`identifier`)|
+|`/waitlist/{REGION}_{EMAIL}`|Region-based waitlist entries for anonymous users|`region` (ISO 3166-1 alpha-2), `email`, `createdAt`|
 |`/users/{USER-ID}`|User Document|`biologicalSexAtBirth`, `bloodType`, `comorbidities` (Disease : year), `dateOfBirth`, `dateOfEnrollment`, `didOptInToTrial`, `disabled`, `fcmToken`, `futureStudies`, `heightInCM`, `householdIncomeUS`, `language`, `lastActiveDate`, `lastSignedConsentDate`, `lastSignedConsentVersion`, `latinoStatus`, `mhcGenderIdentity`, `mostRecentOnboardingStep`, `participantGroup`, `preferredNotificationTime`, `preferredWorkoutTypes`, `raceEthnicity`, `timeZone`, `usRegion`, `weightInKG`|
 |`/users/{USER-ID}/questionnaireResponses/{UUID}`|FHIR questionnaire responses|See [FHIR questionnaireresponse documentation](https://build.fhir.org/questionnaireresponse.html)|
 |`/users/{USER-ID}/notificationBacklog/{UUID}`|Backlog of Notifications to send|`body`, `category`, `generatedAt`, `id`, `isLLMGenerated`, `timestamp`, `title`|
@@ -495,6 +497,51 @@ flowchart TD
     style P fill:#f5e1ff
     style R fill:#ffe1e1
     style W fill:#d3d3d3
+```
+
+#### Pending Health Sample Deletion Queue Function
+
+```mermaid
+flowchart TD
+    A[Scheduled: Every 30 minutes] --> B[Query pendingHealthSampleDeletions]
+    B -->|nextRetryAt <= now, limit 500| C{Queue empty?}
+    C -->|Yes| D[Log: Nothing to process]
+    C -->|No| E[Process items with concurrency limit 10]
+
+    E --> F[For each item: Validate]
+    F --> G{Valid item?}
+    G -->|No| H[Delete invalid item & skip]
+    G -->|Yes| I[Update target document status]
+
+    I -->|Set field| J[status: entered-in-error]
+    J -->|Update in| K[users/USER-ID/collection/documentId]
+
+    K --> L{Update successful?}
+    L -->|Yes| M[Delete queue item]
+    L -->|No| N{retryCount >= 10?}
+
+    N -->|No| O[Increment retryCount]
+    O --> P[Calculate exponential backoff]
+    P -->|Update| Q[nextRetryAt with backoff, capped at 1h]
+
+    N -->|Yes| R[Move to dead-letter collection]
+    R -->|Write to| S[users/USER-ID/failedHealthSampleDeletions]
+
+    M --> T[Log completion stats]
+    H --> T
+    Q --> T
+    S --> T
+    D --> T
+    T --> U[End]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style E fill:#fff4e1
+    style I fill:#ffe1f5
+    style J fill:#f5e1ff
+    style K fill:#ffe1e1
+    style R fill:#ffe1f5
+    style U fill:#d3d3d3
 ```
 
 ### Contributing
