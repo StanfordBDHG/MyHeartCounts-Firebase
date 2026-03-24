@@ -12,6 +12,7 @@ interface NotificationBacklogItem {
   title: string;
   body: string;
   timestamp: admin.firestore.Timestamp;
+  category?: string;
   isLLMGenerated?: boolean;
   generatedAt?: admin.firestore.Timestamp;
 }
@@ -23,6 +24,7 @@ interface NotificationArchiveItem {
   processedTimestamp: admin.firestore.FieldValue;
   status: "sent" | "failed";
   errorMessage?: string;
+  category?: string;
   isLLMGenerated?: boolean;
   generatedAt?: admin.firestore.Timestamp;
 }
@@ -56,6 +58,7 @@ export class NotificationService {
     originalTimestamp: admin.firestore.Timestamp,
     isLLMGenerated?: boolean,
     generatedAt?: admin.firestore.Timestamp,
+    category?: string,
   ): Promise<void> {
     let status: "sent" | "failed" = "failed";
     let errorMessage: string | undefined = undefined;
@@ -93,6 +96,7 @@ export class NotificationService {
       originalTimestamp,
       processedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
       status,
+      ...(category && { category }),
       isLLMGenerated: isLLMGenerated ?? false,
       ...(generatedAt && { generatedAt }),
     };
@@ -163,6 +167,9 @@ export class NotificationService {
                     admin.firestore.FieldValue.serverTimestamp(),
                   status: "failed",
                   errorMessage: "No FCM token available for user",
+                  ...(backlogItem.category && {
+                    category: backlogItem.category,
+                  }),
                   isLLMGenerated: backlogItem.isLLMGenerated ?? false,
                   ...(backlogItem.generatedAt && {
                     generatedAt: backlogItem.generatedAt,
@@ -185,6 +192,7 @@ export class NotificationService {
                   backlogItem.timestamp,
                   backlogItem.isLLMGenerated,
                   backlogItem.generatedAt,
+                  backlogItem.category,
                 );
               }
 
