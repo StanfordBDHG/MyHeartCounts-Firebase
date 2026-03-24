@@ -58,7 +58,7 @@ enum EducationLevel {
   COLLAGE = "collage",
 }
 
-const mhcGenderIdentityMap: Record<number, string> = {
+const mhcGenderIdentityMap: Partial<Record<number, string>> = {
   0: "prefer not to state",
   1: "male",
   2: "female",
