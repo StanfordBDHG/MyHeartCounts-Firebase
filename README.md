@@ -131,9 +131,9 @@ reuse annotate \
 
 Before submitting a new PR, make sure `reuse lint` does not throw any errors about missing copyright/licensing information.
 
-### Update Firestore Indexies
+### Update Firestore Indexes
 
-If while developing the indexies in the remote firebase changed (e.g. App-Side Changes), you can use
+If while developing the indexes in the remote firebase changed (e.g. App-Side Changes), you can use
 
 ```bash
 firebase firestore:indexes > firestore.indexes.json
