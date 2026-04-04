@@ -131,6 +131,20 @@ reuse annotate \
 
 Before submitting a new PR, make sure `reuse lint` does not throw any errors about missing copyright/licensing information.
 
+### Update Firestore Indexies
+
+If while developing the indexies in the remote firebase changed (e.g. App-Side Changes), you can use
+
+```bash
+firebase firestore:indexes > firestore.indexes.json
+```
+
+to update the local firebase index file.
+
+### Organisation while developing
+
+We are happy for any new features, bugfixes and enhancements at any time and this repo; you can find a selection of issue templates if you just want to notify us of a issue, otherwise open up PR to directly contribute to the source code. Either way, we ask that you mark your development branches and issues to help us keep organized.
+
 #### Prefixes in branches
 
 - `feature/` – new functionality
