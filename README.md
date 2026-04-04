@@ -143,7 +143,7 @@ to update the local firebase index file.
 
 ### Organisation while developing
 
-We are happy for any new features, bugfixes and enhancements at any time and this repo; you can find a selection of issue templates if you just want to notify us of a issue, otherwise open up PR to directly contribute to the source code. Either way, we ask that you mark your development branches and issues to help us keep organized.
+We are happy for any new features, bug fixes and enhancements in this repo at any time; you can find a selection of issue templates if you just want to notify us of an issue, otherwise open a PR to directly contribute to the source code. Either way, we ask that you mark your development branches and issues to help us stay organized.
 
 #### Prefixes in branches
 
