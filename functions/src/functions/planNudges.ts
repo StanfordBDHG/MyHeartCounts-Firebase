@@ -208,7 +208,8 @@ export class NudgeService {
     }
 
     if (userData.comorbidities === undefined) {
-      logger.error( // Error out here for safty reasons, since comorbidities are critical for generating safe and effective nudges. If this data is missing, it's better to fail than to generate potentially harmful recommendations.
+      logger.error(
+        // Error out here for safty reasons, since comorbidities are critical for generating safe and effective nudges. If this data is missing, it's better to fail than to generate potentially harmful recommendations.
         `User ${userId} has no comorbidities data. Cannot generate LLM nudges.`,
       );
       throw new Error(
