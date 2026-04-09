@@ -196,25 +196,19 @@ export class NudgeService {
         resolvedGenderIdentity =
           mhcGenderIdentityMap[userData.mhcGenderIdentity];
         if (resolvedGenderIdentity === undefined) {
-          logger.error(
-            `User ${userId} has unmapped mhcGenderIdentity value: ${userData.mhcGenderIdentity}. Cannot generate LLM nudges.`,
-          );
-          throw new Error(
-            `User ${userId} has invalid mhcGenderIdentity: ${userData.mhcGenderIdentity}`,
+          logger.warn(
+            `User ${userId} has unmapped mhcGenderIdentity value: ${userData.mhcGenderIdentity}. LLM nudge will be generated without gender context.`,
           );
         }
       } else {
-        logger.error(
-          `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
-        );
-        throw new Error(
-          `User ${userId} is missing required field: genderIdentity`,
+        logger.warn(
+          `User ${userId} has no gender identity set. LLM nudge will be generated without gender context.`,
         );
       }
     }
 
     if (userData.comorbidities === undefined) {
-      logger.error(
+      logger.error( // Error out here for safty reasons, since comorbidities are critical for generating safe and effective nudges. If this data is missing, it's better to fail than to generate potentially harmful recommendations.
         `User ${userId} has no comorbidities data. Cannot generate LLM nudges.`,
       );
       throw new Error(
@@ -237,6 +231,23 @@ export class NudgeService {
         const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
         const educationLevel = userData.educationUS ?? userData.educationUK;
+
+        // Log missing optional personalization fields
+        if (!dateOfBirth) {
+          logger.warn(
+            `User ${userId} has no dateOfBirth set. LLM nudge will be generated without age context.`,
+          );
+        }
+        if (!userData.stageOfChange) {
+          logger.warn(
+            `User ${userId} has no stageOfChange set. LLM nudge will be generated without stage of change context.`,
+          );
+        }
+        if (!educationLevel) {
+          logger.warn(
+            `User ${userId} has neither educationUS nor educationUK set. LLM nudge will be generated without education level context.`,
+          );
+        }
 
         // Calculate age from dateOfBirth
         let ageContext = "";
