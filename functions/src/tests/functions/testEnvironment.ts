@@ -141,6 +141,7 @@ export class EmulatorTestEnvironment {
       disabled?: boolean;
       dateOfEnrollment?: Date;
       lastActiveDate?: Date;
+      lastUploadDate?: Date;
     } & admin.auth.CreateRequest,
   ) {
     const authUser = await this.auth.createUser(options);
@@ -149,6 +150,7 @@ export class EmulatorTestEnvironment {
         disabled: options.disabled ?? false,
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
         lastActiveDate: options.lastActiveDate ?? new Date(),
+        lastUploadDate: options.lastUploadDate ?? new Date(),
       }),
     );
     return authUser.uid;
