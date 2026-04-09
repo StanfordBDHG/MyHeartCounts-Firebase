@@ -71,10 +71,12 @@ The following table provides an overview of all fields in the `/users/{USER-ID}`
 |`dateOfEnrollment`|timestamp|Server||Timestamp of when the user enrolled into the study|
 |`didOptInToTrial`|boolean|Client||Whether the user opted into the physical activity trial|
 |`disabled`|boolean|Client||Whether the user account is disabled|
+|`educationUK`|string|Client||UK education level (e.g. `"doctoralDegree"`)|
 |`educationUS`|string|Client||US education level (e.g. `"bachelor"`)|
 |`fcmToken`|string|Client||Firebase Cloud Messaging token for push notifications|
 |`futureStudies`|boolean|Client||Whether the user consented to be contacted for future studies|
 |`heightInCM`|double|Client||User's height in centimeters|
+|`householdIncomeUK`|int64|Client||UK household income bracket|
 |`householdIncomeUS`|int64|Client||US household income bracket|
 |`language`|string|Client||User's preferred language (e.g. `"en"`)|
 |`lastActiveDate`|timestamp|Client||Timestamp of the user's last app activity|
@@ -84,12 +86,15 @@ The following table provides an overview of all fields in the `/users/{USER-ID}`
 |`latinoStatus`|int64|Client||Latino/Hispanic status|
 |`mhcGenderIdentity`|int64|Client||Gender identity|
 |`mostRecentOnboardingStep`|string|Client||Identifier of the last completed onboarding step|
+|`nhsNumber`|string|Client||UK National Health Service number|
 |`participantGroup`|int64|Server||Randomly assigned trial group (1 or 2)|
+|`preferredMeasurementSystem`|string|Client||User's preferred measurement system (e.g. metric, imperial)|
 |`preferredNotificationTime`|string|Client||Preferred time for notifications (e.g. `"09:00"`)|
 |`preferredWorkoutTypes`|string|Client||Comma-separated preferred workout types (e.g. `"walk,run"`)|
 |`raceEthnicity`|int64|Client||Race/ethnicity|
 |`stageOfChange`|string|Client||Transtheoretical model stage of change (e.g. `"a"`)|
 |`timeZone`|string|Client||IANA time zone identifier (e.g. `"America/New_York"`)|
+|`ukRegion`|string|Client||UK region|
 |`usRegion`|string|Client||US state/region code (e.g. `"FL"`)|
 |`weightInKG`|double|Client||User's weight in kilograms|
 
