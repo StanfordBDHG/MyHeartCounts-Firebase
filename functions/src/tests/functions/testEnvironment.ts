@@ -151,7 +151,8 @@ export class EmulatorTestEnvironment {
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
         lastActiveDate: options.lastActiveDate ?? new Date(),
         extendedActivityNudgesOptIn: true,
-        lastUploadDate: options.lastUploadDate ?? new Date(),      }),
+        lastUploadDate: options.lastUploadDate ?? new Date(),
+      }),
     );
     return authUser.uid;
   }
