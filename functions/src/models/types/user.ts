@@ -10,6 +10,7 @@ import {
 } from "./userRegistration.js";
 import { dateConverter } from "../helpers/dateConverter.js";
 import { Lazy } from "../helpers/lazy.js";
+import { optionalish } from "../helpers/optionalish.js";
 import { SchemaConverter } from "../helpers/schemaConverter.js";
 
 export const userConverter = new Lazy(
@@ -19,11 +20,16 @@ export const userConverter = new Lazy(
         .extend({
           dateOfEnrollment: dateConverter.schema,
           lastActiveDate: dateConverter.schema,
+          lastUploadDate: optionalish(dateConverter.schema),
         })
         .transform((values) => new User(values)),
       encode: (object) => ({
         ...userRegistrationConverter.value.encode(object),
         lastActiveDate: dateConverter.encode(object.lastActiveDate),
+        lastUploadDate:
+          object.lastUploadDate ?
+            dateConverter.encode(object.lastUploadDate)
+          : null,
         dateOfEnrollment: dateConverter.encode(object.dateOfEnrollment),
       }),
     }),
@@ -34,6 +40,7 @@ export class User extends UserRegistration {
 
   readonly dateOfEnrollment: Date;
   readonly lastActiveDate: Date;
+  readonly lastUploadDate?: Date;
 
   // Constructor
 
@@ -45,9 +52,11 @@ export class User extends UserRegistration {
     participantGroup?: number;
     dateOfEnrollment: Date;
     lastActiveDate: Date;
+    lastUploadDate?: Date;
   }) {
     super(input);
     this.dateOfEnrollment = input.dateOfEnrollment;
     this.lastActiveDate = input.lastActiveDate;
+    this.lastUploadDate = input.lastUploadDate;
   }
 }
