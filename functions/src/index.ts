@@ -52,3 +52,4 @@ export * from "./functions/markAccountForStudyReenrollment.js";
 export * from "./functions/markAccountForStudyWithdrawal.js";
 export * from "./functions/processUserDeletions.js";
 export * from "./functions/processPendingHealthSampleDeletions.js";
+export * from "./functions/backfillExtendedActivityNudgesOptIn.js";

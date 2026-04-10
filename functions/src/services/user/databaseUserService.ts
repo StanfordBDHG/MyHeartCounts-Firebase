@@ -96,6 +96,7 @@ export class DatabaseUserService implements UserService {
           participantGroup: Math.random() < 0.5 ? 1 : 2, // This selects the participant group for a given user
           lastActiveDate: new Date(),
           dateOfEnrollment: new Date(),
+          extendedActivityNudgesOptIn: true,
         });
         transaction.set(userRef, userData);
 

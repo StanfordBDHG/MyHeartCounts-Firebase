@@ -65,6 +65,7 @@ export class MockUserService implements UserService {
         lastActiveDate: new Date("2024-04-04"),
         dateOfEnrollment: new Date("2024-04-02"),
         timeZone: "America/Los_Angeles",
+        extendedActivityNudgesOptIn: true,
       }),
     };
   }
