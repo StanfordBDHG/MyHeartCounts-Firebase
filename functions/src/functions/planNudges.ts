@@ -22,7 +22,8 @@ interface UserData {
   dateOfBirth?: Date | string | admin.firestore.Timestamp;
   comorbidities?: Record<string, unknown>;
   stageOfChange?: string;
-  educationLevel?: string;
+  educationUS?: string;
+  educationUK?: string;
   preferredNotificationTime?: string;
   timeZone?: string;
   dateOfEnrollment?: Date | string | admin.firestore.Timestamp;
@@ -52,10 +53,17 @@ enum StageOfChange {
   MAINTENANCE = "Maintenance",
 }
 
+// Education level IDs as defined in the iOS app for both US and UK variants.
+// See EducationStatusUS and EducationStatusUK in the iOS codebase.
 enum EducationLevel {
-  HIGHSCHOOL = "Highschool",
-  COLLEGE = "college",
-  COLLAGE = "collage",
+  DID_NOT_ATTEND_SCHOOL = "didNotAttendSchool",
+  GRADE_SCHOOL = "gradeSchool",
+  HIGH_SCHOOL = "highSchool",
+  VOCATIONAL_TRAINING = "vocationalTraining",
+  SOME_COLLEGE = "someCollege",
+  BACHELOR = "bachelor",
+  MASTER = "master",
+  DOCTORAL_DEGREE = "doctoralDegree",
 }
 
 const mhcGenderIdentityMap: Partial<Record<number, string>> = {
@@ -188,25 +196,20 @@ export class NudgeService {
         resolvedGenderIdentity =
           mhcGenderIdentityMap[userData.mhcGenderIdentity];
         if (resolvedGenderIdentity === undefined) {
-          logger.error(
-            `User ${userId} has unmapped mhcGenderIdentity value: ${userData.mhcGenderIdentity}. Cannot generate LLM nudges.`,
-          );
-          throw new Error(
-            `User ${userId} has invalid mhcGenderIdentity: ${userData.mhcGenderIdentity}`,
+          logger.warn(
+            `User ${userId} has unmapped mhcGenderIdentity value: ${userData.mhcGenderIdentity}. LLM nudge will be generated without gender context.`,
           );
         }
       } else {
-        logger.error(
-          `User ${userId} has no gender identity. Cannot generate LLM nudges.`,
-        );
-        throw new Error(
-          `User ${userId} is missing required field: genderIdentity`,
+        logger.warn(
+          `User ${userId} has no gender identity set. LLM nudge will be generated without gender context.`,
         );
       }
     }
 
     if (userData.comorbidities === undefined) {
       logger.error(
+        // Error out here for safty reasons, since comorbidities are critical for generating safe and effective nudges. If this data is missing, it's better to fail than to generate potentially harmful recommendations.
         `User ${userId} has no comorbidities data. Cannot generate LLM nudges.`,
       );
       throw new Error(
@@ -228,7 +231,24 @@ export class NudgeService {
         const dateOfBirth = userData.dateOfBirth;
         const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
-        const educationLevel = userData.educationLevel;
+        const educationLevel = userData.educationUS ?? userData.educationUK;
+
+        // Log missing optional personalization fields
+        if (!dateOfBirth) {
+          logger.warn(
+            `User ${userId} has no dateOfBirth set. LLM nudge will be generated without age context.`,
+          );
+        }
+        if (!userData.stageOfChange) {
+          logger.warn(
+            `User ${userId} has no stageOfChange set. LLM nudge will be generated without stage of change context.`,
+          );
+        }
+        if (!educationLevel) {
+          logger.warn(
+            `User ${userId} has neither educationUS nor educationUK set. LLM nudge will be generated without education level context.`,
+          );
+        }
 
         // Calculate age from dateOfBirth
         let ageContext = "";
@@ -358,11 +378,17 @@ export class NudgeService {
         let educationContext = "";
         if (educationLevel) {
           switch (educationLevel as EducationLevel) {
-            case EducationLevel.HIGHSCHOOL:
+            case EducationLevel.DID_NOT_ATTEND_SCHOOL:
+            case EducationLevel.GRADE_SCHOOL:
+            case EducationLevel.HIGH_SCHOOL:
+            case EducationLevel.VOCATIONAL_TRAINING:
               educationContext =
                 "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level.";
               break;
-            case EducationLevel.COLLAGE:
+            case EducationLevel.SOME_COLLEGE:
+            case EducationLevel.BACHELOR:
+            case EducationLevel.MASTER:
+            case EducationLevel.DOCTORAL_DEGREE:
               educationContext =
                 "This person is more highly educated and has some form of higher education. Please write the prompts at the 12th grade reading comprehension level.";
               break;

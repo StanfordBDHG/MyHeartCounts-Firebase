@@ -95,6 +95,7 @@ export class DatabaseUserService implements UserService {
           disabled: false,
           participantGroup: Math.random() < 0.5 ? 1 : 2, // This selects the participant group for a given user
           lastActiveDate: new Date(),
+          lastUploadDate: new Date(),
           dateOfEnrollment: new Date(),
           extendedActivityNudgesOptIn: true,
         });
@@ -164,10 +165,10 @@ export class DatabaseUserService implements UserService {
     );
   }
 
-  async updateLastActiveDate(userId: string): Promise<void> {
+  async updateLastUploadDate(userId: string): Promise<void> {
     return this.databaseService.runTransaction((collections, transaction) => {
       transaction.update(collections.users.doc(userId), {
-        lastActiveDate: dateConverter.encode(new Date()),
+        lastUploadDate: dateConverter.encode(new Date()),
       });
     });
   }
