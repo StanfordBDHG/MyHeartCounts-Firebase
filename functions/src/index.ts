@@ -43,6 +43,7 @@ export * from "./functions/joinWaitlist.js";
 export * from "./functions/updateStaticData.js";
 export * from "./functions/updateUserInformation.js";
 export * from "./functions/planNudges.js";
+export * from "./functions/planOnboardingReminder.js";
 export * from "./functions/sendNudges.js";
 export * from "./functions/onUserQuestionnaireResponseWritten.js";
 export * from "./functions/deleteHealthSamples.js";
