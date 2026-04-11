@@ -608,9 +608,7 @@ export class PosttrialNudgeService {
     );
     const welcomeId = randomUUID().toUpperCase();
     const userRef = this.firestore.collection("users").doc(userId);
-    const welcomeRef = userRef
-      .collection("notificationBacklog")
-      .doc(welcomeId);
+    const welcomeRef = userRef.collection("notificationBacklog").doc(welcomeId);
 
     const batch = this.firestore.batch();
     batch.set(welcomeRef, {
