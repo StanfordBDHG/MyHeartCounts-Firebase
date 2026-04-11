@@ -31,6 +31,7 @@ interface PosttrialUserData {
   extendedActivityNudgesOptIn?: boolean;
   preferredWorkoutTypes?: string;
   lastActiveDate?: Date | string | admin.firestore.Timestamp;
+  posttrialWelcomeNudgeScheduled?: boolean;
 }
 
 enum Disease {
@@ -88,6 +89,11 @@ export class PosttrialNudgeService {
   private static readonly TRIAL_COMPLETION_DAYS = 21;
   private static readonly ACTIVE_WINDOW_DAYS = 14;
   private static readonly CATEGORY = "nudge-posttrial";
+  private static readonly WELCOME_CATEGORY = "nudge-posttrial-welcome";
+  private static readonly WELCOME_TITLE = "Physical Activity Nudges Extended";
+  private static readonly WELCOME_BODY =
+    "Daily nudges for your preferred activities continue after trial! Manage anytime in Profile/Settings under long-term nudges toggle.";
+  private static readonly WELCOME_LEAD_MS = 60 * 60 * 1000;
   private readonly firestore: admin.firestore.Firestore;
 
   // Constructor
@@ -582,6 +588,49 @@ export class PosttrialNudgeService {
       });
   }
 
+  async scheduleWelcomeIfNeeded(
+    userId: string,
+    userData: PosttrialUserData,
+    firstNudgeTargetUtc: Date,
+  ): Promise<boolean> {
+    if (userData.posttrialWelcomeNudgeScheduled === true) {
+      return false;
+    }
+    if (userData.didOptInToTrial !== true) {
+      logger.info(
+        `Skipping post-trial welcome nudge for user ${userId}: did not opt into trial`,
+      );
+      return false;
+    }
+
+    const welcomeTime = new Date(
+      firstNudgeTargetUtc.getTime() - PosttrialNudgeService.WELCOME_LEAD_MS,
+    );
+    const welcomeId = randomUUID().toUpperCase();
+    const userRef = this.firestore.collection("users").doc(userId);
+    const welcomeRef = userRef
+      .collection("notificationBacklog")
+      .doc(welcomeId);
+
+    const batch = this.firestore.batch();
+    batch.set(welcomeRef, {
+      id: welcomeId,
+      title: PosttrialNudgeService.WELCOME_TITLE,
+      body: PosttrialNudgeService.WELCOME_BODY,
+      timestamp: admin.firestore.Timestamp.fromDate(welcomeTime),
+      category: PosttrialNudgeService.WELCOME_CATEGORY,
+      isLLMGenerated: false,
+      generatedAt: admin.firestore.Timestamp.now(),
+    });
+    batch.update(userRef, { posttrialWelcomeNudgeScheduled: true });
+    await batch.commit();
+
+    logger.info(
+      `Scheduled post-trial welcome nudge for user ${userId} at ${welcomeTime.toISOString()} (1 h before first post-trial nudge at ${firstNudgeTargetUtc.toISOString()})`,
+    );
+    return true;
+  }
+
   private getUserLanguage(userData: PosttrialUserData): string {
     return userData.userLanguage === "es" ? "es" : "en";
   }
@@ -594,6 +643,7 @@ export class PosttrialNudgeService {
 
     let usersProcessed = 0;
     let nudgesCreated = 0;
+    let welcomesScheduled = 0;
     let usersSkippedDedup = 0;
     let usersSkippedFailure = 0;
 
@@ -699,6 +749,21 @@ export class PosttrialNudgeService {
         logger.info(
           `Created post-trial nudge for user ${userId} at ${targetUtc.toISOString()} (${userLanguage})`,
         );
+
+        try {
+          const welcomed = await this.scheduleWelcomeIfNeeded(
+            userId,
+            userData,
+            targetUtc,
+          );
+          if (welcomed) welcomesScheduled++;
+        } catch (welcomeError) {
+          // Non-fatal: the post-trial nudge itself was already queued, and
+          // the unset flag means the next daily run will retry the welcome.
+          logger.error(
+            `Failed to schedule post-trial welcome nudge for user ${userId}: ${String(welcomeError)}`,
+          );
+        }
       } catch (error) {
         logger.error(
           `Error creating post-trial nudge for user ${userDoc.id}: ${String(error)}`,
@@ -707,7 +772,7 @@ export class PosttrialNudgeService {
     }
 
     logger.info(
-      `Post-trial nudge creation complete: ${nudgesCreated} nudges created, ${usersProcessed} users processed, ${usersSkippedDedup} skipped (dedup), ${usersSkippedFailure} skipped (LLM failure)`,
+      `Post-trial nudge creation complete: ${nudgesCreated} nudges created, ${welcomesScheduled} welcome nudges scheduled, ${usersProcessed} users processed, ${usersSkippedDedup} skipped (dedup), ${usersSkippedFailure} skipped (LLM failure)`,
     );
   }
 }
