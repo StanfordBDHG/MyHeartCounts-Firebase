@@ -9,7 +9,10 @@ import admin from "firebase-admin";
 import { DateTime } from "luxon";
 import { it, describe } from "mocha";
 import { createNudgeNotifications } from "./planNudges.js";
-import { createPosttrialNudgeNotifications } from "./planPosttrialNudges.js";
+import {
+  PosttrialNudgeService,
+  createPosttrialNudgeNotifications,
+} from "./planPosttrialNudges.js";
 import { describeWithEmulators } from "../tests/functions/testEnvironment.js";
 
 const daysAgo = (days: number): Date => {
@@ -268,10 +271,14 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         .collection("notificationBacklog")
         .get();
 
-      // Exactly the 7 trial-predefined nudges — posttrial added nothing.
+      // Exactly the 7 trial-predefined nudges — posttrial added nothing
+      // (neither a regular posttrial nudge nor a welcome nudge).
       expect(backlog.size).to.equal(7);
       for (const doc of backlog.docs) {
-        expect(doc.data().category).to.equal("nudge-predefined");
+        const category = doc.data().category as string | undefined;
+        expect(category).to.equal("nudge-predefined");
+        expect(category).to.not.equal("nudge-posttrial");
+        expect(category).to.not.equal("nudge-posttrial-welcome");
       }
     });
 
@@ -298,6 +305,171 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         .collection("notificationBacklog")
         .get();
       expect(backlogAfterTrial.size).to.equal(0);
+    });
+  });
+
+  describe("Welcome notification", () => {
+    const WELCOME_TITLE = "Physical Activity Nudges Extended";
+    const WELCOME_BODY =
+      "Daily nudges for your preferred activities continue after trial! Manage anytime in Profile/Settings under long-term nudges toggle.";
+
+    it("schedules the welcome nudge on first-time eligibility", async () => {
+      const userId = "posttrial-welcome-first";
+      const userData = baseEligibleUser();
+      await env.firestore.collection("users").doc(userId).set(userData);
+
+      const firstNudgeTarget = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const service = new PosttrialNudgeService(env.firestore);
+
+      const scheduled = await service.scheduleWelcomeIfNeeded(
+        userId,
+        userData,
+        firstNudgeTarget,
+      );
+
+      expect(scheduled).to.equal(true);
+
+      const backlog = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .get();
+      expect(backlog.size).to.equal(1);
+
+      const doc = backlog.docs[0].data();
+      expect(doc.category).to.equal("nudge-posttrial-welcome");
+      expect(doc.title).to.equal(WELCOME_TITLE);
+      expect(doc.body).to.equal(WELCOME_BODY);
+      expect(doc.isLLMGenerated).to.equal(false);
+
+      const ts = doc.timestamp as admin.firestore.Timestamp;
+      expect(ts.toDate().getTime()).to.equal(
+        firstNudgeTarget.getTime() - 60 * 60 * 1000,
+      );
+
+      const userAfter = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .get();
+      expect(userAfter.data()?.posttrialWelcomeNudgeScheduled).to.equal(true);
+    });
+
+    it("is idempotent when the flag is already set", async () => {
+      const userId = "posttrial-welcome-idempotent";
+      const userData = baseEligibleUser({
+        posttrialWelcomeNudgeScheduled: true,
+      });
+      await env.firestore.collection("users").doc(userId).set(userData);
+
+      const firstNudgeTarget = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const service = new PosttrialNudgeService(env.firestore);
+
+      const scheduled = await service.scheduleWelcomeIfNeeded(
+        userId,
+        userData,
+        firstNudgeTarget,
+      );
+
+      expect(scheduled).to.equal(false);
+
+      const backlog = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .get();
+      expect(backlog.size).to.equal(0);
+    });
+
+    it("writes the welcome nudge timestamp exactly 1 hour before the first nudge", async () => {
+      const userId = "posttrial-welcome-precision";
+      const userData = baseEligibleUser();
+      await env.firestore.collection("users").doc(userId).set(userData);
+
+      // Pick an arbitrary future instant (not round-number) to prove
+      // we're doing millisecond-precise arithmetic.
+      const firstNudgeTarget = new Date(
+        Date.now() + 17 * 60 * 60 * 1000 + 34 * 60 * 1000 + 27_000,
+      );
+      const service = new PosttrialNudgeService(env.firestore);
+
+      await service.scheduleWelcomeIfNeeded(userId, userData, firstNudgeTarget);
+
+      const backlog = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .get();
+      const ts = backlog.docs[0].data().timestamp as admin.firestore.Timestamp;
+      expect(ts.toDate().getTime()).to.equal(
+        firstNudgeTarget.getTime() - 3_600_000,
+      );
+    });
+
+    it("still schedules when the computed welcome time lands in the recent past", async () => {
+      const userId = "posttrial-welcome-past";
+      const userData = baseEligibleUser();
+      await env.firestore.collection("users").doc(userId).set(userData);
+
+      // Target only 30 minutes in the future → welcome = target − 1 h is 30
+      // minutes in the past. sendNudges will deliver it on its next poll.
+      const firstNudgeTarget = new Date(Date.now() + 30 * 60 * 1000);
+      const service = new PosttrialNudgeService(env.firestore);
+
+      const scheduled = await service.scheduleWelcomeIfNeeded(
+        userId,
+        userData,
+        firstNudgeTarget,
+      );
+
+      expect(scheduled).to.equal(true);
+
+      const backlog = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .get();
+      expect(backlog.size).to.equal(1);
+
+      const ts = backlog.docs[0].data().timestamp as admin.firestore.Timestamp;
+      expect(ts.toDate().getTime()).to.be.lessThan(Date.now());
+
+      const userAfter = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .get();
+      expect(userAfter.data()?.posttrialWelcomeNudgeScheduled).to.equal(true);
+    });
+
+    it("refuses to schedule when didOptInToTrial is not true (defensive gate)", async () => {
+      const userId = "posttrial-welcome-no-trial-optin";
+      const userData = baseEligibleUser({ didOptInToTrial: false });
+      await env.firestore.collection("users").doc(userId).set(userData);
+
+      const firstNudgeTarget = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const service = new PosttrialNudgeService(env.firestore);
+
+      const scheduled = await service.scheduleWelcomeIfNeeded(
+        userId,
+        userData,
+        firstNudgeTarget,
+      );
+
+      expect(scheduled).to.equal(false);
+
+      const backlog = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .get();
+      expect(backlog.size).to.equal(0);
+
+      const userAfter = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .get();
+      expect(userAfter.data()?.posttrialWelcomeNudgeScheduled).to.not.equal(
+        true,
+      );
     });
   });
 });
