@@ -51,10 +51,17 @@ enum StageOfChange {
   MAINTENANCE = "Maintenance",
 }
 
+// Education level IDs as defined in the iOS app for both US and UK variants.
+// See EducationStatusUS and EducationStatusUK in the iOS codebase.
 enum EducationLevel {
-  HIGHSCHOOL = "Highschool",
-  COLLEGE = "college",
-  COLLAGE = "collage",
+  DID_NOT_ATTEND_SCHOOL = "didNotAttendSchool",
+  GRADE_SCHOOL = "gradeSchool",
+  HIGH_SCHOOL = "highSchool",
+  VOCATIONAL_TRAINING = "vocationalTraining",
+  SOME_COLLEGE = "someCollege",
+  BACHELOR = "bachelor",
+  MASTER = "master",
+  DOCTORAL_DEGREE = "doctoralDegree",
 }
 
 const mhcGenderIdentityMap: Partial<Record<number, string>> = {
@@ -419,11 +426,17 @@ export class PosttrialNudgeService {
         let educationContext = "";
         if (educationLevel) {
           switch (educationLevel as EducationLevel) {
-            case EducationLevel.HIGHSCHOOL:
+            case EducationLevel.DID_NOT_ATTEND_SCHOOL:
+            case EducationLevel.GRADE_SCHOOL:
+            case EducationLevel.HIGH_SCHOOL:
+            case EducationLevel.VOCATIONAL_TRAINING:
               educationContext =
                 "This person's highest level of education is high school or lower. Write in clear, natural language appropriate for a person with a sixth-grade reading level.";
               break;
-            case EducationLevel.COLLAGE:
+            case EducationLevel.SOME_COLLEGE:
+            case EducationLevel.BACHELOR:
+            case EducationLevel.MASTER:
+            case EducationLevel.DOCTORAL_DEGREE:
               educationContext =
                 "This person is more highly educated and has some form of higher education. Please write the prompts at the 12th grade reading comprehension level.";
               break;
