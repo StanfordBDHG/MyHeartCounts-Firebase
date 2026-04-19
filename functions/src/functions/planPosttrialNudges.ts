@@ -289,6 +289,13 @@ export class PosttrialNudgeService {
       return null;
     }
 
+    const educationLevel = userData.educationUS ?? userData.educationUK;
+    if (!educationLevel) {
+      logger.warn(
+        `User ${userId} has neither educationUS nor educationUK set. Post-trial LLM nudge will be generated without education level context.`,
+      );
+    }
+
     const maxRetries = 3;
     let lastError: Error | null = null;
 
@@ -301,13 +308,6 @@ export class PosttrialNudgeService {
         const dateOfBirth = userData.dateOfBirth;
         const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
-        const educationLevel = userData.educationUS ?? userData.educationUK;
-
-        if (!educationLevel) {
-          logger.warn(
-            `User ${userId} has neither educationUS nor educationUK set. Post-trial LLM nudge will be generated without education level context.`,
-          );
-        }
 
         // Calculate age from dateOfBirth
         let ageContext = "";
@@ -759,7 +759,7 @@ export class PosttrialNudgeService {
 
         if (!nudge) {
           logger.warn(
-            `Skipping post-trial nudge for user ${userId}: LLM nudge generation returned no nudge (see prior error logs).`,
+            `Skipping post-trial nudge for user ${userId}: LLM nudge generation returned no nudge.`,
           );
           usersSkippedFailure++;
           continue;
