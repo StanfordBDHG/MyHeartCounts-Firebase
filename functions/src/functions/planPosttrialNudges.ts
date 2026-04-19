@@ -19,7 +19,8 @@ interface PosttrialUserData {
   dateOfBirth?: Date | string | admin.firestore.Timestamp;
   comorbidities?: Record<string, unknown>;
   stageOfChange?: string;
-  educationLevel?: string;
+  educationUS?: string;
+  educationUK?: string;
   preferredNotificationTime?: string;
   timeZone?: string;
   dateOfEnrollment?: Date | string | admin.firestore.Timestamp;
@@ -300,7 +301,13 @@ export class PosttrialNudgeService {
         const dateOfBirth = userData.dateOfBirth;
         const comorbidities = userData.comorbidities;
         const stageOfChange = this.mapStageOfChangeKey(userData.stageOfChange);
-        const educationLevel = userData.educationLevel;
+        const educationLevel = userData.educationUS ?? userData.educationUK;
+
+        if (!educationLevel) {
+          logger.warn(
+            `User ${userId} has neither educationUS nor educationUK set. Post-trial LLM nudge will be generated without education level context.`,
+          );
+        }
 
         // Calculate age from dateOfBirth
         let ageContext = "";
@@ -751,6 +758,9 @@ export class PosttrialNudgeService {
         );
 
         if (!nudge) {
+          logger.warn(
+            `Skipping post-trial nudge for user ${userId}: LLM nudge generation returned no nudge (see prior error logs).`,
+          );
           usersSkippedFailure++;
           continue;
         }
