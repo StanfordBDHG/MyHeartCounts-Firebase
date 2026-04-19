@@ -97,6 +97,7 @@ export class DatabaseUserService implements UserService {
           lastActiveDate: new Date(),
           lastUploadDate: new Date(),
           dateOfEnrollment: new Date(),
+          extendedActivityNudgesOptIn: true,
         });
         transaction.set(userRef, userData);
 

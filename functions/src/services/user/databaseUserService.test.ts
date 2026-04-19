@@ -69,6 +69,7 @@ describe("DatabaseUserService", () => {
       const userData = userSnapshot.data();
       expect(userData).to.exist;
       expect(userData?.dateOfEnrollment).to.exist;
+      expect(userData?.extendedActivityNudgesOptIn).to.equal(true);
       expect(userData?.claims).to.deep.equal({
         disabled: false,
       });
