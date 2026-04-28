@@ -8,6 +8,12 @@ import { logger } from "firebase-functions";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { privilegedServiceAccount } from "./helpers.js";
 
+interface LlmTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 interface NotificationBacklogItem {
   title: string;
   body: string;
@@ -15,6 +21,9 @@ interface NotificationBacklogItem {
   category?: string;
   isLLMGenerated?: boolean;
   generatedAt?: admin.firestore.Timestamp;
+  llmPrompt?: string;
+  llmTokenUsage?: LlmTokenUsage;
+  llmModel?: string;
 }
 
 interface NotificationArchiveItem {
@@ -27,6 +36,9 @@ interface NotificationArchiveItem {
   category?: string;
   isLLMGenerated?: boolean;
   generatedAt?: admin.firestore.Timestamp;
+  llmPrompt?: string;
+  llmTokenUsage?: LlmTokenUsage;
+  llmModel?: string;
 }
 
 export class NotificationService {
@@ -59,6 +71,9 @@ export class NotificationService {
     isLLMGenerated?: boolean,
     generatedAt?: admin.firestore.Timestamp,
     category?: string,
+    llmPrompt?: string,
+    llmTokenUsage?: LlmTokenUsage,
+    llmModel?: string,
   ): Promise<void> {
     let status: "sent" | "failed" = "failed";
     let errorMessage: string | undefined = undefined;
@@ -99,6 +114,9 @@ export class NotificationService {
       isLLMGenerated: isLLMGenerated ?? false,
       ...(generatedAt && { generatedAt }),
       ...(category && { category }),
+      ...(llmPrompt && { llmPrompt }),
+      ...(llmTokenUsage && { llmTokenUsage }),
+      ...(llmModel && { llmModel }),
     };
 
     if (errorMessage) {
@@ -174,6 +192,15 @@ export class NotificationService {
                   ...(backlogItem.category && {
                     category: backlogItem.category,
                   }),
+                  ...(backlogItem.llmPrompt && {
+                    llmPrompt: backlogItem.llmPrompt,
+                  }),
+                  ...(backlogItem.llmTokenUsage && {
+                    llmTokenUsage: backlogItem.llmTokenUsage,
+                  }),
+                  ...(backlogItem.llmModel && {
+                    llmModel: backlogItem.llmModel,
+                  }),
                 };
 
                 await this.firestore
@@ -193,6 +220,9 @@ export class NotificationService {
                   backlogItem.isLLMGenerated,
                   backlogItem.generatedAt,
                   backlogItem.category,
+                  backlogItem.llmPrompt,
+                  backlogItem.llmTokenUsage,
+                  backlogItem.llmModel,
                 );
               }
 
