@@ -86,8 +86,19 @@ const AVAILABLE_WORKOUT_TYPES = [
   "yoga/pilates",
 ] as const;
 
+const LLM_MODEL = "gpt-5.4-mini-2026-03-17";
+
+interface LlmTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 interface PosttrialNudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp;
+  llmPrompt?: string;
+  llmTokenUsage?: LlmTokenUsage;
+  llmModel?: string;
 }
 
 export class PosttrialNudgeService {
@@ -513,7 +524,7 @@ export class PosttrialNudgeService {
         });
 
         const response = await openai.chat.completions.create({
-          model: "gpt-5.4-mini-2026-03-17",
+          model: LLM_MODEL,
           messages: [
             {
               role: "user",
@@ -556,12 +567,25 @@ export class PosttrialNudgeService {
           throw new Error("Invalid response format from OpenAI API");
         }
 
+        const usage = response.usage;
+        const tokenUsage: LlmTokenUsage | undefined =
+          usage ?
+            {
+              promptTokens: usage.prompt_tokens,
+              completionTokens: usage.completion_tokens,
+              totalTokens: usage.total_tokens,
+            }
+          : undefined;
+
         const generatedAt = admin.firestore.Timestamp.now();
         const nudge: PosttrialNudgeMessage = {
           title: parsedContent.title,
           body: parsedContent.body,
           isLLMGenerated: true,
           generatedAt,
+          llmPrompt: prompt,
+          llmModel: LLM_MODEL,
+          ...(tokenUsage && { llmTokenUsage: tokenUsage }),
         };
 
         logger.info(
@@ -605,6 +629,9 @@ export class PosttrialNudgeService {
         category: PosttrialNudgeService.CATEGORY,
         isLLMGenerated: nudge.isLLMGenerated,
         generatedAt: nudge.generatedAt,
+        ...(nudge.llmPrompt && { llmPrompt: nudge.llmPrompt }),
+        ...(nudge.llmTokenUsage && { llmTokenUsage: nudge.llmTokenUsage }),
+        ...(nudge.llmModel && { llmModel: nudge.llmModel }),
       });
   }
 

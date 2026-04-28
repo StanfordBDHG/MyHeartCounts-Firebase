@@ -12,22 +12,15 @@ interface NotificationBacklogItem {
   title: string;
   body: string;
   timestamp: admin.firestore.Timestamp;
-  category?: string;
-  isLLMGenerated?: boolean;
-  generatedAt?: admin.firestore.Timestamp;
+  [key: string]: unknown;
 }
 
-interface NotificationArchiveItem {
-  title: string;
-  body: string;
+type NotificationArchiveItem = Omit<NotificationBacklogItem, "timestamp"> & {
   originalTimestamp: admin.firestore.Timestamp;
   processedTimestamp: admin.firestore.FieldValue;
   status: "sent" | "failed";
   errorMessage?: string;
-  category?: string;
-  isLLMGenerated?: boolean;
-  generatedAt?: admin.firestore.Timestamp;
-}
+};
 
 export class NotificationService {
   // Properties
@@ -49,16 +42,30 @@ export class NotificationService {
 
   // Methods
 
+  private buildArchiveItem(
+    backlogItem: NotificationBacklogItem,
+    status: "sent" | "failed",
+    errorMessage?: string,
+  ): NotificationArchiveItem {
+    const { timestamp, ...passthrough } = backlogItem;
+    return {
+      ...passthrough,
+      originalTimestamp: timestamp,
+      processedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      status,
+      isLLMGenerated:
+        typeof passthrough.isLLMGenerated === "boolean" ?
+          passthrough.isLLMGenerated
+        : false,
+      ...(errorMessage && { errorMessage }),
+    };
+  }
+
   async sendNotificationToUser(
     userId: string,
     documentId: string,
-    title: string,
-    body: string,
     fcmToken: string,
-    originalTimestamp: admin.firestore.Timestamp,
-    isLLMGenerated?: boolean,
-    generatedAt?: admin.firestore.Timestamp,
-    category?: string,
+    backlogItem: NotificationBacklogItem,
   ): Promise<void> {
     let status: "sent" | "failed" = "failed";
     let errorMessage: string | undefined = undefined;
@@ -66,7 +73,7 @@ export class NotificationService {
     try {
       const notificationMessage = {
         token: fcmToken,
-        notification: { title, body },
+        notification: { title: backlogItem.title, body: backlogItem.body },
         data: {
           notificationId: documentId,
         },
@@ -76,7 +83,9 @@ export class NotificationService {
 
       if (sendResult) {
         status = "sent";
-        logger.info(`Sent notification to user ${userId}: ${title}`);
+        logger.info(
+          `Sent notification to user ${userId}: ${backlogItem.title}`,
+        );
       } else {
         errorMessage = "Firebase messaging send returned falsy result";
         logger.warn(
@@ -90,20 +99,11 @@ export class NotificationService {
       );
     }
 
-    const archiveData: NotificationArchiveItem = {
-      title,
-      body,
-      originalTimestamp,
-      processedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+    const archiveData = this.buildArchiveItem(
+      backlogItem,
       status,
-      isLLMGenerated: isLLMGenerated ?? false,
-      ...(generatedAt && { generatedAt }),
-      ...(category && { category }),
-    };
-
-    if (errorMessage) {
-      archiveData.errorMessage = errorMessage;
-    }
+      errorMessage,
+    );
 
     await this.firestore
       .collection("users")
@@ -158,23 +158,11 @@ export class NotificationService {
 
             if (notificationTime <= now) {
               if (!userData.fcmToken) {
-                // Archive as failed due to missing FCM token
-                const archiveData: NotificationArchiveItem = {
-                  title: backlogItem.title,
-                  body: backlogItem.body,
-                  originalTimestamp: backlogItem.timestamp,
-                  processedTimestamp:
-                    admin.firestore.FieldValue.serverTimestamp(),
-                  status: "failed",
-                  errorMessage: "No FCM token available for user",
-                  isLLMGenerated: backlogItem.isLLMGenerated ?? false,
-                  ...(backlogItem.generatedAt && {
-                    generatedAt: backlogItem.generatedAt,
-                  }),
-                  ...(backlogItem.category && {
-                    category: backlogItem.category,
-                  }),
-                };
+                const archiveData = this.buildArchiveItem(
+                  backlogItem,
+                  "failed",
+                  "No FCM token available for user",
+                );
 
                 await this.firestore
                   .collection("users")
@@ -186,13 +174,8 @@ export class NotificationService {
                 await this.sendNotificationToUser(
                   userId,
                   backlogDoc.id,
-                  backlogItem.title,
-                  backlogItem.body,
                   userData.fcmToken as string,
-                  backlogItem.timestamp,
-                  backlogItem.isLLMGenerated,
-                  backlogItem.generatedAt,
-                  backlogItem.category,
+                  backlogItem,
                 );
               }
 

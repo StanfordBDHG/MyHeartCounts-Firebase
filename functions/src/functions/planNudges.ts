@@ -75,8 +75,19 @@ const mhcGenderIdentityMap: Partial<Record<number, string>> = {
   5: "other",
 };
 
+const LLM_MODEL = "gpt-5.2-2025-12-11";
+
+interface LlmTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp;
+  llmPrompt?: string;
+  llmTokenUsage?: LlmTokenUsage;
+  llmModel?: string;
 }
 
 export class NudgeService {
@@ -426,7 +437,7 @@ export class NudgeService {
         });
 
         const response = await openai.chat.completions.create({
-          model: "gpt-5.2-2025-12-11",
+          model: LLM_MODEL,
           messages: [
             {
               role: "user",
@@ -480,6 +491,16 @@ export class NudgeService {
           throw new Error("Invalid response format from OpenAI API");
         }
 
+        const usage = response.usage;
+        const tokenUsage: LlmTokenUsage | undefined =
+          usage ?
+            {
+              promptTokens: usage.prompt_tokens,
+              completionTokens: usage.completion_tokens,
+              totalTokens: usage.total_tokens,
+            }
+          : undefined;
+
         const generatedAt = admin.firestore.Timestamp.now();
         const nudges: NudgeMessage[] = parsedNudges.map((nudge: unknown) => {
           const n = nudge as { title: string; body: string };
@@ -488,6 +509,9 @@ export class NudgeService {
             body: n.body,
             isLLMGenerated: true,
             generatedAt,
+            llmPrompt: prompt,
+            llmModel: LLM_MODEL,
+            ...(tokenUsage && { llmTokenUsage: tokenUsage }),
           };
         });
 
@@ -563,6 +587,11 @@ export class NudgeService {
           category,
           isLLMGenerated: nudgeMessage.isLLMGenerated,
           generatedAt: nudgeMessage.generatedAt,
+          ...(nudgeMessage.llmPrompt && { llmPrompt: nudgeMessage.llmPrompt }),
+          ...(nudgeMessage.llmTokenUsage && {
+            llmTokenUsage: nudgeMessage.llmTokenUsage,
+          }),
+          ...(nudgeMessage.llmModel && { llmModel: nudgeMessage.llmModel }),
         });
 
       nudgesCreated++;
