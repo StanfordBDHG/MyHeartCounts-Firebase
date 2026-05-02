@@ -286,24 +286,20 @@ export class HealthSampleDeletionQueueService {
       const newRetryCount = item.retryCount + 1;
 
       if (newRetryCount >= MAX_QUEUE_RETRIES) {
+        // Final attempt exhausted — drop the pending doc rather than persist
+        // it indefinitely. The error log below is the durable signal for SRE.
         logger.error(
-          `Moving item to dead-letter after ${MAX_QUEUE_RETRIES} retries: '${item.documentId}' in '${item.collection}' for job '${item.jobId}'`,
+          `Dropping pending deletion after ${MAX_QUEUE_RETRIES} retries: '${item.documentId}' in '${item.collection}' for job '${item.jobId}'`,
           {
             jobId: item.jobId,
             userId: ownerUserId,
             collection: item.collection,
             documentId: item.documentId,
             retryCount: newRetryCount,
-            lastError: String(error),
+            lastError: sanitizedError,
           },
         );
 
-        await this.collections.failedHealthSampleDeletions(ownerUserId).add({
-          ...item,
-          retryCount: newRetryCount,
-          lastError: sanitizedError,
-          failedAt: Timestamp.now(),
-        });
         await doc.ref.delete();
         return "dead-lettered";
       }

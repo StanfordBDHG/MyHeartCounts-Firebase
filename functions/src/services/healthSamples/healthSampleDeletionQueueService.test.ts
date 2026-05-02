@@ -416,18 +416,13 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .get();
       expect(pendingSnapshot.size).to.equal(0);
 
+      // Final-attempt failures are dropped, not persisted indefinitely.
       const failedSnapshot = await env.firestore
         .collection("users")
         .doc(userId)
         .collection("failedHealthSampleDeletions")
         .get();
-      expect(failedSnapshot.size).to.equal(1);
-
-      const failedData = failedSnapshot.docs[0].data();
-      expect(failedData.documentId).to.equal("doc1");
-      expect(failedData.retryCount).to.equal(10);
-      expect(failedData.lastError).to.equal("DEADLINE_EXCEEDED");
-      expect(failedData.failedAt).to.be.an.instanceOf(Timestamp);
+      expect(failedSnapshot.size).to.equal(0);
     });
 
     it("should skip items where payload userId does not match path owner", async () => {
