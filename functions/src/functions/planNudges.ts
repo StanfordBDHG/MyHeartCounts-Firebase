@@ -502,18 +502,21 @@ export class NudgeService {
           : undefined;
 
         const generatedAt = admin.firestore.Timestamp.now();
-        const nudges: NudgeMessage[] = parsedNudges.map((nudge: unknown) => {
-          const n = nudge as { title: string; body: string };
-          return {
-            title: n.title,
-            body: n.body,
-            isLLMGenerated: true,
-            generatedAt,
-            llmPrompt: prompt,
-            llmModel: LLM_MODEL,
-            ...(tokenUsage && { llmTokenUsage: tokenUsage }),
-          };
-        });
+        const nudges: NudgeMessage[] = parsedNudges.map(
+          (nudge: unknown, index: number) => {
+            const n = nudge as { title: string; body: string };
+            const isFirst = index === 0;
+            return {
+              title: n.title,
+              body: n.body,
+              isLLMGenerated: true,
+              generatedAt,
+              llmModel: LLM_MODEL,
+              ...(isFirst && { llmPrompt: prompt }),
+              ...(isFirst && tokenUsage && { llmTokenUsage: tokenUsage }),
+            };
+          },
+        );
 
         logger.info(
           `Generated ${nudges.length} LLM nudges for user ${userId} in ${language} (attempt ${attempt})`,
