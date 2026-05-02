@@ -15,10 +15,10 @@ const QUEUE_BATCH_SIZE = 500;
 const QUEUE_CONCURRENCY_LIMIT = 10;
 const MAX_BACKOFF_MS = 24 * 60 * 60 * 1000;
 
-const NOT_FOUND_BASE_DELAY_MS = 30_000;
-// Schedule for transient errors: enqueue waits 8h, then 16h between attempts,
-// then 24h (capped); 3 attempts span exactly 48h before the doc is dropped.
-const TRANSIENT_ERROR_BASE_DELAY_MS = 8 * 60 * 60 * 1000;
+// Retry schedule: enqueue waits 8h, then 16h between attempts, then 24h (capped);
+// 3 attempts span exactly 48h before the pending doc is dropped. Applies to both
+// NOT_FOUND (covers late-arriving uploads) and TRANSIENT_ERROR.
+const RETRY_BASE_DELAY_MS = 8 * 60 * 60 * 1000;
 
 const PERMITTED_COLLECTION_PATTERN =
   /^(?:HealthObservations|SensorKitObservations)_[A-Za-z][A-Za-z0-9]*$/;
@@ -69,11 +69,9 @@ export class HealthSampleDeletionQueueService {
     lastError: string | null;
   }): Promise<void> {
     const now = Timestamp.now();
-    const baseDelayMs =
-      params.reason === "NOT_FOUND" ?
-        NOT_FOUND_BASE_DELAY_MS
-      : TRANSIENT_ERROR_BASE_DELAY_MS;
-    const nextRetryAt = Timestamp.fromMillis(now.toMillis() + baseDelayMs);
+    const nextRetryAt = Timestamp.fromMillis(
+      now.toMillis() + RETRY_BASE_DELAY_MS,
+    );
 
     const sanitizedLastError =
       params.lastError !== null ?
@@ -263,14 +261,6 @@ export class HealthSampleDeletionQueueService {
       return "succeeded";
     } catch (error) {
       const sanitizedError = sanitizeErrorForStorage(error);
-
-      // NOT_FOUND on the target sample IS the desired end state of a
-      // deletion — clear the queue entry instead of retrying or dead-lettering.
-      if (sanitizedError === "NOT_FOUND") {
-        await doc.ref.delete();
-        return "succeeded";
-      }
-
       const newRetryCount = item.retryCount + 1;
 
       if (newRetryCount >= MAX_QUEUE_RETRIES) {
@@ -279,12 +269,8 @@ export class HealthSampleDeletionQueueService {
         return "dead-lettered";
       }
 
-      const baseDelayMs =
-        item.reason === "NOT_FOUND" ?
-          NOT_FOUND_BASE_DELAY_MS
-        : TRANSIENT_ERROR_BASE_DELAY_MS;
       const backoffMs = Math.min(
-        baseDelayMs * Math.pow(2, newRetryCount),
+        RETRY_BASE_DELAY_MS * Math.pow(2, newRetryCount),
         MAX_BACKOFF_MS,
       );
       const nextRetryAt = Timestamp.fromMillis(

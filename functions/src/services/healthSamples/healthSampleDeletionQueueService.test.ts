@@ -112,8 +112,9 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       );
     });
 
-    it("should set nextRetryAt 30s in the future for NOT_FOUND", async () => {
+    it("should set nextRetryAt 8h in the future for NOT_FOUND", async () => {
       const before = Timestamp.now().toMillis();
+      const eightHoursMs = 8 * 60 * 60 * 1000;
 
       await queueService.enqueue({
         userId: "user1",
@@ -132,8 +133,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .get();
       const data = snapshot.docs[0].data();
       const nextRetryMs = (data.nextRetryAt as Timestamp).toMillis();
-      expect(nextRetryMs).to.be.greaterThanOrEqual(before + 30_000);
-      expect(nextRetryMs).to.be.lessThanOrEqual(before + 32_000);
+      expect(nextRetryMs).to.be.greaterThanOrEqual(before + eightHoursMs);
+      expect(nextRetryMs).to.be.lessThanOrEqual(before + eightHoursMs + 2_000);
     });
 
     it("should set nextRetryAt 8h in the future for TRANSIENT_ERROR", async () => {
@@ -244,10 +245,9 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       expect(queueSnapshot.size).to.equal(0);
     });
 
-    it("should mark NOT_FOUND target as succeeded and clear the pending entry", async () => {
-      // Seed a pending doc whose target sample does not exist. NOT_FOUND IS
-      // the desired end state of a deletion, so the worker should clear the
-      // entry rather than retry or dead-letter.
+    it("should requeue a NOT_FOUND target so a late-arriving sample can be retried", async () => {
+      // The target sample doesn't exist yet — could be a deletion request that
+      // raced ahead of the upload. The worker should retry, not short-circuit.
       await env.firestore
         .collection("users")
         .doc("nonexistent-user")
@@ -266,8 +266,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         });
 
       const result = await queueService.processQueue();
-      expect(result.succeeded).to.equal(1);
-      expect(result.requeued).to.equal(0);
+      expect(result.requeued).to.equal(1);
+      expect(result.succeeded).to.equal(0);
       expect(result.deadLettered).to.equal(0);
 
       const queueSnapshot = await env.firestore
@@ -275,46 +275,10 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .doc("nonexistent-user")
         .collection("pendingHealthSampleDeletions")
         .get();
-      expect(queueSnapshot.size).to.equal(0);
-
-      const failedSnapshot = await env.firestore
-        .collection("users")
-        .doc("nonexistent-user")
-        .collection("failedHealthSampleDeletions")
-        .get();
-      expect(failedSnapshot.size).to.equal(0);
-    });
-
-    it("should clear the pending entry on NOT_FOUND even at high retryCount", async () => {
-      // Even with retryCount near the dead-letter threshold, NOT_FOUND should
-      // never dead-letter — it is the deletion's desired end state.
-      await env.firestore
-        .collection("users")
-        .doc("nonexistent-user")
-        .collection("pendingHealthSampleDeletions")
-        .add({
-          userId: "nonexistent-user",
-          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
-          documentId: "nonexistent-doc",
-          jobId: "job1",
-          requestingUserId: "user1",
-          reason: "TRANSIENT_ERROR",
-          lastError: "Error: 5 NOT_FOUND",
-          retryCount: 2,
-          createdAt: Timestamp.now(),
-          nextRetryAt: Timestamp.fromMillis(0),
-        });
-
-      const result = await queueService.processQueue();
-      expect(result.succeeded).to.equal(1);
-      expect(result.deadLettered).to.equal(0);
-
-      const failedSnapshot = await env.firestore
-        .collection("users")
-        .doc("nonexistent-user")
-        .collection("failedHealthSampleDeletions")
-        .get();
-      expect(failedSnapshot.size).to.equal(0);
+      expect(queueSnapshot.size).to.equal(1);
+      const data = queueSnapshot.docs[0].data();
+      expect(data.retryCount).to.equal(1);
+      expect(data.lastError).to.equal("NOT_FOUND");
     });
 
     it("should requeue with incremented retryCount on transient error", async () => {
