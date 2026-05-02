@@ -13,10 +13,11 @@ import { CollectionsService } from "../database/collections.js";
 const MAX_QUEUE_RETRIES = 3;
 const QUEUE_BATCH_SIZE = 500;
 const QUEUE_CONCURRENCY_LIMIT = 10;
-const MAX_BACKOFF_MS = 48 * 60 * 60 * 1000;
+const MAX_BACKOFF_MS = 24 * 60 * 60 * 1000;
 
 const NOT_FOUND_BASE_DELAY_MS = 30_000;
-// 8h base + 2^retryCount → 16h, 32h between attempts; total ≈48h to drop.
+// Schedule for transient errors: enqueue waits 8h, then 16h between attempts,
+// then 24h (capped); 3 attempts span exactly 48h before the doc is dropped.
 const TRANSIENT_ERROR_BASE_DELAY_MS = 8 * 60 * 60 * 1000;
 
 const PERMITTED_COLLECTION_PATTERN =
