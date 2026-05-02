@@ -86,8 +86,19 @@ const AVAILABLE_WORKOUT_TYPES = [
   "yoga/pilates",
 ] as const;
 
+const LLM_MODEL = "gpt-5.4-mini-2026-03-17";
+
+interface LlmTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 interface PosttrialNudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp;
+  llmPrompt?: string;
+  llmTokenUsage?: LlmTokenUsage;
+  llmModel?: string;
 }
 
 export class PosttrialNudgeService {
@@ -257,10 +268,40 @@ export class PosttrialNudgeService {
     });
   }
 
+  private async getRecentPosttrialNudgeBodies(
+    userId: string,
+    beforeUtc: Date,
+    limit = 3,
+  ): Promise<string[]> {
+    const snap = await this.firestore
+      .collection("users")
+      .doc(userId)
+      .collection("notificationBacklog")
+      .where("category", "==", PosttrialNudgeService.CATEGORY)
+      .get();
+    const beforeMs = beforeUtc.getTime();
+    const entries: Array<{ body: string; ms: number }> = [];
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      const ts = data.timestamp as admin.firestore.Timestamp | undefined;
+      const body = data.body as string | undefined;
+      if (!ts || !body) continue;
+      const ms = ts.toDate().getTime();
+      if (ms >= beforeMs) continue;
+      entries.push({ body, ms });
+    }
+    entries.sort((a, b) => b.ms - a.ms);
+    return entries
+      .slice(0, limit)
+      .map((entry) => entry.body)
+      .reverse();
+  }
+
   async generateLLMNudge(
     userId: string,
     language: string,
     userData: PosttrialUserData,
+    targetUtc: Date,
   ): Promise<PosttrialNudgeMessage | null> {
     let resolvedGenderIdentity = userData.genderIdentity;
 
@@ -505,15 +546,36 @@ export class PosttrialNudgeService {
             }
           }
         }
+
+        // Build previous-nudges context: feed the LLM up to 3 of the user's
+        // most recent posttrial nudge bodies so it can vary tone and avoid
+        // repetition. Empty when no prior nudges exist (e.g. first day).
+        const recentNudgeBodies = await this.getRecentPosttrialNudgeBodies(
+          userId,
+          targetUtc,
+        );
+        let previousNudgesContext = "";
+        let varietyClause = "";
+        if (recentNudgeBodies.length > 0) {
+          const formattedNudges = recentNudgeBodies
+            .map((body) => `- ${JSON.stringify(body)}`)
+            .join("\n");
+          previousNudgesContext =
+            `The nudge for today should be unique in tone and motivational style from the past ${recentNudgeBodies.length} days and should not sound repetitive. ` +
+            `These are the nudges that were given to this user over the past ${recentNudgeBodies.length} days:\n${formattedNudges}`;
+          varietyClause =
+            " and make sure that it is different in overall style than the previously delivered nudges";
+        }
+
         // Prompt: Just one nudge, include personalization context.
-        const prompt = `"Write 1 motivational message that is a proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user to increase their daily physical activity. Also create a title for the push notification that is a short summary/call to action of the push notification. Return the response as a JSON object with 'title' and 'body' fields. If there is a disease context given, you can reference that disease in the nudge. When generating the nudge, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk forms of movement without adding extra exercises or medical disclaimers not provided. Keep the message concise, calm, and practical; focus on one clear activity with plain language. Keep the recommendation practical and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. The nudge should be personalized to the following information: " + ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} ${activityTypeContext} + "Think carefully before delivering the prompt to ensure it is personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods."`;
+        const prompt = `"Write 1 motivational message that is a proper length to go in a push notification using a calm, encouraging, and professional tone, like that of a health coach to motivate a smartphone user to increase their daily physical activity. Also create a title for the push notification that is a short summary/call to action of the push notification. Return the response as a JSON object with 'title' and 'body' fields. If there is a disease context given, you can reference that disease in the nudge. When generating the nudge, avoid the word 'healthy' and remove unnecessary qualifiers such as 'brisk' or 'deep'. Suggest only simple, low-risk forms of movement without adding extra exercises or medical disclaimers not provided. Keep the message concise, calm, and practical; focus on one clear activity with plain language. Keep the recommendation practical and easy to integrate into daily routines. NEVER USE EM DASHES, EMOJIS OR ABBREVIATIONS FOR DISEASES IN THE NUDGE. The nudge should be personalized to the following information: " + ${languageContext} ${genderContext} ${ageContext} ${diseaseContext} ${stageContext} ${educationContext} ${notificationTimeContext} ${activityTypeContext} ${previousNudgesContext} + "Think carefully before delivering the prompt to ensure it is personalized to the information given (especially any given disease context) and give recommendations based on research backed motivational methods${varietyClause}."`;
 
         const openai = new OpenAI({
           apiKey: getOpenaiApiKey(),
         });
 
         const response = await openai.chat.completions.create({
-          model: "gpt-5.4-mini-2026-03-17",
+          model: LLM_MODEL,
           messages: [
             {
               role: "user",
@@ -556,12 +618,25 @@ export class PosttrialNudgeService {
           throw new Error("Invalid response format from OpenAI API");
         }
 
+        const usage = response.usage;
+        const tokenUsage: LlmTokenUsage | undefined =
+          usage ?
+            {
+              promptTokens: usage.prompt_tokens,
+              completionTokens: usage.completion_tokens,
+              totalTokens: usage.total_tokens,
+            }
+          : undefined;
+
         const generatedAt = admin.firestore.Timestamp.now();
         const nudge: PosttrialNudgeMessage = {
           title: parsedContent.title,
           body: parsedContent.body,
           isLLMGenerated: true,
           generatedAt,
+          llmPrompt: prompt,
+          llmModel: LLM_MODEL,
+          ...(tokenUsage && { llmTokenUsage: tokenUsage }),
         };
 
         logger.info(
@@ -605,6 +680,9 @@ export class PosttrialNudgeService {
         category: PosttrialNudgeService.CATEGORY,
         isLLMGenerated: nudge.isLLMGenerated,
         generatedAt: nudge.generatedAt,
+        ...(nudge.llmPrompt && { llmPrompt: nudge.llmPrompt }),
+        ...(nudge.llmTokenUsage && { llmTokenUsage: nudge.llmTokenUsage }),
+        ...(nudge.llmModel && { llmModel: nudge.llmModel }),
       });
   }
 
@@ -755,6 +833,7 @@ export class PosttrialNudgeService {
           userId,
           userLanguage,
           userData,
+          targetUtc,
         );
 
         if (!nudge) {

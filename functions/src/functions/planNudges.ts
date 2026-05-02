@@ -75,8 +75,19 @@ const mhcGenderIdentityMap: Partial<Record<number, string>> = {
   5: "other",
 };
 
+const LLM_MODEL = "gpt-5.2-2025-12-11";
+
+interface LlmTokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 interface NudgeMessage extends BaseNudgeMessage {
   generatedAt: admin.firestore.Timestamp;
+  llmPrompt?: string;
+  llmTokenUsage?: LlmTokenUsage;
+  llmModel?: string;
 }
 
 export class NudgeService {
@@ -426,7 +437,7 @@ export class NudgeService {
         });
 
         const response = await openai.chat.completions.create({
-          model: "gpt-5.2-2025-12-11",
+          model: LLM_MODEL,
           messages: [
             {
               role: "user",
@@ -480,16 +491,32 @@ export class NudgeService {
           throw new Error("Invalid response format from OpenAI API");
         }
 
+        const usage = response.usage;
+        const tokenUsage: LlmTokenUsage | undefined =
+          usage ?
+            {
+              promptTokens: usage.prompt_tokens,
+              completionTokens: usage.completion_tokens,
+              totalTokens: usage.total_tokens,
+            }
+          : undefined;
+
         const generatedAt = admin.firestore.Timestamp.now();
-        const nudges: NudgeMessage[] = parsedNudges.map((nudge: unknown) => {
-          const n = nudge as { title: string; body: string };
-          return {
-            title: n.title,
-            body: n.body,
-            isLLMGenerated: true,
-            generatedAt,
-          };
-        });
+        const nudges: NudgeMessage[] = parsedNudges.map(
+          (nudge: unknown, index: number) => {
+            const n = nudge as { title: string; body: string };
+            const isFirst = index === 0;
+            return {
+              title: n.title,
+              body: n.body,
+              isLLMGenerated: true,
+              generatedAt,
+              llmModel: LLM_MODEL,
+              ...(isFirst && { llmPrompt: prompt }),
+              ...(isFirst && tokenUsage && { llmTokenUsage: tokenUsage }),
+            };
+          },
+        );
 
         logger.info(
           `Generated ${nudges.length} LLM nudges for user ${userId} in ${language} (attempt ${attempt})`,
@@ -563,6 +590,11 @@ export class NudgeService {
           category,
           isLLMGenerated: nudgeMessage.isLLMGenerated,
           generatedAt: nudgeMessage.generatedAt,
+          ...(nudgeMessage.llmPrompt && { llmPrompt: nudgeMessage.llmPrompt }),
+          ...(nudgeMessage.llmTokenUsage && {
+            llmTokenUsage: nudgeMessage.llmTokenUsage,
+          }),
+          ...(nudgeMessage.llmModel && { llmModel: nudgeMessage.llmModel }),
         });
 
       nudgesCreated++;
