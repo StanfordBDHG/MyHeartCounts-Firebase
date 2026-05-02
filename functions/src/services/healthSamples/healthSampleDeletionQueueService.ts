@@ -122,7 +122,6 @@ export class HealthSampleDeletionQueueService {
       .get();
 
     if (snapshot.empty) {
-      logger.info("No pending health sample deletions to process");
       return {
         processed: 0,
         succeeded: 0,
@@ -131,10 +130,6 @@ export class HealthSampleDeletionQueueService {
         skipped: 0,
       };
     }
-
-    logger.info(`Processing ${snapshot.size} pending health sample deletions`, {
-      count: snapshot.size,
-    });
 
     let succeeded = 0;
     let requeued = 0;
@@ -169,11 +164,6 @@ export class HealthSampleDeletionQueueService {
         );
       }
     }
-
-    logger.info(
-      `Queue processing complete: ${succeeded} succeeded, ${requeued} requeued, ${deadLettered} dead-lettered, ${skipped} skipped`,
-      { processed: snapshot.size, succeeded, requeued, deadLettered, skipped },
-    );
 
     return {
       processed: snapshot.size,
@@ -282,20 +272,7 @@ export class HealthSampleDeletionQueueService {
       const newRetryCount = item.retryCount + 1;
 
       if (newRetryCount >= MAX_QUEUE_RETRIES) {
-        // Final attempt exhausted — drop the pending doc rather than persist
-        // it indefinitely. The error log below is the durable signal for SRE.
-        logger.error(
-          `Dropping pending deletion after ${MAX_QUEUE_RETRIES} retries: '${item.documentId}' in '${item.collection}' for job '${item.jobId}'`,
-          {
-            jobId: item.jobId,
-            userId: ownerUserId,
-            collection: item.collection,
-            documentId: item.documentId,
-            retryCount: newRetryCount,
-            lastError: sanitizedError,
-          },
-        );
-
+        // Exhausted retries: drop the pending doc rather than persist it.
         await doc.ref.delete();
         return "dead-lettered";
       }
