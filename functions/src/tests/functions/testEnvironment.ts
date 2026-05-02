@@ -150,6 +150,7 @@ export class EmulatorTestEnvironment {
         disabled: options.disabled ?? false,
         dateOfEnrollment: options.dateOfEnrollment ?? new Date(),
         lastActiveDate: options.lastActiveDate ?? new Date(),
+        extendedActivityNudgesOptIn: true,
         lastUploadDate: options.lastUploadDate ?? new Date(),
       }),
     );
