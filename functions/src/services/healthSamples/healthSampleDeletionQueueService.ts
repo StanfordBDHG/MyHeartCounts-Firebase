@@ -26,6 +26,8 @@ const VALID_REASONS = new Set(["TRANSIENT_ERROR", "NOT_FOUND"]);
 const KNOWN_ERROR_CODES: Record<string | number, string> = {
   5: "NOT_FOUND",
   "not-found": "NOT_FOUND",
+  6: "ALREADY_EXISTS",
+  "already-exists": "ALREADY_EXISTS",
   4: "DEADLINE_EXCEEDED",
   "deadline-exceeded": "DEADLINE_EXCEEDED",
   8: "RESOURCE_EXHAUSTED",
@@ -100,15 +102,9 @@ export class HealthSampleDeletionQueueService {
     try {
       await ref.create(item);
     } catch (error) {
-      if (this.isAlreadyExistsError(error)) return;
+      if (sanitizeErrorForStorage(error) === "ALREADY_EXISTS") return;
       throw error;
     }
-  }
-
-  private isAlreadyExistsError(error: unknown): boolean {
-    if (error === null || typeof error !== "object") return false;
-    const code = (error as { code?: unknown }).code;
-    return code === 6 || code === "already-exists";
   }
 
   async processQueue(): Promise<{

@@ -162,6 +162,26 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
   });
 
   describe("processQueue", () => {
+    const stubTargetUpdateRejection = (
+      error: Error & { code: number },
+    ): void => {
+      const updateStub = stub(DocumentReference.prototype, "update");
+      updateStub.callsFake(function (
+        this: DocumentReference,
+        ...args: Parameters<DocumentReference["update"]>
+      ): ReturnType<DocumentReference["update"]> {
+        if (
+          this.path.includes(
+            "/HealthObservations_HKQuantityTypeIdentifierHeartRate/",
+          ) &&
+          !this.path.includes("/pendingHealthSampleDeletions/")
+        ) {
+          return Promise.reject(error);
+        }
+        return updateStub.wrappedMethod.apply(this, args);
+      });
+    };
+
     it("should return zeros when queue is empty", async () => {
       const result = await queueService.processQueue();
       expect(result.processed).to.equal(0);
@@ -324,25 +344,13 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
           nextRetryAt: Timestamp.fromMillis(0),
         });
 
-      const updateStub = stub(DocumentReference.prototype, "update");
-      updateStub.callsFake(function (
-        this: DocumentReference,
-        ...args: Parameters<DocumentReference["update"]>
-      ): ReturnType<DocumentReference["update"]> {
-        // Only fail the worker's update against the target sample. Let
-        // pending-doc retry-state writebacks proceed normally.
-        if (
-          this.path.includes(
-            "/HealthObservations_HKQuantityTypeIdentifierHeartRate/",
-          ) &&
-          !this.path.includes("/pendingHealthSampleDeletions/")
-        ) {
-          const err = new Error("UNAVAILABLE") as Error & { code: number };
-          err.code = 14;
-          return Promise.reject(err);
-        }
-        return updateStub.wrappedMethod.apply(this, args);
-      });
+      // Fail only the worker's update against the target sample; let
+      // pending-doc retry-state writebacks proceed normally.
+      const transientError = new Error("UNAVAILABLE") as Error & {
+        code: number;
+      };
+      transientError.code = 14;
+      stubTargetUpdateRejection(transientError);
 
       const result = await queueService.processQueue();
       expect(result.requeued).to.equal(1);
@@ -386,25 +394,11 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
           nextRetryAt: Timestamp.fromMillis(0),
         });
 
-      const updateStub = stub(DocumentReference.prototype, "update");
-      updateStub.callsFake(function (
-        this: DocumentReference,
-        ...args: Parameters<DocumentReference["update"]>
-      ): ReturnType<DocumentReference["update"]> {
-        if (
-          this.path.includes(
-            "/HealthObservations_HKQuantityTypeIdentifierHeartRate/",
-          ) &&
-          !this.path.includes("/pendingHealthSampleDeletions/")
-        ) {
-          const err = new Error("DEADLINE_EXCEEDED") as Error & {
-            code: number;
-          };
-          err.code = 4;
-          return Promise.reject(err);
-        }
-        return updateStub.wrappedMethod.apply(this, args);
-      });
+      const transientError = new Error("DEADLINE_EXCEEDED") as Error & {
+        code: number;
+      };
+      transientError.code = 4;
+      stubTargetUpdateRejection(transientError);
 
       const result = await queueService.processQueue();
       expect(result.deadLettered).to.equal(1);
