@@ -136,8 +136,9 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       expect(nextRetryMs).to.be.lessThanOrEqual(before + 32_000);
     });
 
-    it("should set nextRetryAt 60s in the future for TRANSIENT_ERROR", async () => {
+    it("should set nextRetryAt 8h in the future for TRANSIENT_ERROR", async () => {
       const before = Timestamp.now().toMillis();
+      const eightHoursMs = 8 * 60 * 60 * 1000;
 
       await queueService.enqueue({
         userId: "user1",
@@ -156,8 +157,8 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .get();
       const data = snapshot.docs[0].data();
       const nextRetryMs = (data.nextRetryAt as Timestamp).toMillis();
-      expect(nextRetryMs).to.be.greaterThanOrEqual(before + 60_000);
-      expect(nextRetryMs).to.be.lessThanOrEqual(before + 62_000);
+      expect(nextRetryMs).to.be.greaterThanOrEqual(before + eightHoursMs);
+      expect(nextRetryMs).to.be.lessThanOrEqual(before + eightHoursMs + 2_000);
     });
   });
 
@@ -299,7 +300,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
           requestingUserId: "user1",
           reason: "TRANSIENT_ERROR",
           lastError: "Error: 5 NOT_FOUND",
-          retryCount: 9,
+          retryCount: 2,
           createdAt: Timestamp.now(),
           nextRetryAt: Timestamp.fromMillis(0),
         });
@@ -389,7 +390,7 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
           requestingUserId: userId,
           reason: "TRANSIENT_ERROR",
           lastError: "Error: 4 DEADLINE_EXCEEDED",
-          retryCount: 9,
+          retryCount: 2,
           createdAt: Timestamp.now(),
           nextRetryAt: Timestamp.fromMillis(0),
         });

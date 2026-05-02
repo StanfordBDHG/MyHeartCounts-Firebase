@@ -10,13 +10,14 @@ import type { PendingHealthSampleDeletion } from "./pendingHealthSampleDeletion.
 import { FHIRObservationStatus } from "../../models/index.js";
 import { CollectionsService } from "../database/collections.js";
 
-const MAX_QUEUE_RETRIES = 10;
+const MAX_QUEUE_RETRIES = 3;
 const QUEUE_BATCH_SIZE = 500;
 const QUEUE_CONCURRENCY_LIMIT = 10;
-const MAX_BACKOFF_MS = 3_600_000;
+const MAX_BACKOFF_MS = 48 * 60 * 60 * 1000;
 
 const NOT_FOUND_BASE_DELAY_MS = 30_000;
-const TRANSIENT_ERROR_BASE_DELAY_MS = 60_000;
+// 8h base + 2^retryCount → 16h, 32h between attempts; total ≈48h to drop.
+const TRANSIENT_ERROR_BASE_DELAY_MS = 8 * 60 * 60 * 1000;
 
 const PERMITTED_COLLECTION_PATTERN =
   /^(?:HealthObservations|SensorKitObservations)_[A-Za-z][A-Za-z0-9]*$/;
