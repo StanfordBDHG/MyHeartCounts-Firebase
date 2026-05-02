@@ -547,7 +547,7 @@ export class PosttrialNudgeService {
         let varietyClause = "";
         if (recentNudgeBodies.length > 0) {
           const formattedNudges = recentNudgeBodies
-            .map((b) => `"${b}"`)
+            .map((body) => `- ${JSON.stringify(body)}`)
             .join("\n");
           previousNudgesContext =
             `The nudge for today should be unique in tone and motivational style from the past ${recentNudgeBodies.length} days and should not sound repetitive. ` +
