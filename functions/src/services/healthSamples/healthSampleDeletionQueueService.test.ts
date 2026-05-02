@@ -4,7 +4,8 @@
 // SPDX-License-Identifier: MIT
 
 import { expect } from "chai";
-import { Timestamp } from "firebase-admin/firestore";
+import { DocumentReference, Timestamp } from "firebase-admin/firestore";
+import { restore, stub } from "sinon";
 import { HealthSampleDeletionQueueService } from "./healthSampleDeletionQueueService.js";
 import { FHIRObservationStatus } from "../../models/index.js";
 import { describeWithEmulators } from "../../tests/functions/testEnvironment.js";
@@ -16,8 +17,12 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
     queueService = new HealthSampleDeletionQueueService(env.firestore);
   });
 
+  afterEach(() => {
+    restore();
+  });
+
   describe("enqueue", () => {
-    it("should add an item to the pending deletions collection", async () => {
+    it("should add an item to the pending deletions collection at a deterministic doc id", async () => {
       await queueService.enqueue({
         userId: "user1",
         collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
@@ -34,6 +39,9 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         .collection("pendingHealthSampleDeletions")
         .get();
       expect(snapshot.size).to.equal(1);
+      expect(snapshot.docs[0].id).to.equal(
+        "HealthObservations_HKQuantityTypeIdentifierHeartRate__doc1",
+      );
 
       const data = snapshot.docs[0].data();
       expect(data.userId).to.equal("user1");
@@ -45,6 +53,63 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       expect(data.reason).to.equal("NOT_FOUND");
       expect(data.retryCount).to.equal(0);
       expect(data.lastError).to.equal("UNKNOWN_ERROR");
+    });
+
+    it("should be idempotent on re-enqueue and preserve worker-managed retry state", async () => {
+      // Pre-seed a pending doc with worker-advanced retry state, mimicking
+      // what processQueueItem would write after several failed attempts.
+      const pendingId =
+        "HealthObservations_HKQuantityTypeIdentifierHeartRate__doc1";
+      const advancedNextRetry = Timestamp.fromMillis(
+        Date.now() + 5 * 60 * 1000,
+      );
+      await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .doc(pendingId)
+        .set({
+          userId: "user1",
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+          documentId: "doc1",
+          jobId: "originalJob",
+          requestingUserId: "user1",
+          reason: "TRANSIENT_ERROR",
+          lastError: "DEADLINE_EXCEEDED",
+          retryCount: 3,
+          createdAt: Timestamp.now(),
+          nextRetryAt: advancedNextRetry,
+        });
+
+      // Re-enqueue the same target sample from a different job — this is the
+      // duplicate path that previously created a new random-id doc on every call.
+      await queueService.enqueue({
+        userId: "user1",
+        collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+        documentId: "doc1",
+        jobId: "secondJob",
+        requestingUserId: "user1",
+        reason: "NOT_FOUND",
+        lastError: "Error: 5 NOT_FOUND",
+      });
+
+      const snapshot = await env.firestore
+        .collection("users")
+        .doc("user1")
+        .collection("pendingHealthSampleDeletions")
+        .get();
+      expect(snapshot.size).to.equal(1);
+      expect(snapshot.docs[0].id).to.equal(pendingId);
+
+      const data = snapshot.docs[0].data();
+      // Worker-managed fields must NOT be reset by the re-enqueue.
+      expect(data.retryCount).to.equal(3);
+      expect(data.lastError).to.equal("DEADLINE_EXCEEDED");
+      expect(data.reason).to.equal("TRANSIENT_ERROR");
+      expect(data.jobId).to.equal("originalJob");
+      expect((data.nextRetryAt as Timestamp).toMillis()).to.equal(
+        advancedNextRetry.toMillis(),
+      );
     });
 
     it("should set nextRetryAt 30s in the future for NOT_FOUND", async () => {
@@ -158,8 +223,10 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
       expect(queueSnapshot.size).to.equal(0);
     });
 
-    it("should requeue a failed item with incremented retryCount", async () => {
-      // Enqueue with a non-existent document (will fail on update)
+    it("should mark NOT_FOUND target as succeeded and clear the pending entry", async () => {
+      // Seed a pending doc whose target sample does not exist. NOT_FOUND IS
+      // the desired end state of a deletion, so the worker should clear the
+      // entry rather than retry or dead-letter.
       await env.firestore
         .collection("users")
         .doc("nonexistent-user")
@@ -178,19 +245,28 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
         });
 
       const result = await queueService.processQueue();
-      expect(result.requeued).to.equal(1);
+      expect(result.succeeded).to.equal(1);
+      expect(result.requeued).to.equal(0);
+      expect(result.deadLettered).to.equal(0);
 
-      // Verify retryCount was incremented
       const queueSnapshot = await env.firestore
         .collection("users")
         .doc("nonexistent-user")
         .collection("pendingHealthSampleDeletions")
         .get();
-      expect(queueSnapshot.size).to.equal(1);
-      expect(queueSnapshot.docs[0].data().retryCount).to.equal(1);
+      expect(queueSnapshot.size).to.equal(0);
+
+      const failedSnapshot = await env.firestore
+        .collection("users")
+        .doc("nonexistent-user")
+        .collection("failedHealthSampleDeletions")
+        .get();
+      expect(failedSnapshot.size).to.equal(0);
     });
 
-    it("should move item to dead-letter after max retries", async () => {
+    it("should clear the pending entry on NOT_FOUND even at high retryCount", async () => {
+      // Even with retryCount near the dead-letter threshold, NOT_FOUND should
+      // never dead-letter — it is the deletion's desired end state.
       await env.firestore
         .collection("users")
         .doc("nonexistent-user")
@@ -202,34 +278,155 @@ describeWithEmulators("service: HealthSampleDeletionQueueService", (env) => {
           jobId: "job1",
           requestingUserId: "user1",
           reason: "TRANSIENT_ERROR",
-          lastError: "Error: 4 DEADLINE_EXCEEDED",
+          lastError: "Error: 5 NOT_FOUND",
           retryCount: 9,
           createdAt: Timestamp.now(),
           nextRetryAt: Timestamp.fromMillis(0),
         });
 
       const result = await queueService.processQueue();
-      expect(result.deadLettered).to.equal(1);
+      expect(result.succeeded).to.equal(1);
+      expect(result.deadLettered).to.equal(0);
 
-      // Verify item was removed from pending
-      const pendingSnapshot = await env.firestore
-        .collection("users")
-        .doc("nonexistent-user")
-        .collection("pendingHealthSampleDeletions")
-        .get();
-      expect(pendingSnapshot.size).to.equal(0);
-
-      // Verify item was added to dead-letter
       const failedSnapshot = await env.firestore
         .collection("users")
         .doc("nonexistent-user")
         .collection("failedHealthSampleDeletions")
         .get();
+      expect(failedSnapshot.size).to.equal(0);
+    });
+
+    it("should requeue with incremented retryCount on transient error", async () => {
+      const userId = await env.createUser({});
+
+      // Create the target sample so the only failure path is the stubbed one.
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("HealthObservations_HKQuantityTypeIdentifierHeartRate")
+        .doc("doc1")
+        .set({ status: "final", value: 72 });
+
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId,
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: userId,
+          reason: "TRANSIENT_ERROR",
+          lastError: "Error: 14 UNAVAILABLE",
+          retryCount: 0,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
+
+      const updateStub = stub(DocumentReference.prototype, "update");
+      updateStub.callsFake(function (
+        this: DocumentReference,
+        ...args: Parameters<DocumentReference["update"]>
+      ): ReturnType<DocumentReference["update"]> {
+        // Only fail the worker's update against the target sample. Let
+        // pending-doc retry-state writebacks proceed normally.
+        if (
+          this.path.includes(
+            "/HealthObservations_HKQuantityTypeIdentifierHeartRate/",
+          ) &&
+          !this.path.includes("/pendingHealthSampleDeletions/")
+        ) {
+          const err = new Error("UNAVAILABLE") as Error & { code: number };
+          err.code = 14;
+          return Promise.reject(err);
+        }
+        return updateStub.wrappedMethod.apply(this, args);
+      });
+
+      const result = await queueService.processQueue();
+      expect(result.requeued).to.equal(1);
+      expect(result.succeeded).to.equal(0);
+
+      const queueSnapshot = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("pendingHealthSampleDeletions")
+        .get();
+      expect(queueSnapshot.size).to.equal(1);
+      const data = queueSnapshot.docs[0].data();
+      expect(data.retryCount).to.equal(1);
+      expect(data.lastError).to.equal("UNAVAILABLE");
+    });
+
+    it("should move item to dead-letter after max retries on transient errors", async () => {
+      const userId = await env.createUser({});
+
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("HealthObservations_HKQuantityTypeIdentifierHeartRate")
+        .doc("doc1")
+        .set({ status: "final", value: 72 });
+
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("pendingHealthSampleDeletions")
+        .add({
+          userId,
+          collection: "HealthObservations_HKQuantityTypeIdentifierHeartRate",
+          documentId: "doc1",
+          jobId: "job1",
+          requestingUserId: userId,
+          reason: "TRANSIENT_ERROR",
+          lastError: "Error: 4 DEADLINE_EXCEEDED",
+          retryCount: 9,
+          createdAt: Timestamp.now(),
+          nextRetryAt: Timestamp.fromMillis(0),
+        });
+
+      const updateStub = stub(DocumentReference.prototype, "update");
+      updateStub.callsFake(function (
+        this: DocumentReference,
+        ...args: Parameters<DocumentReference["update"]>
+      ): ReturnType<DocumentReference["update"]> {
+        if (
+          this.path.includes(
+            "/HealthObservations_HKQuantityTypeIdentifierHeartRate/",
+          ) &&
+          !this.path.includes("/pendingHealthSampleDeletions/")
+        ) {
+          const err = new Error("DEADLINE_EXCEEDED") as Error & {
+            code: number;
+          };
+          err.code = 4;
+          return Promise.reject(err);
+        }
+        return updateStub.wrappedMethod.apply(this, args);
+      });
+
+      const result = await queueService.processQueue();
+      expect(result.deadLettered).to.equal(1);
+
+      const pendingSnapshot = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("pendingHealthSampleDeletions")
+        .get();
+      expect(pendingSnapshot.size).to.equal(0);
+
+      const failedSnapshot = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("failedHealthSampleDeletions")
+        .get();
       expect(failedSnapshot.size).to.equal(1);
 
       const failedData = failedSnapshot.docs[0].data();
-      expect(failedData.documentId).to.equal("nonexistent-doc");
+      expect(failedData.documentId).to.equal("doc1");
       expect(failedData.retryCount).to.equal(10);
+      expect(failedData.lastError).to.equal("DEADLINE_EXCEEDED");
       expect(failedData.failedAt).to.be.an.instanceOf(Timestamp);
     });
 

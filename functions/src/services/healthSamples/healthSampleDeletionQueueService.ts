@@ -89,9 +89,26 @@ export class HealthSampleDeletionQueueService {
       nextRetryAt,
     };
 
-    await this.collections
+    // Deterministic doc id keeps re-enqueues idempotent: a duplicate
+    // request collapses onto the existing pending doc instead of spawning
+    // a new row, so worker-managed retry state isn't reset to zero.
+    const pendingId = `${params.collection}__${params.documentId}`;
+    const ref = this.collections
       .pendingHealthSampleDeletions(params.userId)
-      .add(item);
+      .doc(pendingId);
+
+    try {
+      await ref.create(item);
+    } catch (error) {
+      if (this.isAlreadyExistsError(error)) return;
+      throw error;
+    }
+  }
+
+  private isAlreadyExistsError(error: unknown): boolean {
+    if (error === null || typeof error !== "object") return false;
+    const code = (error as { code?: unknown }).code;
+    return code === 6 || code === "already-exists";
   }
 
   async processQueue(): Promise<{
@@ -257,6 +274,15 @@ export class HealthSampleDeletionQueueService {
       await doc.ref.delete();
       return "succeeded";
     } catch (error) {
+      const sanitizedError = sanitizeErrorForStorage(error);
+
+      // NOT_FOUND on the target sample IS the desired end state of a
+      // deletion — clear the queue entry instead of retrying or dead-lettering.
+      if (sanitizedError === "NOT_FOUND") {
+        await doc.ref.delete();
+        return "succeeded";
+      }
+
       const newRetryCount = item.retryCount + 1;
 
       if (newRetryCount >= MAX_QUEUE_RETRIES) {
@@ -275,7 +301,7 @@ export class HealthSampleDeletionQueueService {
         await this.collections.failedHealthSampleDeletions(ownerUserId).add({
           ...item,
           retryCount: newRetryCount,
-          lastError: sanitizeErrorForStorage(error),
+          lastError: sanitizedError,
           failedAt: Timestamp.now(),
         });
         await doc.ref.delete();
@@ -297,7 +323,7 @@ export class HealthSampleDeletionQueueService {
       await doc.ref.update({
         retryCount: newRetryCount,
         nextRetryAt,
-        lastError: sanitizeErrorForStorage(error),
+        lastError: sanitizedError,
       });
 
       return "requeued";
