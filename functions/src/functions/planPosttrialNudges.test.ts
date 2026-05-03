@@ -463,12 +463,24 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
       const minutesAgo = (m: number) => new Date(now - m * 60_000);
 
       await seedHistory(env, userId, [
-        { body: "wrong-welcome", ts: minutesAgo(5), category: "nudge-posttrial-welcome" },
-        { body: "wrong-predefined", ts: minutesAgo(4), category: "nudge-predefined" },
+        {
+          body: "wrong-welcome",
+          ts: minutesAgo(5),
+          category: "nudge-posttrial-welcome",
+        },
+        {
+          body: "wrong-predefined",
+          ts: minutesAgo(4),
+          category: "nudge-predefined",
+        },
         { body: "right", ts: minutesAgo(3) },
       ]);
       await seedBacklog(env, userId, [
-        { body: "wrong-welcome-bl", ts: minutesAgo(2), category: "nudge-posttrial-welcome" },
+        {
+          body: "wrong-welcome-bl",
+          ts: minutesAgo(2),
+          category: "nudge-posttrial-welcome",
+        },
       ]);
 
       const service = new PosttrialNudgeService(env.firestore);
