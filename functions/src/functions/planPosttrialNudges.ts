@@ -268,28 +268,66 @@ export class PosttrialNudgeService {
     });
   }
 
-  private async getRecentPosttrialNudgeBodies(
+  async getRecentPosttrialNudgeBodies(
     userId: string,
     beforeUtc: Date,
     limit = 3,
   ): Promise<string[]> {
-    const snap = await this.firestore
-      .collection("users")
-      .doc(userId)
-      .collection("notificationBacklog")
-      .where("category", "==", PosttrialNudgeService.CATEGORY)
-      .get();
+    const userRef = this.firestore.collection("users").doc(userId);
+
+    // Posttrial nudges live in `notificationBacklog` until delivery, then
+    // sendNudges archives them to `notificationHistory` (with `timestamp`
+    // renamed to `originalTimestamp`) and deletes the backlog doc. Read
+    // both so the LLM sees already-delivered nudges, not just upcoming ones.
+    const [backlogSnap, historySnap] = await Promise.all([
+      userRef
+        .collection("notificationBacklog")
+        .where("category", "==", PosttrialNudgeService.CATEGORY)
+        .get(),
+      userRef
+        .collection("notificationHistory")
+        .where("category", "==", PosttrialNudgeService.CATEGORY)
+        .orderBy("originalTimestamp", "desc")
+        .limit(limit * 3)
+        .get(),
+    ]);
+
     const beforeMs = beforeUtc.getTime();
-    const entries: Array<{ body: string; ms: number }> = [];
-    for (const doc of snap.docs) {
-      const data = doc.data();
-      const ts = data.timestamp as admin.firestore.Timestamp | undefined;
-      const body = data.body as string | undefined;
-      if (!ts || !body) continue;
+    const byId = new Map<string, { body: string; ms: number }>();
+
+    const consider = (
+      id: string,
+      body: string | undefined,
+      ts: admin.firestore.Timestamp | undefined,
+    ): void => {
+      if (!ts || !body) return;
       const ms = ts.toDate().getTime();
-      if (ms >= beforeMs) continue;
-      entries.push({ body, ms });
+      if (ms >= beforeMs) return;
+      if (byId.has(id)) return;
+      byId.set(id, { body, ms });
+    };
+
+    // History wins on the rare overlap: sendNudges writes the archive doc
+    // before deleting the backlog doc, so a fired-but-not-yet-cleaned entry
+    // briefly exists in both. The history copy is authoritative.
+    for (const doc of historySnap.docs) {
+      const data = doc.data();
+      consider(
+        doc.id,
+        data.body as string | undefined,
+        data.originalTimestamp as admin.firestore.Timestamp | undefined,
+      );
     }
+    for (const doc of backlogSnap.docs) {
+      const data = doc.data();
+      consider(
+        doc.id,
+        data.body as string | undefined,
+        data.timestamp as admin.firestore.Timestamp | undefined,
+      );
+    }
+
+    const entries = Array.from(byId.values());
     entries.sort((a, b) => b.ms - a.ms);
     return entries
       .slice(0, limit)
