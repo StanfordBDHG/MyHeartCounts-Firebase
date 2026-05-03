@@ -375,6 +375,11 @@ export class PosttrialNudgeService {
       );
     }
 
+    const recentNudgeBodies = await this.getRecentPosttrialNudgeBodies(
+      userId,
+      targetUtc,
+    );
+
     const maxRetries = 3;
     let lastError: Error | null = null;
 
@@ -588,10 +593,6 @@ export class PosttrialNudgeService {
         // Build previous-nudges context: feed the LLM up to 3 of the user's
         // most recent posttrial nudge bodies so it can vary tone and avoid
         // repetition. Empty when no prior nudges exist (e.g. first day).
-        const recentNudgeBodies = await this.getRecentPosttrialNudgeBodies(
-          userId,
-          targetUtc,
-        );
         let previousNudgesContext = "";
         let varietyClause = "";
         if (recentNudgeBodies.length > 0) {
