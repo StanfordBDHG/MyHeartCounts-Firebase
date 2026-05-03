@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 Firebase cloud hosting infrastructure for the Stanford My Heart Counts project.
 
-The iOS Application can be found in the [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository, the repository for the data analysis side of this study can be found over at [StanfordBDHG/MyHeartCounts-DataAnalysis](https://github.com/StanfordBDHG/MyHeartCounts-DataAnalysis).
+The iOS Application can be found in the [StanfordBDHG/MyHeartCounts-iOS](https://github.com/StanfordBDHG/MyHeartCounts-iOS) repository, the repository for the data analysis side of this study can be found over at [StanfordBDHG/MyHeartCounts-DataAnalysis](https://github.com/StanfordBDHG/MyHeartCounts-DataAnalysis) with basic analytics about the study's dataset any in [MyHeartCounts-TechnicalDataAnalysis](https://github.com/StanfordBDHG/MyHeartCounts-TechnicalDataAnalysis).
 
 The study itself with its contents is defined in [StanfordBDHG/MyHeartCounts-StudyDefinitions](https://github.com/StanfordBDHG/MyHeartCounts-StudyDefinitions).
 
