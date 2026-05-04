@@ -308,6 +308,207 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
     });
   });
 
+  describe("getRecentPosttrialNudgeBodies", () => {
+    const seedBacklog = async (
+      env: { firestore: admin.firestore.Firestore },
+      userId: string,
+      docs: Array<{ id?: string; body: string; ts: Date; category?: string }>,
+    ): Promise<void> => {
+      for (const doc of docs) {
+        const id = doc.id ?? randomUUID().toUpperCase();
+        await env.firestore
+          .collection("users")
+          .doc(userId)
+          .collection("notificationBacklog")
+          .doc(id)
+          .set({
+            id,
+            title: "t",
+            body: doc.body,
+            timestamp: admin.firestore.Timestamp.fromDate(doc.ts),
+            category: doc.category ?? "nudge-posttrial",
+            isLLMGenerated: true,
+          });
+      }
+    };
+
+    const seedHistory = async (
+      env: { firestore: admin.firestore.Firestore },
+      userId: string,
+      docs: Array<{
+        id?: string;
+        body: string;
+        ts: Date;
+        category?: string;
+        status?: "sent" | "failed";
+      }>,
+    ): Promise<void> => {
+      for (const doc of docs) {
+        const id = doc.id ?? randomUUID().toUpperCase();
+        await env.firestore
+          .collection("users")
+          .doc(userId)
+          .collection("notificationHistory")
+          .doc(id)
+          .set({
+            title: "t",
+            body: doc.body,
+            originalTimestamp: admin.firestore.Timestamp.fromDate(doc.ts),
+            processedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+            status: doc.status ?? "sent",
+            category: doc.category ?? "nudge-posttrial",
+            isLLMGenerated: true,
+          });
+      }
+    };
+
+    it("merges backlog and history, returning oldest-to-newest within limit", async () => {
+      const userId = "posttrial-recent-merge";
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .set(baseEligibleUser());
+
+      const now = Date.now();
+      const minutesAgo = (m: number) => new Date(now - m * 60_000);
+
+      // 2 history (delivered): 60 and 30 minutes ago.
+      await seedHistory(env, userId, [
+        { body: "history-old", ts: minutesAgo(60) },
+        { body: "history-mid", ts: minutesAgo(30) },
+      ]);
+      // 2 backlog: one 10 minutes ago (already due, not yet processed) and
+      // one 60 minutes in the future (must be excluded by the < beforeUtc
+      // filter).
+      await seedBacklog(env, userId, [
+        { body: "backlog-recent", ts: minutesAgo(10) },
+        { body: "backlog-future", ts: new Date(now + 60 * 60_000) },
+      ]);
+
+      const service = new PosttrialNudgeService(env.firestore);
+      const result = await service.getRecentPosttrialNudgeBodies(
+        userId,
+        new Date(now),
+      );
+
+      expect(result).to.deep.equal([
+        "history-old",
+        "history-mid",
+        "backlog-recent",
+      ]);
+    });
+
+    it("caps at the requested limit, preferring the most recent entries", async () => {
+      const userId = "posttrial-recent-limit";
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .set(baseEligibleUser());
+
+      const now = Date.now();
+      const daysAgoMs = (d: number) => new Date(now - d * 86_400_000);
+
+      await seedHistory(env, userId, [
+        { body: "5d", ts: daysAgoMs(5) },
+        { body: "4d", ts: daysAgoMs(4) },
+        { body: "3d", ts: daysAgoMs(3) },
+        { body: "2d", ts: daysAgoMs(2) },
+        { body: "1d", ts: daysAgoMs(1) },
+      ]);
+
+      const service = new PosttrialNudgeService(env.firestore);
+      const result = await service.getRecentPosttrialNudgeBodies(
+        userId,
+        new Date(now),
+      );
+
+      // 3 most recent, returned oldest-first.
+      expect(result).to.deep.equal(["3d", "2d", "1d"]);
+    });
+
+    it("dedupes when the same doc id exists in both collections (history wins)", async () => {
+      const userId = "posttrial-recent-dedup";
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .set(baseEligibleUser());
+
+      const now = Date.now();
+      const sharedId = "SHARED-DOC-ID";
+
+      await seedHistory(env, userId, [
+        { id: sharedId, body: "from-history", ts: new Date(now - 60_000) },
+      ]);
+      await seedBacklog(env, userId, [
+        { id: sharedId, body: "from-backlog", ts: new Date(now - 60_000) },
+      ]);
+
+      const service = new PosttrialNudgeService(env.firestore);
+      const result = await service.getRecentPosttrialNudgeBodies(
+        userId,
+        new Date(now),
+      );
+
+      expect(result).to.deep.equal(["from-history"]);
+    });
+
+    it("ignores entries from other categories (e.g. welcome, predefined)", async () => {
+      const userId = "posttrial-recent-category-filter";
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .set(baseEligibleUser());
+
+      const now = Date.now();
+      const minutesAgo = (m: number) => new Date(now - m * 60_000);
+
+      await seedHistory(env, userId, [
+        {
+          body: "wrong-welcome",
+          ts: minutesAgo(5),
+          category: "nudge-posttrial-welcome",
+        },
+        {
+          body: "wrong-predefined",
+          ts: minutesAgo(4),
+          category: "nudge-predefined",
+        },
+        { body: "right", ts: minutesAgo(3) },
+      ]);
+      await seedBacklog(env, userId, [
+        {
+          body: "wrong-welcome-bl",
+          ts: minutesAgo(2),
+          category: "nudge-posttrial-welcome",
+        },
+      ]);
+
+      const service = new PosttrialNudgeService(env.firestore);
+      const result = await service.getRecentPosttrialNudgeBodies(
+        userId,
+        new Date(now),
+      );
+
+      expect(result).to.deep.equal(["right"]);
+    });
+
+    it("returns an empty array when the user has no nudges", async () => {
+      const userId = "posttrial-recent-empty";
+      await env.firestore
+        .collection("users")
+        .doc(userId)
+        .set(baseEligibleUser());
+
+      const service = new PosttrialNudgeService(env.firestore);
+      const result = await service.getRecentPosttrialNudgeBodies(
+        userId,
+        new Date(),
+      );
+
+      expect(result).to.deep.equal([]);
+    });
+  });
+
   describe("Welcome notification", () => {
     const WELCOME_TITLE = "Physical Activity Nudges Extended";
     const WELCOME_BODY =

@@ -28,7 +28,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "timestamp",
+          "fieldPath": "originalTimestamp",
           "order": "DESCENDING"
         },
         {
