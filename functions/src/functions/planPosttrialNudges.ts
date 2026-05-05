@@ -603,7 +603,7 @@ export class PosttrialNudgeService {
             `The nudge for today should be unique in tone and motivational style from the past ${recentNudgeBodies.length} days and should not sound repetitive. ` +
             `These are the nudges that were given to this user over the past ${recentNudgeBodies.length} days:\n${formattedNudges}`;
           varietyClause =
-            " and make sure that it is different in overall style than the previously delivered nudges";
+            " and make sure that it is different in overall style from the previously delivered nudges";
         }
 
         // Prompt: Just one nudge, include personalization context.
