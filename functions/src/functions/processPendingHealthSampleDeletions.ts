@@ -9,7 +9,7 @@ import { HealthSampleDeletionQueueService } from "../services/healthSamples/heal
 
 export const processPendingHealthSampleDeletions = onSchedule(
   {
-    schedule: "every 30 minutes",
+    schedule: "every 2 hours",
     timeZone: "UTC",
     timeoutSeconds: 540,
     serviceAccount: privilegedServiceAccount,

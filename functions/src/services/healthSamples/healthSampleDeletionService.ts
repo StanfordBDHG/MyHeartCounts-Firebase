@@ -41,7 +41,7 @@ export class HealthSampleDeletionService {
   private readonly NOT_FOUND_NUMERIC = 5;
   private readonly NOT_FOUND_STRING = "not-found";
 
-  private readonly MAX_RETRIES = 3;
+  private readonly MAX_RETRIES = 1;
   private readonly RETRY_BASE_DELAY_MS = 250;
 
   constructor(
