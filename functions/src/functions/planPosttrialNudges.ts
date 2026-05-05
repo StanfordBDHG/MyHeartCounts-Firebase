@@ -556,7 +556,7 @@ export class PosttrialNudgeService {
             `User ${userId} has no preferred notification time for post-trial LLM prompt. Assuming ${PosttrialNudgeService.DEFAULT_NOTIFICATION_TIME} as default.`,
           );
         }
-        const notificationTimeContext = `This user prefers to receive recommendation at ${notificationTime} (given in the 24-hour format). Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they receive the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
+        const notificationTimeContext = `This user prefers to receive recommendations at ${notificationTime} (given in the 24-hour format). Tailor the prompt to match the typical context of that time of day and suggest realistic opportunities for activity they could do the same day they receive the prompt, even if it is late evening. For instance, if the time is in the morning, encourage early activity or planning for later (e.g., lunch or after work). Avoid irrelevant examples that do not fit the selected time of day.`;
 
         // Build preferred workout types context (ported from historical
         // planNudges implementation; see git commits b816a86d / 3e426d75 /
@@ -574,7 +574,7 @@ export class PosttrialNudgeService {
               selectedActivities.join(", ")
             : "various activities";
 
-          activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`;
+          activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned with their preferred activity type.`;
 
           if (hasOther) {
             const notChosenTypes = AVAILABLE_WORKOUT_TYPES.filter(
@@ -603,7 +603,7 @@ export class PosttrialNudgeService {
             `The nudge for today should be unique in tone and motivational style from the past ${recentNudgeBodies.length} days and should not sound repetitive. ` +
             `These are the nudges that were given to this user over the past ${recentNudgeBodies.length} days:\n${formattedNudges}`;
           varietyClause =
-            " and make sure that it is different in overall style than the previously delivered nudges";
+            " and make sure that it is different in overall style from the previously delivered nudges";
         }
 
         // Prompt: Just one nudge, include personalization context.
