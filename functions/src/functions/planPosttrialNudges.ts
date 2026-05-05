@@ -574,7 +574,7 @@ export class PosttrialNudgeService {
               selectedActivities.join(", ")
             : "various activities";
 
-          activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned within their preferred activity type.`;
+          activityTypeContext = `${formattedSelectedTypes} are the user's preferred activity types. Recommendations should be centered around these activity types. Recommendations should be creative, encouraging, and aligned with their preferred activity type.`;
 
           if (hasOther) {
             const notChosenTypes = AVAILABLE_WORKOUT_TYPES.filter(
