@@ -526,6 +526,7 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         userId,
         userData,
         firstNudgeTarget,
+        "en",
       );
 
       expect(scheduled).to.equal(true);
@@ -569,6 +570,7 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         userId,
         userData,
         firstNudgeTarget,
+        "en",
       );
 
       expect(scheduled).to.equal(false);
@@ -593,7 +595,12 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
       );
       const service = new PosttrialNudgeService(env.firestore);
 
-      await service.scheduleWelcomeIfNeeded(userId, userData, firstNudgeTarget);
+      await service.scheduleWelcomeIfNeeded(
+        userId,
+        userData,
+        firstNudgeTarget,
+        "en",
+      );
 
       const backlog = await env.firestore
         .collection("users")
@@ -620,6 +627,7 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         userId,
         userData,
         firstNudgeTarget,
+        "en",
       );
 
       expect(scheduled).to.equal(true);
@@ -653,6 +661,7 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         userId,
         userData,
         firstNudgeTarget,
+        "en",
       );
 
       expect(scheduled).to.equal(false);
@@ -670,6 +679,37 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
         .get();
       expect(userAfter.data()?.posttrialWelcomeNudgeScheduled).to.not.equal(
         true,
+      );
+    });
+
+    it("uses Spanish strings for Spanish-language users", async () => {
+      const userId = "posttrial-welcome-es";
+      const userData = baseEligibleUser();
+      await env.firestore.collection("users").doc(userId).set(userData);
+
+      const firstNudgeTarget = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const service = new PosttrialNudgeService(env.firestore);
+
+      const scheduled = await service.scheduleWelcomeIfNeeded(
+        userId,
+        userData,
+        firstNudgeTarget,
+        "es",
+      );
+
+      expect(scheduled).to.equal(true);
+
+      const backlog = await env.firestore
+        .collection("users")
+        .doc(userId)
+        .collection("notificationBacklog")
+        .get();
+      expect(backlog.size).to.equal(1);
+
+      const doc = backlog.docs[0].data();
+      expect(doc.title).to.equal("¡Finaliza tu configuración en MHC!");
+      expect(doc.body).to.equal(
+        "Termina de configurar la app para empezar a llevar el registro de tu salud del corazón con My Heart Counts.",
       );
     });
   });

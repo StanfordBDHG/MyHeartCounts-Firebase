@@ -112,6 +112,10 @@ export class PosttrialNudgeService {
   private static readonly WELCOME_TITLE = "Physical Activity Nudges Extended";
   private static readonly WELCOME_BODY =
     "Daily nudges for your preferred activities continue after trial! Manage anytime in Profile/Settings under long-term nudges toggle.";
+  private static readonly WELCOME_TITLE_ES =
+    "¡Finaliza tu configuración en MHC!";
+  private static readonly WELCOME_BODY_ES =
+    "Termina de configurar la app para empezar a llevar el registro de tu salud del corazón con My Heart Counts.";
   private static readonly WELCOME_LEAD_MS = 60 * 60 * 1000;
   private readonly firestore: admin.firestore.Firestore;
 
@@ -729,6 +733,7 @@ export class PosttrialNudgeService {
     userId: string,
     userData: PosttrialUserData,
     firstNudgeTargetUtc: Date,
+    language: string,
   ): Promise<boolean> {
     if (userData.posttrialWelcomeNudgeScheduled === true) {
       return false;
@@ -740,6 +745,16 @@ export class PosttrialNudgeService {
       return false;
     }
 
+    const isSpanish = language === "es";
+    const welcomeTitle =
+      isSpanish ?
+        PosttrialNudgeService.WELCOME_TITLE_ES
+      : PosttrialNudgeService.WELCOME_TITLE;
+    const welcomeBody =
+      isSpanish ?
+        PosttrialNudgeService.WELCOME_BODY_ES
+      : PosttrialNudgeService.WELCOME_BODY;
+
     const welcomeTime = new Date(
       firstNudgeTargetUtc.getTime() - PosttrialNudgeService.WELCOME_LEAD_MS,
     );
@@ -750,8 +765,8 @@ export class PosttrialNudgeService {
     const batch = this.firestore.batch();
     batch.set(welcomeRef, {
       id: welcomeId,
-      title: PosttrialNudgeService.WELCOME_TITLE,
-      body: PosttrialNudgeService.WELCOME_BODY,
+      title: welcomeTitle,
+      body: welcomeBody,
       timestamp: admin.firestore.Timestamp.fromDate(welcomeTime),
       category: PosttrialNudgeService.WELCOME_CATEGORY,
       isLLMGenerated: false,
@@ -894,6 +909,7 @@ export class PosttrialNudgeService {
             userId,
             userData,
             targetUtc,
+            userLanguage,
           );
           if (welcomed) welcomesScheduled++;
         } catch (welcomeError) {
