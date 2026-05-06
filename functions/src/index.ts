@@ -47,7 +47,11 @@ export * from "./functions/planPosttrialNudges.js";
 export * from "./functions/sendNudges.js";
 export * from "./functions/onUserQuestionnaireResponseWritten.js";
 export * from "./functions/deleteHealthSamples.js";
-export * from "./functions/onArchivedLiveHealthSampleUploaded.js";
+// Temporarily disabled 2026-05-06 for cost reduction.
+// During the freeze, uploads accumulate at users/*/liveHealthSamples/** in GCS.
+// Storage finalize triggers do NOT fire retroactively, so before re-enabling
+// we MUST run scripts/backfillArchivedLiveHealthSamples.ts to drain the backlog.
+// export * from "./functions/onArchivedLiveHealthSampleUploaded.js";
 export * from "./functions/markAccountForDeletion.js";
 export * from "./functions/markAccountForStudyReenrollment.js";
 export * from "./functions/markAccountForStudyWithdrawal.js";
