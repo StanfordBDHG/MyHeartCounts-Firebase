@@ -22,9 +22,6 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 
   if (sensorKitMatch) {
     const sensorKitDataType = sensorKitMatch[1];
-    logger.debug(
-      `Extracted SensorKit data type from filename: ${sensorKitDataType}`,
-    );
     return `SensorKitObservations_${sensorKitDataType}`;
   }
 
@@ -35,9 +32,6 @@ const getCollectionNameFromFileName = (fileName: string): string | null => {
 
   if (hkMatch) {
     const healthKitIdentifier = hkMatch[0];
-    logger.debug(
-      `Extracted HealthKit identifier from filename: ${healthKitIdentifier}`,
-    );
     return `HealthObservations_${healthKitIdentifier}`;
   }
 
@@ -52,7 +46,6 @@ export const processArchivedLiveHealthSampleObject = async (
   filePath: string,
 ): Promise<void> => {
   if (!filePath.includes("/liveHealthSamples/")) {
-    logger.debug(`Skipping file ${filePath} - not in liveHealthSamples folder`);
     return;
   }
 
@@ -72,8 +65,6 @@ export const processArchivedLiveHealthSampleObject = async (
     return;
   }
 
-  logger.info(`Processing file ${fileName} for user ${userId}`);
-
   try {
     const bucket = admin.storage().bucket(bucketName);
     const file = bucket.file(filePath);
@@ -85,16 +76,12 @@ export const processArchivedLiveHealthSampleObject = async (
     }
 
     const [fileBuffer] = await file.download();
-    logger.debug(
-      `Downloaded file ${fileName}, size: ${fileBuffer.length} bytes`,
-    );
 
     // Decompress so decompressedData is eligible for GC
     // before JSON.parse allocates the full object graph here
     let jsonString: string;
     try {
       const decompressedData = Buffer.from(decompress(fileBuffer));
-      logger.debug(`Decompressed data size: ${decompressedData.length} bytes`);
       jsonString = decompressedData.toString("utf8");
     } catch (error) {
       logger.error(`Failed to decompress file ${fileName}:`, error);
@@ -120,11 +107,9 @@ export const processArchivedLiveHealthSampleObject = async (
     }
 
     if (!Array.isArray(observationsData) || observationsData.length === 0) {
-      logger.debug(`No observations found in file ${fileName}`);
       // Still delete the file even if empty
       try {
         await file.delete();
-        logger.info(`Successfully deleted empty file: ${filePath}`);
       } catch (error) {
         logger.error(`Failed to delete empty file ${filePath}:`, error);
       }
@@ -140,10 +125,6 @@ export const processArchivedLiveHealthSampleObject = async (
       );
       return;
     }
-
-    logger.debug(
-      `Processing ${observationsData.length} observations for collection ${collectionName}`,
-    );
 
     const userObservationsCollection = admin
       .firestore()
@@ -169,7 +150,6 @@ export const processArchivedLiveHealthSampleObject = async (
           typeof observation !== "object" ||
           !("id" in observation)
         ) {
-          logger.warn(`Observation missing ID field, skipping:`, observation);
           continue;
         }
 
@@ -177,10 +157,6 @@ export const processArchivedLiveHealthSampleObject = async (
         const documentId = observationData.id;
 
         if (typeof documentId !== "string") {
-          logger.warn(
-            `Observation has invalid ID field, skipping:`,
-            observation,
-          );
           continue;
         }
 
@@ -193,9 +169,6 @@ export const processArchivedLiveHealthSampleObject = async (
             batchBytes + serializedSize > MAX_BATCH_BYTES)
         ) {
           await currentBatch.commit();
-          logger.debug(
-            `Committed batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
-          );
           currentBatch = admin.firestore().batch();
           batchOperations = 0;
           batchBytes = 0;
@@ -214,16 +187,9 @@ export const processArchivedLiveHealthSampleObject = async (
     // Commit any remaining operations in the final batch
     if (batchOperations > 0) {
       await currentBatch.commit();
-      logger.debug(
-        `Committed final batch of ${batchOperations} operations (${batchBytes} bytes) for user ${userId}`,
-      );
     }
 
-    if (processedCount > 0) {
-      logger.debug(
-        `Successfully stored ${processedCount} observations in collection ${collectionName} for user ${userId}`,
-      );
-    } else {
+    if (processedCount === 0) {
       logger.warn(
         `No valid observations found in file ${fileName} for user ${userId}`,
       );
@@ -231,7 +197,6 @@ export const processArchivedLiveHealthSampleObject = async (
 
     try {
       await file.delete();
-      logger.info(`Successfully deleted processed file: ${filePath}`);
     } catch (error) {
       logger.error(`Failed to delete processed file ${filePath}:`, error);
     }
