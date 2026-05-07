@@ -76,8 +76,6 @@ export const backfillExtendedActivityNudgesOptInScheduled = onSchedule(
     serviceAccount: privilegedServiceAccount,
   },
   async (_event) => {
-    logger.info("Starting scheduled extendedActivityNudgesOptIn backfill");
     await backfillExtendedActivityNudgesOptIn();
-    logger.info("Completed scheduled extendedActivityNudgesOptIn backfill");
   },
 );
