@@ -707,9 +707,11 @@ describeWithEmulators("function: planPosttrialNudges", (env) => {
       expect(backlog.size).to.equal(1);
 
       const doc = backlog.docs[0].data();
-      expect(doc.title).to.equal("¡Finaliza tu configuración en MHC!");
+      expect(doc.title).to.equal(
+        "Empujoncitos de actividad física extendidos",
+      );
       expect(doc.body).to.equal(
-        "Termina de configurar la app para empezar a llevar el registro de tu salud del corazón con My Heart Counts.",
+        "¡Los empujoncitos diarios para tus actividades preferidas continúan después del período de prueba! Puedes administrarlos en cualquier momento en Perfil/Configuración bajo el interruptor de empujoncitos a largo plazo.",
       );
     });
   });
