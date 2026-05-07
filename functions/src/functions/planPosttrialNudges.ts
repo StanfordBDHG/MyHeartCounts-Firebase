@@ -113,9 +113,9 @@ export class PosttrialNudgeService {
   private static readonly WELCOME_BODY =
     "Daily nudges for your preferred activities continue after trial! Manage anytime in Profile/Settings under long-term nudges toggle.";
   private static readonly WELCOME_TITLE_ES =
-    "¡Finaliza tu configuración en MHC!";
+    "Empujoncitos de actividad física extendidos";
   private static readonly WELCOME_BODY_ES =
-    "Termina de configurar la app para empezar a llevar el registro de tu salud del corazón con My Heart Counts.";
+    "¡Los empujoncitos diarios para tus actividades preferidas continúan después del período de prueba! Puedes administrarlos en cualquier momento en Perfil/Configuración bajo el interruptor de empujoncitos a largo plazo.";
   private static readonly WELCOME_LEAD_MS = 60 * 60 * 1000;
   private readonly firestore: admin.firestore.Firestore;
 
