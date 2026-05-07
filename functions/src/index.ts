@@ -56,5 +56,11 @@ export * from "./functions/markAccountForDeletion.js";
 export * from "./functions/markAccountForStudyReenrollment.js";
 export * from "./functions/markAccountForStudyWithdrawal.js";
 export * from "./functions/processUserDeletions.js";
-export * from "./functions/processPendingHealthSampleDeletions.js";
+// Temporarily disabled 2026-05-07 for cost-reduction freeze.
+// Companion to the onArchivedLiveHealthSampleUploaded disable: while uploads
+// are not being ingested, queue items would NOT_FOUND-retry-then-dead-letter
+// Pausing the worker lets pending deletions accumulate in
+// users/*/pendingHealthSampleDeletions until the
+// trigger is back and backfill has populated the target docs.
+// export * from "./functions/processPendingHealthSampleDeletions.js";
 export * from "./functions/backfillExtendedActivityNudgesOptIn.js";
