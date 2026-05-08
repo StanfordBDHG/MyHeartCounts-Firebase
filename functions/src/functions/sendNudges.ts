@@ -83,14 +83,8 @@ export class NotificationService {
 
       if (sendResult) {
         status = "sent";
-        logger.info(
-          `Sent notification to user ${userId}: ${backlogItem.title}`,
-        );
       } else {
         errorMessage = "Firebase messaging send returned falsy result";
-        logger.warn(
-          `Failed to send notification to user ${userId}: ${errorMessage}`,
-        );
       }
     } catch (error) {
       errorMessage = String(error);
@@ -132,9 +126,6 @@ export class NotificationService {
 
         // Skip disabled users
         if (userData.disabled === true) {
-          logger.info(
-            `Skipping notifications for user ${userId} - account disabled`,
-          );
           continue;
         }
 
