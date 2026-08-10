@@ -1,0 +1,26 @@
+#
+# This source file is part of the My Heart Counts Firebase open-source project
+#
+# SPDX-FileCopyrightText: 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
+version: 2
+multi-ecosystem-groups:
+  weekly-dependencies:
+    schedule:
+      interval: "weekly"
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly-dependencies"
+  - package-ecosystem: "npm"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly-dependencies"
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    patterns: ["*"]
+    multi-ecosystem-group: "weekly-dependencies"
