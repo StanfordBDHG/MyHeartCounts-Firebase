@@ -88,6 +88,7 @@ jobs:
     permissions:
       contents: read
       checks: write
+      pull-requests: read
     secrets: inherit
 
   # For non-production environments like staging and develeopment
