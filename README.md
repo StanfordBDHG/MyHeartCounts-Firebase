@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 [![Deployment](https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase/actions/workflows/deployment.yml/badge.svg)](https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase/actions/workflows/deployment.yml)
 [![CodeQL](https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase/actions/workflows/codeql.yml/badge.svg)](https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase/actions/workflows/codeql.yml)
 [![REUSE status](https://api.reuse.software/badge/github.com/SchmiedmayerLab/MyHeartCounts-Firebase)](https://api.reuse.software/info/github.com/SchmiedmayerLab/MyHeartCounts-Firebase)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase/blob/main/LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
 
 Firebase cloud hosting infrastructure for the Stanford My Heart Counts project.
 
