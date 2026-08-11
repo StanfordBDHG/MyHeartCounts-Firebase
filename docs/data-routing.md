@@ -12,6 +12,24 @@ SPDX-License-Identifier: MIT
 **Firestore (uncompressed FHIR documents):** everything the in-app dashboard displays, plus everything a Cloud Function reads or triggers on. The dashboard reads all its metrics directly from Firestore.
 **Storage bucket (zstd-compressed):** everything else, plus the 10-year historical backfill of all types.
 
+We should only store in Firestore the computed metrics in its endform.
+
+What is the aggregation window or filter function to get from raw sample to computed metric stored in firestore
+
+Conflict resolution metrics
+
+Single source of truth for data goal definiton
+
+iOS has to define how data should look for HK Records
+
+One Contract
+
+Clinical Records?
+
+Versioning is important
+
+Enforcement of Versions in bucket (/v2, /v3 etc)
+
 ## 1. Firestore
 
 | Data | Collections | Reason |
