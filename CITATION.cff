@@ -1,0 +1,28 @@
+#
+# This source file is part of the My Heart Counts Firebase open-source project
+#
+# SPDX-FileCopyrightText: 2025 Stanford University and the project authors (see CONTRIBUTORS.md)
+#
+# SPDX-License-Identifier: MIT
+#
+
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+- family-names: "Goldschmidt"
+  given-names: "Paul"
+  orcid: "https://orcid.org/0009-0005-9748-3858"
+- family-names: "Kraft"
+  given-names: "Paul Johannes"
+  orcid: "https://orcid.org/0000-0001-8157-8151"
+- family-names: "Kollmer"
+  given-names: "Lukas"
+  orcid: "https://orcid.org/0000-0002-1065-1320"
+- family-names: "Schmiedmayer"
+  given-names: "Paul"
+  orcid: "https://orcid.org/0000-0002-8607-9148"
+title: "My Heart Counts Firebase"
+license: MIT
+url: "https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase"
+repository-code: "https://github.com/SchmiedmayerLab/MyHeartCounts-Firebase"

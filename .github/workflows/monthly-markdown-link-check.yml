@@ -1,4 +1,4 @@
-# This source file is part of the MyHeart Counts project
+# This source file is part of the My Heart Counts Firebase open-source project
 #
 # SPDX-FileCopyrightText: 2025, 2026 Stanford University and the project authors (see CONTRIBUTORS.md)
 # SPDX-License-Identifier: MIT
@@ -12,4 +12,7 @@ on:
 jobs:
   markdown_link_check:
     name: Markdown Link Check
-    uses: SchmiedmayerLab/.github/.github/workflows/markdown-links.yml@v0.2
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: SchmiedmayerLab/.github/.github/workflows/markdown-links.yml@v0.5
