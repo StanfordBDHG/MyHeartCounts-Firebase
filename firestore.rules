@@ -30,6 +30,10 @@ service cloud.firestore {
       // the sole rule keeping clients out of it.
       allow read, write: if isUser(userId) && collectionName != "documentSnapshots";
     }
+
+    match /users/{userId}/stats/{document=**} {
+      allow read, write: if isUser(userId);
+    }
     
     match /feedback/{uuid} {
       allow create: if isAuthenticated() 
