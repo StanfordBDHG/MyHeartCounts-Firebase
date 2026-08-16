@@ -10,9 +10,8 @@ enum SecretKey {
   OURA_CLIENT_ID = "OURA_CLIENT_ID",
   OURA_CLIENT_SECRET = "OURA_CLIENT_SECRET",
   OURA_WEBHOOK_VERIFICATION_TOKEN = "OURA_WEBHOOK_VERIFICATION_TOKEN",
-  FITBIT_CLIENT_ID = "FITBIT_CLIENT_ID",
-  FITBIT_CLIENT_SECRET = "FITBIT_CLIENT_SECRET",
-  FITBIT_SUBSCRIBER_VERIFICATION_CODE = "FITBIT_SUBSCRIBER_VERIFICATION_CODE",
+  GOOGLE_HEALTH_CLIENT_ID = "GOOGLE_HEALTH_CLIENT_ID",
+  GOOGLE_HEALTH_CLIENT_SECRET = "GOOGLE_HEALTH_CLIENT_SECRET",
   WITHINGS_CLIENT_ID = "WITHINGS_CLIENT_ID",
   WITHINGS_CLIENT_SECRET = "WITHINGS_CLIENT_SECRET",
 }
@@ -44,10 +43,11 @@ const ouraWebhookVerificationToken = defineSecret(
   SecretKey.OURA_WEBHOOK_VERIFICATION_TOKEN,
 );
 
-const fitbitClientId = defineSecret(SecretKey.FITBIT_CLIENT_ID);
-const fitbitClientSecret = defineSecret(SecretKey.FITBIT_CLIENT_SECRET);
-const fitbitSubscriberVerificationCode = defineSecret(
-  SecretKey.FITBIT_SUBSCRIBER_VERIFICATION_CODE,
+// A Google Cloud OAuth 2.0 client's id/secret for the Google Health API
+// (see GoogleHealthAdapter), the replacement for the legacy Fitbit Web API.
+const googleHealthClientId = defineSecret(SecretKey.GOOGLE_HEALTH_CLIENT_ID);
+const googleHealthClientSecret = defineSecret(
+  SecretKey.GOOGLE_HEALTH_CLIENT_SECRET,
 );
 
 const withingsClientId = defineSecret(SecretKey.WITHINGS_CLIENT_ID);
@@ -66,10 +66,10 @@ export const getOuraClientSecret = (): string => ouraClientSecret.value();
 export const getOuraWebhookVerificationToken = (): string =>
   ouraWebhookVerificationToken.value();
 
-export const getFitbitClientId = (): string => fitbitClientId.value();
-export const getFitbitClientSecret = (): string => fitbitClientSecret.value();
-export const getFitbitSubscriberVerificationCode = (): string =>
-  fitbitSubscriberVerificationCode.value();
+export const getGoogleHealthClientId = (): string =>
+  googleHealthClientId.value();
+export const getGoogleHealthClientSecret = (): string =>
+  googleHealthClientSecret.value();
 
 export const getWithingsClientId = (): string => withingsClientId.value();
 export const getWithingsClientSecret = (): string =>
@@ -90,9 +90,8 @@ export const healthProviderSecretParams: Array<
   ouraClientId,
   ouraClientSecret,
   ouraWebhookVerificationToken,
-  fitbitClientId,
-  fitbitClientSecret,
-  fitbitSubscriberVerificationCode,
+  googleHealthClientId,
+  googleHealthClientSecret,
   withingsClientId,
   withingsClientSecret,
 ];

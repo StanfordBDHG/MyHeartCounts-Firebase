@@ -17,6 +17,7 @@ import {
   type FetchObservationsParams,
   type HealthProviderAdapter,
   type ProviderObservation,
+  type ProviderRawArchive,
   type WebhookHandling,
 } from "../healthProviderAdapter.js";
 import { postJson, settleEndpoint } from "../httpClient.js";
@@ -38,11 +39,48 @@ const NOTIFY_APPLI = [1 /* weight */, 16 /* activity */, 44 /* sleep */];
 /** Withings integer measure types -> shared metric specs (getmeas). */
 const MEASURE_TYPE_SPECS = new Map<number, MetricSpec>([
   [1, MetricSpecs.bodyWeight],
+  [4, MetricSpecs.height],
   [6, MetricSpecs.bodyFatPercentage],
+  [9, MetricSpecs.bloodPressureDiastolic],
+  [10, MetricSpecs.bloodPressureSystolic],
   [11, MetricSpecs.heartRate],
   [54, MetricSpecs.oxygenSaturation],
   [71, MetricSpecs.bodyTemperature],
+  [123, MetricSpecs.vo2Max],
+  [155, MetricSpecs.cardiovascularAge],
 ]);
+
+/**
+ * Withings measure types with no shared MetricSpec (body composition beyond
+ * weight/fat%, ECG-derived interval durations, AFib classification, nerve
+ * health, etc.) — no HealthKit-equivalent construct exists for most of these,
+ * and some (AFib, ECG intervals) are diagnostic-adjacent enough that treating
+ * a raw provider code as a physiological quantity would misrepresent it.
+ * getmeas is already being called for the mapped types above, so these are
+ * fetched too and archived raw rather than silently dropped.
+ */
+const UNMAPPED_MEASURE_TYPES = [
+  5, // fat-free mass
+  8, // fat mass weight
+  73, // skin temperature
+  76, // muscle mass
+  77, // hydration
+  88, // bone mass
+  91, // pulse wave velocity
+  130, // AFib result
+  135, // QRS interval (ECG)
+  136, // PR interval (ECG)
+  137, // QT interval (ECG)
+  138, // corrected QT interval (ECG)
+  139, // AFib result (PPG)
+  167, // nerve health score
+  168, // extracellular water
+  169, // intracellular water
+  170, // visceral fat
+  174, // segmental fat mass
+  175, // segmental muscle mass
+  196, // electrodermal activity (feet)
+];
 
 const epochSeconds = (date: Date): number => Math.floor(date.getTime() / 1000);
 const ymd = (date: Date): string => date.toISOString().slice(0, 10);
@@ -99,6 +137,11 @@ interface WithingsSleepSeries {
     rr_average?: number;
   };
 }
+interface WithingsWorkout {
+  id: number;
+  startdate: number;
+  enddate: number;
+}
 
 // --- Response / notification validation (zod) ------------------------------
 // Withings payloads are untrusted; validate the fields we depend on and stay
@@ -139,6 +182,7 @@ export const normalizeWithings = (
     measureGroups?: WithingsMeasureGroup[];
     activities?: WithingsActivity[];
     sleep?: WithingsSleepSeries[];
+    workouts?: WithingsWorkout[];
   },
   subject: FHIRReference,
 ): ProviderObservation[] => {
@@ -231,6 +275,19 @@ export const normalizeWithings = (
       id,
     );
     add(MetricSpecs.respiratoryRate, series.data?.rr_average, period.start, id);
+  }
+
+  for (const workout of raw.workouts ?? []) {
+    const start = new Date(workout.startdate * 1000);
+    const end = new Date(workout.enddate * 1000);
+    const minutes =
+      Math.round(((end.getTime() - start.getTime()) / 60000) * 100) / 100;
+    add(
+      MetricSpecs.workoutDuration,
+      minutes,
+      { start, end },
+      String(workout.id),
+    );
   }
 
   return out;
@@ -384,7 +441,7 @@ export class WithingsAdapter implements HealthProviderAdapter {
 
     // Isolate per-endpoint failures so a transient error on one measure type
     // doesn't discard the others (an auth failure still propagates).
-    const [measures, activity, sleep] = await Promise.all([
+    const [measures, activity, sleep, workouts] = await Promise.all([
       settleEndpoint(
         "Withings getmeas",
         this.call<{ measuregrps?: WithingsMeasureGroup[] }>(
@@ -418,6 +475,15 @@ export class WithingsAdapter implements HealthProviderAdapter {
             "deepsleepduration,remsleepduration,lightsleepduration,wakeupduration,hr_average,rr_average",
         }),
       ),
+      settleEndpoint(
+        "Withings getworkouts",
+        this.call<{ series?: WithingsWorkout[] }>(V2_MEASURE_URL, token, {
+          action: "getworkouts",
+          startdateymd: ymd(since),
+          enddateymd: ymd(until),
+          data_fields: "calories,distance,effduration",
+        }),
+      ),
     ]);
 
     return normalizeWithings(
@@ -425,9 +491,71 @@ export class WithingsAdapter implements HealthProviderAdapter {
         measureGroups: measures?.measuregrps,
         activities: activity?.activities,
         sleep: sleep?.series,
+        workouts: workouts?.series,
       },
       subject,
     );
+  }
+
+  /**
+   * Withings intraday endpoints only cover a bounded window per call, so a
+   * `since`/`until` spanning a full scheduled backfill may return a partial or
+   * empty result rather than an error.
+   */
+  async fetchRawArchives(
+    params: FetchObservationsParams,
+  ): Promise<ProviderRawArchive[]> {
+    const { tokens, since, until } = params;
+    const token = tokens.accessToken;
+    const archives: ProviderRawArchive[] = [];
+
+    const activityIntraday = await settleEndpoint(
+      "Withings getintradayactivity",
+      this.call<unknown>(V2_MEASURE_URL, token, {
+        action: "getintradayactivity",
+        startdate: String(epochSeconds(since)),
+        enddate: String(epochSeconds(until)),
+        data_fields: "steps,calories,distance,elevation,heart_rate,spo2_auto",
+      }),
+    );
+    if (activityIntraday !== undefined) {
+      archives.push({
+        dataType: "activityIntraday",
+        payload: activityIntraday,
+      });
+    }
+
+    const sleepIntraday = await settleEndpoint(
+      "Withings sleep get",
+      this.call<unknown>(V2_SLEEP_URL, token, {
+        action: "get",
+        startdate: String(epochSeconds(since)),
+        enddate: String(epochSeconds(until)),
+        data_fields: "hr,rr,snoring,sdnn_1,rmssd",
+      }),
+    );
+    if (sleepIntraday !== undefined) {
+      archives.push({ dataType: "sleepIntraday", payload: sleepIntraday });
+    }
+
+    const unmappedMeasures = await settleEndpoint(
+      "Withings getmeas (unmapped types)",
+      this.call<unknown>(MEASURE_URL, token, {
+        action: "getmeas",
+        meastypes: UNMAPPED_MEASURE_TYPES.join(","),
+        category: "1",
+        startdate: String(epochSeconds(since)),
+        enddate: String(epochSeconds(until)),
+      }),
+    );
+    if (unmappedMeasures !== undefined) {
+      archives.push({
+        dataType: "measuresUnmapped",
+        payload: unmappedMeasures,
+      });
+    }
+
+    return archives;
   }
 
   // Helpers ------------------------------------------------------------------

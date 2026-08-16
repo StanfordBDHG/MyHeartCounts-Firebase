@@ -21,6 +21,7 @@ import {
   type FetchObservationsParams,
   type HealthProviderAdapter,
   type ProviderObservation,
+  type ProviderRawArchive,
   type WebhookHandling,
 } from "../healthProviderAdapter.js";
 import {
@@ -118,6 +119,24 @@ interface OuraWorkout {
   end_datetime?: string;
 }
 
+interface OuraVo2Max {
+  id: string;
+  day: string;
+  vo2_max?: number;
+}
+
+interface OuraDailyCardiovascularAge {
+  id: string;
+  day: string;
+  vascular_age?: number | null;
+}
+
+interface OuraDailyReadiness {
+  id: string;
+  day: string;
+  score?: number | null;
+}
+
 // --- Response validation (zod) ---------------------------------------------
 // Provider payloads are untrusted input; validate the shapes we depend on and
 // stay permissive (`.passthrough()`) about everything else so new upstream
@@ -164,11 +183,13 @@ const midday = (day: string): Date => new Date(`${day}T12:00:00Z`);
 
 export const normalizeOura = (
   raw: {
-    heartRate?: OuraHeartRatePoint[];
     activity?: OuraDailyActivity[];
     sleep?: OuraSleep[];
     spo2?: OuraDailySpo2[];
     workouts?: OuraWorkout[];
+    vo2Max?: OuraVo2Max[];
+    cardiovascularAge?: OuraDailyCardiovascularAge[];
+    readiness?: OuraDailyReadiness[];
   },
   subject: FHIRReference,
 ): ProviderObservation[] => {
@@ -192,15 +213,6 @@ export const normalizeOura = (
       }),
     );
   };
-
-  for (const point of raw.heartRate ?? []) {
-    add(
-      MetricSpecs.heartRate,
-      point.bpm,
-      new Date(point.timestamp),
-      point.timestamp,
-    );
-  }
 
   for (const activity of raw.activity ?? []) {
     add(MetricSpecs.steps, activity.steps, midday(activity.day), activity.id);
@@ -292,6 +304,23 @@ export const normalizeOura = (
     const minutes =
       Math.round(((end.getTime() - start.getTime()) / 60000) * 100) / 100;
     add(MetricSpecs.workoutDuration, minutes, { start, end }, workout.id);
+  }
+
+  for (const v of raw.vo2Max ?? []) {
+    add(MetricSpecs.vo2Max, v.vo2_max, midday(v.day), v.id);
+  }
+
+  for (const v of raw.cardiovascularAge ?? []) {
+    add(
+      MetricSpecs.cardiovascularAge,
+      v.vascular_age ?? undefined,
+      midday(v.day),
+      v.id,
+    );
+  }
+
+  for (const v of raw.readiness ?? []) {
+    add(MetricSpecs.readinessScore, v.score ?? undefined, midday(v.day), v.id);
   }
 
   return out;
@@ -448,21 +477,19 @@ export class OuraAdapter implements HealthProviderAdapter {
     const token = tokens.accessToken;
     const startDate = isoDate(since);
     const endDate = isoDate(until);
-    const startDt = since.toISOString();
-    const endDt = until.toISOString();
 
     // Each endpoint is isolated: a transient failure on one leaves the others'
     // data intact rather than dropping the entire window (an auth failure still
     // propagates to flip the connection status).
-    const [heartRate, activity, sleep, spo2, workouts] = await Promise.all([
-      settleEndpoint(
-        "Oura heartrate",
-        this.fetchAll<OuraHeartRatePoint>(
-          `${API_BASE}/heartrate?start_datetime=${encodeURIComponent(startDt)}&end_datetime=${encodeURIComponent(endDt)}`,
-          token,
-          "Oura heartrate",
-        ),
-      ),
+    const [
+      activity,
+      sleep,
+      spo2,
+      workouts,
+      vo2Max,
+      cardiovascularAge,
+      readiness,
+    ] = await Promise.all([
       settleEndpoint(
         "Oura daily_activity",
         this.fetchAll<OuraDailyActivity>(
@@ -495,12 +522,64 @@ export class OuraAdapter implements HealthProviderAdapter {
           "Oura workout",
         ),
       ),
+      settleEndpoint(
+        "Oura vO2_max",
+        this.fetchAll<OuraVo2Max>(
+          `${API_BASE}/vO2_max?start_date=${startDate}&end_date=${endDate}`,
+          token,
+          "Oura vO2_max",
+        ),
+      ),
+      settleEndpoint(
+        "Oura daily_cardiovascular_age",
+        this.fetchAll<OuraDailyCardiovascularAge>(
+          `${API_BASE}/daily_cardiovascular_age?start_date=${startDate}&end_date=${endDate}`,
+          token,
+          "Oura daily_cardiovascular_age",
+        ),
+      ),
+      settleEndpoint(
+        "Oura daily_readiness",
+        this.fetchAll<OuraDailyReadiness>(
+          `${API_BASE}/daily_readiness?start_date=${startDate}&end_date=${endDate}`,
+          token,
+          "Oura daily_readiness",
+        ),
+      ),
     ]);
 
     return normalizeOura(
-      { heartRate, activity, sleep, spo2, workouts },
+      {
+        activity,
+        sleep,
+        spo2,
+        workouts,
+        vo2Max,
+        cardiovascularAge,
+        readiness,
+      },
       subject,
     );
+  }
+
+  /** Continuous heart rate is high-cardinality; archive it raw instead of one Firestore doc per sample. */
+  async fetchRawArchives(
+    params: FetchObservationsParams,
+  ): Promise<ProviderRawArchive[]> {
+    const { tokens, since, until } = params;
+    const startDt = since.toISOString();
+    const endDt = until.toISOString();
+
+    const heartRate = await settleEndpoint(
+      "Oura heartrate",
+      this.fetchAll<OuraHeartRatePoint>(
+        `${API_BASE}/heartrate?start_datetime=${encodeURIComponent(startDt)}&end_datetime=${encodeURIComponent(endDt)}`,
+        tokens.accessToken,
+        "Oura heartrate",
+      ),
+    );
+    if (heartRate === undefined || heartRate.length === 0) return [];
+    return [{ dataType: "heartRate", payload: heartRate }];
   }
 
   // Helpers ------------------------------------------------------------------

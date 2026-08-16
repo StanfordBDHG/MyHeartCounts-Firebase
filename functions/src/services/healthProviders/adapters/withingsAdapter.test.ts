@@ -147,6 +147,55 @@ describe("WithingsAdapter: normalizeWithings", () => {
     expect(metrics).to.not.include("sleepAwake");
   });
 
+  it("maps height, blood pressure, VO2 max and cardiovascular age measure types", () => {
+    const result = normalizeWithings(
+      {
+        measureGroups: [
+          {
+            grpid: 200,
+            date: 1735732800,
+            measures: [
+              { value: 175, type: 4, unit: -2 }, // height 1.75 m
+              { value: 80, type: 9, unit: 0 }, // diastolic 80 mmHg
+              { value: 120, type: 10, unit: 0 }, // systolic 120 mmHg
+              { value: 421, type: 123, unit: -1 }, // vo2max 42.1 mL/kg/min
+              { value: 41, type: 155, unit: 0 }, // vascular age 41 years
+            ],
+          },
+        ],
+      },
+      subject,
+    );
+    expect(observationFor(result, "height").valueQuantity?.value).to.equal(
+      1.75,
+    );
+    expect(
+      observationFor(result, "bloodPressureDiastolic").valueQuantity?.value,
+    ).to.equal(80);
+    expect(
+      observationFor(result, "bloodPressureSystolic").valueQuantity?.value,
+    ).to.equal(120);
+    expect(observationFor(result, "vo2Max").valueQuantity?.value).to.equal(
+      42.1,
+    );
+    expect(
+      observationFor(result, "cardiovascularAge").valueQuantity?.value,
+    ).to.equal(41);
+  });
+
+  it("computes workout duration in minutes from the interval", () => {
+    const result = normalizeWithings(
+      {
+        workouts: [{ id: 9, startdate: 1735732800, enddate: 1735734600 }],
+      },
+      subject,
+    );
+    expect(
+      observationFor(result, "workoutDuration").valueQuantity?.value,
+    ).to.equal(30);
+    expect(observationFor(result, "workoutDuration").id).to.equal("withings-9");
+  });
+
   it("ignores unmapped measure types", () => {
     const result = normalizeWithings(
       {
@@ -194,6 +243,101 @@ describe("WithingsAdapter: fetchObservations", () => {
       expect(
         observationFor(result, "bodyWeight").valueQuantity?.value,
       ).to.equal(70.5);
+    } finally {
+      restore();
+    }
+  });
+
+  it("calls getworkouts and normalizes workout duration", async () => {
+    const { restore, bodies } = stubFetch((url) => {
+      if (url.endsWith("/v2/measure")) {
+        return {
+          status: 0,
+          body: {
+            series: [{ id: 5, startdate: 1735732800, enddate: 1735734600 }],
+          },
+        };
+      }
+      return { status: 0, body: {} };
+    });
+    try {
+      const adapter = new WithingsAdapter();
+      const result = await adapter.fetchObservations({
+        tokens: fakeTokens,
+        since: new Date("2026-01-01T00:00:00Z"),
+        until: new Date("2026-01-02T00:00:00Z"),
+        subject,
+      });
+      expect(
+        observationFor(result, "workoutDuration").valueQuantity?.value,
+      ).to.equal(30);
+      const workoutsBody = bodies.get("https://wbsapi.withings.net/v2/measure");
+      expect(workoutsBody).to.contain("action=getworkouts");
+    } finally {
+      restore();
+    }
+  });
+});
+
+describe("WithingsAdapter: fetchRawArchives", () => {
+  it("archives intraday activity, sleep and unmapped measure types as raw dataType-tagged payloads", async () => {
+    const { restore } = stubFetch((url) => {
+      if (url.includes("/v2/measure")) {
+        return { status: 0, body: { series: { "1735732800": { steps: 5 } } } };
+      }
+      if (url.includes("/v2/sleep")) {
+        return { status: 0, body: { series: [{ startdate: 1, hr: [60] }] } };
+      }
+      // Plain (non-v2) /measure is the unmapped-measure-types getmeas call.
+      if (url.endsWith("/measure")) {
+        return {
+          status: 0,
+          body: {
+            measuregrps: [
+              {
+                grpid: 1,
+                date: 1735732800,
+                measures: [{ value: 1, type: 76, unit: 0 }],
+              },
+            ],
+          },
+        };
+      }
+      return { status: 0, body: {} };
+    });
+    try {
+      const adapter = new WithingsAdapter();
+      const archives = await adapter.fetchRawArchives({
+        tokens: fakeTokens,
+        since: new Date("2026-01-01T00:00:00Z"),
+        until: new Date("2026-01-02T00:00:00Z"),
+        subject,
+      });
+      const dataTypes = archives.map((a) => a.dataType);
+      expect(dataTypes).to.include("activityIntraday");
+      expect(dataTypes).to.include("sleepIntraday");
+      expect(dataTypes).to.include("measuresUnmapped");
+    } finally {
+      restore();
+    }
+  });
+
+  it("drops an endpoint's archive instead of failing when it errors", async () => {
+    const { restore } = stubFetch((url) => {
+      if (url.includes("/measure")) {
+        return { status: 293, error: "unauthorized", body: {} };
+      }
+      return { status: 0, body: { series: [] } };
+    });
+    try {
+      const adapter = new WithingsAdapter();
+      const archives = await adapter.fetchRawArchives({
+        tokens: fakeTokens,
+        since: new Date("2026-01-01T00:00:00Z"),
+        until: new Date("2026-01-02T00:00:00Z"),
+        subject,
+      });
+      expect(archives.map((a) => a.dataType)).to.deep.equal(["sleepIntraday"]);
     } finally {
       restore();
     }

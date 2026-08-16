@@ -97,7 +97,11 @@ export class DefaultServiceFactory implements ServiceFactory {
   );
 
   private readonly healthProviderService = new Lazy(
-    () => new HealthProviderService(this.databaseService.value),
+    () =>
+      new HealthProviderService(
+        this.databaseService.value,
+        this.storage.value.bucket(`${process.env.GCLOUD_PROJECT}.appspot.com`),
+      ),
   );
 
   private readonly triggerService = new Lazy(

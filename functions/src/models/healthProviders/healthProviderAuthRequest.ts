@@ -14,7 +14,8 @@ import { SchemaConverter } from "../helpers/schemaConverter.js";
  * Short-lived pending-OAuth record at the root collection
  * `healthProviderAuthRequests/{state}`. Ties an opaque `state` value back to the
  * requesting user and provider across the redirect round-trip, and carries the
- * PKCE `codeVerifier` for providers that use PKCE (Fitbit). It is server-only
+ * PKCE `codeVerifier` for providers that use PKCE (none currently do, but the
+ * field is available for a future adapter that needs it). It is server-only
  * (root collections default-deny in firestore.rules) and consumed exactly once
  * in the OAuth callback.
  */

@@ -13,7 +13,7 @@ import { z } from "zod";
  */
 export enum HealthProviderId {
   oura = "oura",
-  fitbit = "fitbit",
+  googleHealth = "googleHealth",
   withings = "withings",
 }
 

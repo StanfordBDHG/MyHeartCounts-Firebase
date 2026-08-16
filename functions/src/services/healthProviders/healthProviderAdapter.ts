@@ -56,6 +56,16 @@ export interface FetchObservationsParams {
 }
 
 /**
+ * An unnormalized provider payload archived verbatim to Cloud Storage instead
+ * of Firestore. `dataType` becomes part of the archived blob's filename and
+ * must be alphanumeric.
+ */
+export interface ProviderRawArchive {
+  dataType: string;
+  payload: unknown;
+}
+
+/**
  * Per-provider integration surface. Everything provider-specific — OAuth
  * dialect, token lifetime, webhook signature/handshake, API schema and its
  * mapping to FHIR — is confined to an implementation of this interface. The
@@ -115,4 +125,9 @@ export interface HealthProviderAdapter {
   fetchObservations(
     params: FetchObservationsParams,
   ): Promise<ProviderObservation[]>;
+
+  /** Pull raw/high-frequency payloads in `[since, until]` for archival. */
+  fetchRawArchives?(
+    params: FetchObservationsParams,
+  ): Promise<ProviderRawArchive[]>;
 }

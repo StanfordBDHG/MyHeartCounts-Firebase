@@ -159,6 +159,38 @@ describe("OuraAdapter: normalizeOura", () => {
     ).to.equal(30);
   });
 
+  it("maps VO2 max estimates", () => {
+    const result = normalizeOura(
+      { vo2Max: [{ id: "v1", day: "2026-01-01", vo2_max: 42.1 }] },
+      subject,
+    );
+    expect(observationFor(result, "vo2Max").valueQuantity?.value).to.equal(
+      42.1,
+    );
+  });
+
+  it("maps cardiovascular age and readiness score, treating null as absent", () => {
+    const result = normalizeOura(
+      {
+        cardiovascularAge: [
+          { id: "c1", day: "2026-01-01", vascular_age: 41 },
+          { id: "c2", day: "2026-01-02", vascular_age: null },
+        ],
+        readiness: [{ id: "r1", day: "2026-01-01", score: 82 }],
+      },
+      subject,
+    );
+    expect(
+      observationFor(result, "cardiovascularAge").valueQuantity?.value,
+    ).to.equal(41);
+    expect(
+      observationFor(result, "readinessScore").valueQuantity?.value,
+    ).to.equal(82);
+    expect(
+      result.filter((o) => o.metric === "cardiovascularAge"),
+    ).to.have.lengthOf(1);
+  });
+
   it("skips missing/undefined values", () => {
     const result = normalizeOura(
       { activity: [{ id: "a1", day: "2026-01-01" }] },
@@ -170,18 +202,18 @@ describe("OuraAdapter: normalizeOura", () => {
 
 describe("OuraAdapter: fetchObservations", () => {
   it("follows next_token pagination and normalizes", async () => {
-    let heartCalls = 0;
+    let activityCalls = 0;
     const restore = stubFetch((url) => {
-      if (url.includes("/heartrate")) {
-        heartCalls += 1;
+      if (url.includes("/daily_activity")) {
+        activityCalls += 1;
         if (!url.includes("next_token")) {
           return {
-            data: [{ bpm: 60, timestamp: "2026-01-01T00:00:00Z" }],
+            data: [{ id: "a1", day: "2026-01-01", steps: 1000 }],
             next_token: "page2",
           };
         }
         return {
-          data: [{ bpm: 61, timestamp: "2026-01-01T00:05:00Z" }],
+          data: [{ id: "a2", day: "2026-01-01", steps: 500 }],
           next_token: null,
         };
       }
@@ -195,10 +227,58 @@ describe("OuraAdapter: fetchObservations", () => {
         until: new Date("2026-01-02T00:00:00Z"),
         subject,
       });
-      expect(heartCalls).to.equal(2);
-      expect(result.filter((o) => o.metric === "heartRate")).to.have.lengthOf(
-        2,
-      );
+      expect(activityCalls).to.equal(2);
+      expect(result.filter((o) => o.metric === "steps")).to.have.lengthOf(2);
+    } finally {
+      restore();
+    }
+  });
+});
+
+describe("OuraAdapter: fetchRawArchives", () => {
+  it("archives continuous heart rate as a single raw payload", async () => {
+    const restore = stubFetch((url) => {
+      if (url.includes("/heartrate")) {
+        return {
+          data: [
+            { bpm: 60, timestamp: "2026-01-01T00:00:00Z" },
+            { bpm: 61, timestamp: "2026-01-01T00:05:00Z" },
+          ],
+          next_token: null,
+        };
+      }
+      return { data: [] };
+    });
+    try {
+      const adapter = new OuraAdapter();
+      const archives = await adapter.fetchRawArchives({
+        tokens: fakeTokens,
+        since: new Date("2026-01-01T00:00:00Z"),
+        until: new Date("2026-01-02T00:00:00Z"),
+        subject,
+      });
+      expect(archives).to.have.lengthOf(1);
+      expect(archives[0]?.dataType).to.equal("heartRate");
+      expect(archives[0]?.payload).to.deep.equal([
+        { bpm: 60, timestamp: "2026-01-01T00:00:00Z" },
+        { bpm: 61, timestamp: "2026-01-01T00:05:00Z" },
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
+  it("returns no archive when there is nothing to report", async () => {
+    const restore = stubFetch(() => ({ data: [], next_token: null }));
+    try {
+      const adapter = new OuraAdapter();
+      const archives = await adapter.fetchRawArchives({
+        tokens: fakeTokens,
+        since: new Date("2026-01-01T00:00:00Z"),
+        until: new Date("2026-01-02T00:00:00Z"),
+        subject,
+      });
+      expect(archives).to.have.lengthOf(0);
     } finally {
       restore();
     }

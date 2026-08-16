@@ -37,5 +37,5 @@ const makeWebhook = (provider: HealthProviderId) =>
   );
 
 export const ouraWebhook = makeWebhook(HealthProviderId.oura);
-export const fitbitWebhook = makeWebhook(HealthProviderId.fitbit);
+export const googleHealthWebhook = makeWebhook(HealthProviderId.googleHealth);
 export const withingsWebhook = makeWebhook(HealthProviderId.withings);

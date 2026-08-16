@@ -11,6 +11,7 @@ import {
   fhirQuestionnaireResponseConverter,
   healthProviderAuthRequestConverter,
   healthProviderConnectionConverter,
+  healthProviderRawArchiveConverter,
   healthProviderTokenConverter,
   healthProviderUserIndexConverter,
   scoreConverter,
@@ -107,7 +108,7 @@ export class CollectionsService {
       .withConverter(new DatabaseConverter(fhirObservationConverter.value));
   }
 
-  // Health providers (Oura / Fitbit / Withings)
+  // Health providers (Oura / Google Health / Withings)
 
   /** Server-only: OAuth tokens per connected provider. */
   healthProviderTokens(userId: string) {
@@ -135,6 +136,17 @@ export class CollectionsService {
       .collection("healthProviderAuthRequests")
       .withConverter(
         new DatabaseConverter(healthProviderAuthRequestConverter.value),
+      );
+  }
+
+  /** Server-only: pointers to zstd-compressed raw provider payloads in Cloud Storage. */
+  healthProviderRawArchives(userId: string) {
+    return this.firestore
+      .collection("users")
+      .doc(userId)
+      .collection("healthProviderRawArchives")
+      .withConverter(
+        new DatabaseConverter(healthProviderRawArchiveConverter.value),
       );
   }
 

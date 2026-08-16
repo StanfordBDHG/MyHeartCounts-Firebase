@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
 import { expect } from "chai";
+import { decompress } from "fzstd";
 import { type HealthProviderAdapter } from "./healthProviderAdapter.js";
 import { HealthProviderService } from "./healthProviderService.js";
 import { ProviderHttpError } from "./httpClient.js";
@@ -66,8 +67,10 @@ const makeFakeAdapter = (
 
 describeWithEmulators("service: HealthProviderService", (env) => {
   const newService = (overrides: Partial<HealthProviderAdapter> = {}) =>
-    new HealthProviderService(new FirestoreService(env.firestore), () =>
-      makeFakeAdapter(overrides),
+    new HealthProviderService(
+      new FirestoreService(env.firestore),
+      env.storage.bucket(`${process.env.GCLOUD_PROJECT}.appspot.com`),
+      () => makeFakeAdapter(overrides),
     );
 
   const connectUser = async (
@@ -207,6 +210,56 @@ describeWithEmulators("service: HealthProviderService", (env) => {
       .doc("oura-hr-1")
       .get();
     expect(observation.exists).to.be.true;
+  });
+
+  it("archives raw payloads to Cloud Storage with a Firestore pointer doc", async () => {
+    const rawPayload = { series: { "0": { steps: 12 } } };
+    const service = newService({
+      fetchRawArchives: () =>
+        Promise.resolve([
+          { dataType: "activityIntraday", payload: rawPayload },
+        ]),
+    });
+    await connectUser(service, "user-1");
+
+    let statusCode = 0;
+    const fakeRes = {
+      status(code: number) {
+        statusCode = code;
+        return this;
+      },
+      send() {
+        return this;
+      },
+      json() {
+        return this;
+      },
+      headersSent: false,
+    };
+    await service.handleWebhook(
+      HealthProviderId.oura,
+      { method: "POST", body: {} } as never,
+      fakeRes as never,
+    );
+    expect(statusCode).to.equal(204);
+
+    const archives = await env.firestore
+      .collection("users")
+      .doc("user-1")
+      .collection("healthProviderRawArchives")
+      .get();
+    expect(archives.docs).to.have.lengthOf(1);
+    const archive = archives.docs[0].data();
+    expect(archive.provider).to.equal("oura");
+    expect(archive.dataType).to.equal("activityIntraday");
+    expect(archive.storagePath as string).to.contain("oura_activityIntraday_");
+
+    const [compressed] = await env.storage
+      .bucket(`${process.env.GCLOUD_PROJECT}.appspot.com`)
+      .file(archive.storagePath as string)
+      .download();
+    const decompressed = Buffer.from(decompress(compressed)).toString("utf8");
+    expect(JSON.parse(decompressed)).to.deep.equal(rawPayload);
   });
 
   it("disconnect deletes tokens and index and marks the status disconnected", async () => {

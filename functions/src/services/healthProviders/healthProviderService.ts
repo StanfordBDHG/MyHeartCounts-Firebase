@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 import { createHash, randomBytes } from "crypto";
+import { type Bucket } from "@google-cloud/storage";
 import { type Response } from "express";
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
@@ -16,6 +17,7 @@ import {
 } from "./healthProviderAdapter.js";
 import { ProviderAuthError, ProviderHttpError } from "./httpClient.js";
 import { getAdapter } from "./providerRegistry.js";
+import { archiveRawPayloads } from "./rawArchiveStorage.js";
 import {
   getHealthProviderBaseUrl,
   getHealthProviderAppRedirectUrl,
@@ -61,12 +63,14 @@ const base64url = (buffer: Buffer): string =>
 
 export class HealthProviderService {
   private readonly databaseService: DatabaseService;
+  private readonly bucket: Bucket;
   private readonly resolveAdapter: (
     provider: HealthProviderId,
   ) => HealthProviderAdapter;
 
   constructor(
     databaseService: DatabaseService,
+    bucket: Bucket,
     // Injectable so tests can substitute a fake adapter without hitting provider
     // networks; production uses the real registry.
     resolveAdapter: (
@@ -74,6 +78,7 @@ export class HealthProviderService {
     ) => HealthProviderAdapter = getAdapter,
   ) {
     this.databaseService = databaseService;
+    this.bucket = bucket;
     this.resolveAdapter = resolveAdapter;
   }
 
@@ -447,13 +452,23 @@ export class HealthProviderService {
   ): Promise<void> {
     try {
       const tokens = await this.validAccessToken(userId, provider, adapter);
+      const subject = this.subject(userId);
       const observations = await adapter.fetchObservations({
         tokens,
         since,
         until,
-        subject: this.subject(userId),
+        subject,
       });
       await this.writeObservations(userId, provider, observations);
+      await this.archiveRawData(
+        userId,
+        provider,
+        adapter,
+        tokens,
+        subject,
+        since,
+        until,
+      );
       await this.markSync(userId, provider, HealthProviderSyncStatus.ok, until);
     } catch (error) {
       // Only a credential failure (unrenewable/rejected token) flips the
@@ -496,6 +511,44 @@ export class HealthProviderService {
     });
   }
 
+  /**
+   * Best-effort: an adapter without `fetchRawArchives`, or a failure while
+   * archiving, must not affect the observation sync that already succeeded.
+   */
+  private async archiveRawData(
+    userId: string,
+    provider: HealthProviderId,
+    adapter: HealthProviderAdapter,
+    tokens: ProviderTokens,
+    subject: FHIRReference,
+    since: Date,
+    until: Date,
+  ): Promise<void> {
+    if (!adapter.fetchRawArchives) return;
+    try {
+      const archives = await adapter.fetchRawArchives({
+        tokens,
+        since,
+        until,
+        subject,
+      });
+      if (archives.length === 0) return;
+      await archiveRawPayloads({
+        bucket: this.bucket,
+        databaseService: this.databaseService,
+        userId,
+        provider,
+        archives,
+        since,
+        until,
+      });
+    } catch (error) {
+      logger.error(
+        `HealthProviderService: raw archive capture failed for ${provider}/${userId}: ${String(error)}`,
+      );
+    }
+  }
+
   // Tokens -------------------------------------------------------------------
 
   private async storeTokens(
@@ -521,7 +574,7 @@ export class HealthProviderService {
 
   /**
    * Return a non-expired access token, transparently refreshing and persisting
-   * rotated tokens (Fitbit and Withings rotate their refresh tokens).
+   * rotated tokens (Withings rotates its refresh tokens).
    */
   private async validAccessToken(
     userId: string,
@@ -556,7 +609,7 @@ export class HealthProviderService {
     };
 
     // Compare-and-set: persist only if no concurrent sync already rotated the
-    // refresh token (Fitbit/Withings invalidate the old one on first use). If
+    // refresh token (Withings invalidates the old one on first use). If
     // another writer got there first, keep its tokens rather than clobbering
     // them with a now-stale value.
     return this.databaseService.runTransaction(async (collections, tx) => {

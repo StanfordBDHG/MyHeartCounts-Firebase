@@ -15,6 +15,8 @@ import {
 // constructing them locally is sufficient and avoids touching the shared file.
 const milliseconds = new QuantityUnit("ms", "milliseconds");
 const kilocalories = new QuantityUnit("kcal", "kcal");
+const years = new QuantityUnit("a", "years");
+const score = new QuantityUnit("{score}", "score");
 
 const SPEZI_CUSTOM_SYSTEM = "https://spezi.stanford.edu";
 
@@ -38,7 +40,8 @@ export interface MetricSpec {
 /**
  * The curated cardiovascular-core metric catalog shared by every provider
  * adapter. Providers map their native fields onto these keys so that, e.g., an
- * Oura and a Fitbit resting heart rate land in analogously-shaped observations.
+ * Oura and a Google Health resting heart rate land in analogously-shaped
+ * observations.
  */
 export const MetricSpecs = {
   heartRate: {
@@ -92,6 +95,19 @@ export const MetricSpecs = {
     ),
     unit: kilocalories,
   },
+  basalEnergyBurned: {
+    metric: "basalEnergyBurned",
+    concept: custom(
+      "MHCCustomSampleTypeBasalEnergyBurned",
+      "Basal energy burned",
+    ),
+    unit: kilocalories,
+  },
+  flightsClimbed: {
+    metric: "flightsClimbed",
+    concept: custom("MHCCustomSampleTypeFlightsClimbed", "Flights climbed"),
+    unit: QuantityUnit.flights,
+  },
   bodyWeight: {
     metric: "bodyWeight",
     concept: loinc(LoincCode.bodyWeight, "Body weight"),
@@ -102,10 +118,50 @@ export const MetricSpecs = {
     concept: loinc(LoincCode.bodyFatPercentage, "Body fat percentage"),
     unit: QuantityUnit.percent,
   },
+  height: {
+    metric: "height",
+    concept: loinc(LoincCode.height, "Body height"),
+    unit: QuantityUnit.meters,
+  },
+  bloodPressureSystolic: {
+    metric: "bloodPressureSystolic",
+    concept: loinc(LoincCode.systolicBloodPressure, "Systolic blood pressure"),
+    unit: QuantityUnit.mmHg,
+  },
+  bloodPressureDiastolic: {
+    metric: "bloodPressureDiastolic",
+    concept: loinc(
+      LoincCode.diastolicBloodPressure,
+      "Diastolic blood pressure",
+    ),
+    unit: QuantityUnit.mmHg,
+  },
   vo2Max: {
     metric: "vo2Max",
     concept: loinc(LoincCode.vo2Max, "VO2 max"),
     unit: QuantityUnit.mL_kg_min,
+  },
+  bloodGlucose: {
+    metric: "bloodGlucose",
+    concept: loinc(LoincCode.bloodGlucose, "Blood glucose"),
+    unit: QuantityUnit.mg_dL_glu,
+  },
+  // No HealthKit-equivalent construct exists for these two: they are
+  // provider-computed indices, not physiological measurements, so they are
+  // kept as their own display-only metrics rather than folded into an
+  // existing spec.
+  cardiovascularAge: {
+    metric: "cardiovascularAge",
+    concept: custom(
+      "MHCCustomSampleTypeCardiovascularAge",
+      "Predicted cardiovascular age",
+    ),
+    unit: years,
+  },
+  readinessScore: {
+    metric: "readinessScore",
+    concept: custom("MHCCustomSampleTypeReadinessScore", "Readiness score"),
+    unit: score,
   },
   sleepDuration: {
     metric: "sleepDuration",
