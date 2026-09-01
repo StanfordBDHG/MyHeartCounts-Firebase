@@ -108,6 +108,7 @@ interface PosttrialNudgeMessage extends BaseNudgeMessage {
   llmPromptVersion?: string;
   llmTokenUsage?: LlmTokenUsage;
   llmModel?: string;
+  llmModelRequested?: string;
 }
 
 export class PosttrialNudgeService {
@@ -693,7 +694,8 @@ export class PosttrialNudgeService {
           generatedAt,
           llmPrompt: prompt,
           llmPromptVersion: PROMPT_VERSION,
-          llmModel: LLM_MODEL,
+          ...(response.model && { llmModel: response.model }),
+          llmModelRequested: LLM_MODEL,
           ...(tokenUsage && { llmTokenUsage: tokenUsage }),
         };
 
@@ -744,6 +746,9 @@ export class PosttrialNudgeService {
         }),
         ...(nudge.llmTokenUsage && { llmTokenUsage: nudge.llmTokenUsage }),
         ...(nudge.llmModel && { llmModel: nudge.llmModel }),
+        ...(nudge.llmModelRequested && {
+          llmModelRequested: nudge.llmModelRequested,
+        }),
       });
   }
 
