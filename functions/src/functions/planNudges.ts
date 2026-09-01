@@ -98,6 +98,7 @@ interface NudgeMessage extends BaseNudgeMessage {
   llmPromptVersion?: string;
   llmTokenUsage?: LlmTokenUsage;
   llmModel?: string;
+  llmModelRequested?: string;
 }
 
 export class NudgeService {
@@ -526,7 +527,8 @@ export class NudgeService {
               body: n.body,
               isLLMGenerated: true,
               generatedAt,
-              llmModel: LLM_MODEL,
+              ...(response.model && { llmModel: response.model }),
+              llmModelRequested: LLM_MODEL,
               llmPromptVersion: PROMPT_VERSION,
               ...(isFirst && { llmPrompt: prompt }),
               ...(isFirst && tokenUsage && { llmTokenUsage: tokenUsage }),
@@ -614,6 +616,9 @@ export class NudgeService {
             llmTokenUsage: nudgeMessage.llmTokenUsage,
           }),
           ...(nudgeMessage.llmModel && { llmModel: nudgeMessage.llmModel }),
+          ...(nudgeMessage.llmModelRequested && {
+            llmModelRequested: nudgeMessage.llmModelRequested,
+          }),
         });
 
       nudgesCreated++;
